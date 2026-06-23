@@ -21,7 +21,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _startAnimation() async {
     // 로고만 1초
-    await Future.delayed(const Duration(seconds: 1));
+    await Future.delayed(const Duration(milliseconds: 1000));
 
     setState(() {
       logoOffset = -45; // 위로 이동
@@ -29,10 +29,7 @@ class _SplashScreenState extends State<SplashScreen> {
     });
 
     // 애니메이션 시간
-    await Future.delayed(const Duration(milliseconds: 800));
-
-    // 잠깐 유지
-    await Future.delayed(const Duration(milliseconds: 700));
+    await Future.delayed(const Duration(milliseconds: 1550));
 
     // 화면 전체 페이드아웃
     setState(() {
@@ -52,14 +49,14 @@ class _SplashScreenState extends State<SplashScreen> {
       backgroundColor: Colors.white,
       body: AnimatedOpacity(
         opacity: screenOpacity,
-        duration: const Duration(milliseconds: 500),
+        duration: const Duration(milliseconds: 450),
         child: Center(
           child: Stack(
             alignment: Alignment.center,
             children: [
               AnimatedSlide(
                 offset: Offset(0, logoOffset / 180),
-                duration: const Duration(milliseconds: 700),
+                duration: const Duration(milliseconds: 750),
                 curve: Curves.easeInOut,
                 child: Image.asset(
                   'assets/img/logo.png',
