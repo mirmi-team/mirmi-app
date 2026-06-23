@@ -21,7 +21,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _startAnimation() async {
     // 로고만 1초
-    await Future.delayed(const Duration(milliseconds: 850));
+    await Future.delayed(const Duration(milliseconds: 1000));
 
     setState(() {
       logoOffset = -45; // 위로 이동
