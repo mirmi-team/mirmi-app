@@ -36,7 +36,7 @@ class _SplashScreenState extends State<SplashScreen> {
       screenOpacity = 0;
     });
 
-    await Future.delayed(const Duration(milliseconds: 450));
+    await Future.delayed(const Duration(milliseconds: 300));
 
     if (!mounted) return;
 
@@ -66,10 +66,10 @@ class _SplashScreenState extends State<SplashScreen> {
 
               AnimatedOpacity(
                 opacity: secondOpacity,
-                duration: const Duration(milliseconds: 900),
+                duration: const Duration(milliseconds: 800),
                 curve: Curves.easeInOut,
                 child: Padding(
-                  padding: const EdgeInsets.only(top: 40),
+                  padding: const EdgeInsets.only(top: 35),
                   child: Image.asset(
                     'assets/img/MIRMI.png', // 두 번째 이미지
                     width: 70,
