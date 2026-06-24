@@ -29,14 +29,14 @@ class _SplashScreenState extends State<SplashScreen> {
     });
 
     // 애니메이션 시간
-    await Future.delayed(const Duration(milliseconds: 1550));
+    await Future.delayed(const Duration(milliseconds: 1900));
 
     // 화면 전체 페이드아웃
     setState(() {
       screenOpacity = 0;
     });
 
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future.delayed(const Duration(milliseconds: 450));
 
     if (!mounted) return;
 
@@ -49,14 +49,14 @@ class _SplashScreenState extends State<SplashScreen> {
       backgroundColor: Colors.white,
       body: AnimatedOpacity(
         opacity: screenOpacity,
-        duration: const Duration(milliseconds: 450),
+        duration: const Duration(milliseconds: 300),
         child: Center(
           child: Stack(
             alignment: Alignment.center,
             children: [
               AnimatedSlide(
                 offset: Offset(0, logoOffset / 180),
-                duration: const Duration(milliseconds: 750),
+                duration: const Duration(milliseconds: 600),
                 curve: Curves.easeInOut,
                 child: Image.asset(
                   'assets/img/logo.png',
@@ -66,7 +66,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
               AnimatedOpacity(
                 opacity: secondOpacity,
-                duration: const Duration(milliseconds: 700),
+                duration: const Duration(milliseconds: 900),
                 curve: Curves.easeInOut,
                 child: Padding(
                   padding: const EdgeInsets.only(top: 40),
