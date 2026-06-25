@@ -700,12 +700,12 @@ class _SignupScreenState extends State<SignupScreen> {
             onTap: buttonDisabled ? null : onButtonTap,
             child: Container(
               margin: const EdgeInsets.only(right: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(4),
                 border: Border.all(
-                  color: buttonDisabled ? const Color(0xFFDDDDDD) : const Color(0xFFCCCCCC),
+                  color: buttonDisabled ? const Color(0xFFDDDDDD) : const Color(0xFFA7A7A7),
                 ),
               ),
               child: Text(
