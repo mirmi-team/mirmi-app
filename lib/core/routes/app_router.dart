@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/splash/splash_screen.dart';
 import '../../features/auth/login_screen.dart';
 import '../../features/auth/signup_screen.dart';
+import '../../features/home/home_screen.dart';
 
 final router = GoRouter(
   initialLocation: '/',
@@ -24,6 +25,13 @@ final router = GoRouter(
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(opacity: animation, child: child);
         },
+      ),
+    ),
+
+    GoRoute(
+      path: '/home',
+      pageBuilder: (context, state) => const NoTransitionPage(
+        child: HomeScreen(),
       ),
     ),
 
