@@ -256,10 +256,12 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: _bgColor,
-      resizeToAvoidBottomInset: true,
-      body: SafeArea(
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        backgroundColor: _bgColor,
+        resizeToAvoidBottomInset: true,
+        body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -281,6 +283,7 @@ class _SignupScreenState extends State<SignupScreen> {
           ],
         ),
       ),
+    ),
     );
   }
 
@@ -502,9 +505,11 @@ class _SignupScreenState extends State<SignupScreen> {
             width: double.infinity,
             height: 54,
             child: ElevatedButton(
-              onPressed: _loading ? null : _onNext,
+              onPressed: (_loading || !_isCurrentStepValid) ? null : _onNext,
               style: ElevatedButton.styleFrom(
-                backgroundColor: _isCurrentStepValid ? _teal : const Color(0xFF9E9E9E),
+                backgroundColor: _isCurrentStepValid ? _teal : const Color(0xFFA8A8A8),
+                disabledBackgroundColor: const Color(0xFFA8A8A8),
+                disabledForegroundColor: Colors.white,
                 foregroundColor: Colors.white,
                 elevation: 0,
                 shape: RoundedRectangleBorder(

@@ -51,7 +51,8 @@ class _LoginScreenState extends State<LoginScreen> {
       r"'`~/]",
     ).hasMatch(value);
     setState(() {
-      _showPasswordHint = value.isNotEmpty && !(value.length >= 8 && hasSpecialChar);
+      _showPasswordHint =
+          value.isNotEmpty && !(value.length >= 8 && hasSpecialChar);
     });
   }
 
@@ -88,95 +89,114 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: _bgColor,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        backgroundColor: _bgColor,
+        resizeToAvoidBottomInset: true,
+        body: SafeArea(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 180),
-              Image.asset('assets/img/MIRMI.png', height: 18),
-              const SizedBox(height: 40),
-              _buildLabel('학교 이메일'),
-              const SizedBox(height: 10),
-              _buildTextField(
-                controller: _emailController,
-                hintText: 'example@e-mirim.hs.kr',
-                keyboardType: TextInputType.emailAddress,
-              ),
-              const SizedBox(height: 28),
-              _buildLabel('비밀번호'),
-              const SizedBox(height: 10),
-              _buildPasswordField(),
-              if (_showPasswordHint) ...[
-                const SizedBox(height: 10),
-                Row(
-                  children: const [
-                    Icon(Icons.info_outline, color: _teal, size: 16),
-                    SizedBox(width: 5),
-                    Text(
-                      '특수문자를 포함해 8자리 이상 입력해주세요.',
-                      style: TextStyle(color: _teal, fontSize: 13),
-                    ),
-                  ],
-                ),
-              ],
-              const Spacer(),
-              SizedBox(
-                width: double.infinity,
-                height: 54,
-                child: ElevatedButton(
-                  onPressed: _loading ? null : _onLogin,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _isValid ? _teal : const Color(0xFF9E9E9E),
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 180),
+                      Image.asset('assets/img/MIRMI.png', height: 18),
+                      const SizedBox(height: 40),
+                      _buildLabel('학교 이메일'),
+                      const SizedBox(height: 10),
+                      _buildTextField(
+                        controller: _emailController,
+                        hintText: 'example@e-mirim.hs.kr',
+                        keyboardType: TextInputType.emailAddress,
+                      ),
+                      const SizedBox(height: 28),
+                      _buildLabel('비밀번호'),
+                      const SizedBox(height: 10),
+                      _buildPasswordField(),
+                      if (_showPasswordHint) ...[
+                        const SizedBox(height: 10),
+                        const Row(
+                          children: [
+                            Icon(Icons.info_outline, color: _teal, size: 16),
+                            SizedBox(width: 5),
+                            Text(
+                              '특수문자를 포함해 8자리 이상 입력해주세요.',
+                              style: TextStyle(color: _teal, fontSize: 13),
+                            ),
+                          ],
+                        ),
+                      ],
+                      const SizedBox(height: 40),
+                    ],
                   ),
-                  child: _loading
-                      ? const SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : const Text(
-                          '로그인',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                        ),
                 ),
               ),
-              const SizedBox(height: 18),
-              Center(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
+                child: Column(
                   children: [
-                    const Text(
-                      '이미 계정이 없다면 ',
-                      style: TextStyle(color: Colors.black54, fontSize: 14),
-                    ),
-                    GestureDetector(
-                      onTap: () => context.push('/signup'),
-                      child: const Text(
-                        '회원가입',
-                        style: TextStyle(
-                          color: _teal,
-                          fontSize: 14,
-                          decoration: TextDecoration.underline,
-                          decorationColor: _teal,
+                    SizedBox(
+                      width: double.infinity,
+                      height: 54,
+                      child: ElevatedButton(
+                        onPressed: (_loading || !_isValid) ? null : _onLogin,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              _isValid ? _teal : const Color(0xFFA8A8A8),
+                          disabledBackgroundColor: const Color(0xFFA8A8A8),
+                          disabledForegroundColor: Colors.white,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
                         ),
+                        child: _loading
+                            ? const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Text(
+                                '로그인',
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.w600),
+                              ),
                       ),
                     ),
+                    const SizedBox(height: 18),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          '이미 계정이 없다면 ',
+                          style:
+                              TextStyle(color: Colors.black54, fontSize: 14),
+                        ),
+                        GestureDetector(
+                          onTap: () => context.push('/signup'),
+                          child: const Text(
+                            '회원가입',
+                            style: TextStyle(
+                              color: _teal,
+                              fontSize: 14,
+                              decoration: TextDecoration.underline,
+                              decorationColor: _teal,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
-              const SizedBox(height: 28),
             ],
           ),
         ),
@@ -207,14 +227,15 @@ class _LoginScreenState extends State<LoginScreen> {
         border: Border.all(color: const Color(0xffEDEDED)),
       ),
       child: TextField(
-        style: TextStyle(fontSize: 14),
+        style: const TextStyle(fontSize: 14),
         controller: controller,
         keyboardType: keyboardType,
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle: const TextStyle(color: Color(0xFFA7A7A7), fontSize: 13),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
         ),
       ),
     );
@@ -228,7 +249,7 @@ class _LoginScreenState extends State<LoginScreen> {
         border: Border.all(color: const Color(0xffEDEDED)),
       ),
       child: TextField(
-        style: TextStyle(fontSize: 14),
+        style: const TextStyle(fontSize: 14),
         controller: _passwordController,
         obscureText: _obscurePassword,
         onChanged: _onPasswordChanged,
@@ -236,14 +257,18 @@ class _LoginScreenState extends State<LoginScreen> {
           hintText: 'mirim123!',
           hintStyle: const TextStyle(color: Color(0xFFA7A7A7), fontSize: 13),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
           suffixIcon: IconButton(
             icon: Icon(
-              _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+              _obscurePassword
+                  ? Icons.visibility_off_outlined
+                  : Icons.visibility_outlined,
               color: Colors.grey,
               size: 22,
             ),
-            onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+            onPressed: () =>
+                setState(() => _obscurePassword = !_obscurePassword),
           ),
         ),
       ),
