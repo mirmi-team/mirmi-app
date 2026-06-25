@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -22,6 +23,8 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _codeSent = false;
   bool _sendingCode = false;
   bool _verifyingCode = false;
+  Timer? _timer;
+  int _remainingSeconds = 300;
 
   // password step
   final _passwordController = TextEditingController();
@@ -79,16 +82,37 @@ class _SignupScreenState extends State<SignupScreen> {
             pw.length >= 8 &&
             hasSpecial;
       case _Step.studentInfo:
+        final grade = int.tryParse(_gradeController.text) ?? 0;
+        final classNo = int.tryParse(_classController.text) ?? 0;
         return _nameController.text.trim().isNotEmpty &&
-            _gradeController.text.isNotEmpty &&
-            _classController.text.isNotEmpty;
+            grade >= 1 && grade <= 3 &&
+            classNo >= 1 && classNo <= 6;
       case _Step.dormInfo:
         return _dormRoomController.text.trim().isNotEmpty;
     }
   }
 
+  void _startTimer() {
+    _timer?.cancel();
+    setState(() => _remainingSeconds = 300);
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (_remainingSeconds <= 0) {
+        _timer?.cancel();
+      } else {
+        setState(() => _remainingSeconds--);
+      }
+    });
+  }
+
+  String get _timerText {
+    final m = _remainingSeconds ~/ 60;
+    final s = _remainingSeconds % 60;
+    return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+  }
+
   @override
   void dispose() {
+    _timer?.cancel();
     _emailController.dispose();
     _verificationController.dispose();
     _passwordController.dispose();
@@ -113,6 +137,7 @@ class _SignupScreenState extends State<SignupScreen> {
       await AuthService.sendVerificationCode(email);
       if (!mounted) return;
       setState(() => _codeSent = true);
+      _startTimer();
       _showInfo('인증번호가 발송되었습니다.');
     } on ApiException catch (e) {
       if (!mounted) return;
@@ -136,6 +161,7 @@ class _SignupScreenState extends State<SignupScreen> {
     try {
       await AuthService.verifyCode(email, code);
       if (!mounted) return;
+      _timer?.cancel();
       setState(() => _emailVerified = true);
       _showInfo('이메일 인증이 완료되었습니다.');
     } on ApiException catch (e) {
@@ -330,6 +356,28 @@ class _SignupScreenState extends State<SignupScreen> {
           buttonDisabled: _emailVerified || _verifyingCode,
           onButtonTap: _verifyCode,
         ),
+        if (_codeSent && !_emailVerified) ...[
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const Icon(Icons.timer_outlined, color: _teal, size: 14),
+              const SizedBox(width: 4),
+              Text(
+                _timerText,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: _remainingSeconds <= 60 ? Colors.redAccent : _teal,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(width: 4),
+              const Text(
+                '후 만료됩니다.',
+                style: TextStyle(fontSize: 12, color: _teal),
+              ),
+            ],
+          ),
+        ],
         if (_emailVerified) ...[
           const SizedBox(height: 8),
           _buildHint('이메일 인증이 완료되었습니다.'),
@@ -422,6 +470,23 @@ class _SignupScreenState extends State<SignupScreen> {
             const Text('반', style: TextStyle(fontSize: 15)),
           ],
         ),
+        Builder(builder: (_) {
+          final grade = int.tryParse(_gradeController.text) ?? 0;
+          final classNo = int.tryParse(_classController.text) ?? 0;
+          final gradeInvalid = _gradeController.text.isNotEmpty && (grade < 1 || grade > 3);
+          final classInvalid = _classController.text.isNotEmpty && (classNo < 1 || classNo > 6);
+          if (!gradeInvalid && !classInvalid) return const SizedBox.shrink();
+          return Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (gradeInvalid) _buildHint('학년은 1~3 사이로 입력해주세요.'),
+                if (classInvalid) _buildHint('반은 1~6 사이로 입력해주세요.'),
+              ],
+            ),
+          );
+        }),
         const SizedBox(height: 28),
         _buildLabel('성별'),
         const SizedBox(height: 10),
