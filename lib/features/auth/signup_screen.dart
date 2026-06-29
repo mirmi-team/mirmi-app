@@ -455,7 +455,11 @@ class _SignupScreenState extends State<SignupScreen> {
         const SizedBox(height: 6),
         _buildHint('본인 이름을 정확하게 적어주세요.'),
         const SizedBox(height: 8),
-        _buildTextField(controller: _nameController, hintText: ''),
+        _buildTextField(
+          controller: _nameController,
+          hintText: '',
+          inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'\s'))],
+        ),
         const SizedBox(height: 28),
         _buildLabel('학년과 반을 선택해주세요.'),
         const SizedBox(height: 10),
