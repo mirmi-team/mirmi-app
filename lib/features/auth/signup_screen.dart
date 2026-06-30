@@ -41,7 +41,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
   // dorm info step
   final _dormRoomController = TextEditingController();
-  String _dormRegion = '경기';
+  String _dormRegion = '서울•경기•인천';
   String? _roomFieldError;
 
   bool _loading = false;
@@ -588,12 +588,13 @@ class _SignupScreenState extends State<SignupScreen> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             SizedBox(
-              width: 90,
+              width: 75,
               child: _buildTextField(
                 controller: _dormRoomController,
                 hintText: '515',
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                textAlign: TextAlign.center,
               ),
             ),
             const SizedBox(width: 10),
@@ -613,9 +614,9 @@ class _SignupScreenState extends State<SignupScreen> {
         Row(
           children: [
             _buildRadio(
-                label: '경기',
-                selected: _dormRegion == '경기',
-                onTap: () => setState(() => _dormRegion = '경기')),
+                label: '서울•경기•인천',
+                selected: _dormRegion == '서울•경기•인천',
+                onTap: () => setState(() => _dormRegion = '서울•경기•인천')),
             const SizedBox(width: 24),
             _buildRadio(
                 label: '경기 외',
@@ -735,6 +736,7 @@ class _SignupScreenState extends State<SignupScreen> {
     TextInputType? keyboardType,
     List<TextInputFormatter>? inputFormatters,
     bool enabled = true,
+    TextAlign textAlign = TextAlign.start,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -747,6 +749,7 @@ class _SignupScreenState extends State<SignupScreen> {
         keyboardType: keyboardType,
         inputFormatters: inputFormatters,
         enabled: enabled,
+        textAlign: textAlign,
         style: const TextStyle(fontSize: 13),
         decoration: InputDecoration(
           hintText: hintText,
