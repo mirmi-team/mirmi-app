@@ -639,30 +639,6 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
             ),
           ),
-          const SizedBox(height: 18),
-          Center(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  '이미 계정이 있다면 ',
-                  style: TextStyle(color: Colors.black54, fontSize: 14),
-                ),
-                GestureDetector(
-                  onTap: () => context.go('/login'),
-                  child: const Text(
-                    '로그인하기',
-                    style: TextStyle(
-                      color: _teal,
-                      fontSize: 14,
-                      decoration: TextDecoration.underline,
-                      decorationColor: _teal,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
         ],
       ),
     );
