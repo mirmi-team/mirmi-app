@@ -17,8 +17,11 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _showPasswordHint = false;
   bool _loading = false;
   bool _showBanner = false;
+  bool _showErrorBanner = false;
+  String? _errorMessage;
 
   static const _teal = Color(0xFF00CFCD);
+  static const _errorColor = Color(0xFFFF6B6B);
   static const _bgColor = Color(0xFFF2F3F5);
 
   @override
@@ -93,9 +96,16 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), backgroundColor: Colors.redAccent),
-    );
+    setState(() {
+      _errorMessage = msg;
+      _showErrorBanner = false;
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() => _showErrorBanner = true);
+      Future.delayed(const Duration(milliseconds: 2800), () {
+        if (mounted) setState(() => _showErrorBanner = false);
+      });
+    });
   }
 
   @override
@@ -258,6 +268,63 @@ class _LoginScreenState extends State<LoginScreen> {
                               const SizedBox(width: 10),
                               Text(
                                 widget.successMessage!,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            if (_errorMessage != null)
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: ClipRect(
+                  child: SafeArea(
+                    child: AnimatedSlide(
+                      offset: _showErrorBanner ? Offset.zero : const Offset(0, -2),
+                      duration: const Duration(milliseconds: 400),
+                      curve: _showErrorBanner ? Curves.easeOut : Curves.easeIn,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+                          decoration: BoxDecoration(
+                            color: _errorColor,
+                            borderRadius: BorderRadius.circular(14),
+                            boxShadow: [
+                              BoxShadow(
+                                color: _errorColor.withValues(alpha: 0.3),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                width: 28,
+                                height: 28,
+                                decoration: const BoxDecoration(
+                                  color: Colors.white24,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.priority_high_rounded,
+                                    color: Colors.white, size: 16),
+                              ),
+                              const SizedBox(width: 10),
+                              Text(
+                                _errorMessage!,
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 15,
