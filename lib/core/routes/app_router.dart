@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/splash/splash_screen.dart';
@@ -17,8 +18,9 @@ final router = GoRouter(
 
     GoRoute(
       path: '/login',
-      pageBuilder: (context, state) => const NoTransitionPage(
-        child: LoginScreen(),
+      pageBuilder: (context, state) => NoTransitionPage(
+        key: ValueKey(state.extra ?? 'login'),
+        child: LoginScreen(successMessage: state.extra as String?),
       ),
     ),
 

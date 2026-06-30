@@ -3,7 +3,8 @@ import 'package:go_router/go_router.dart';
 import '../../core/services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  final String? successMessage;
+  const LoginScreen({super.key, this.successMessage});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -15,6 +16,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscurePassword = true;
   bool _showPasswordHint = false;
   bool _loading = false;
+  bool _showBanner = false;
 
   static const _teal = Color(0xFF00CFCD);
   static const _bgColor = Color(0xFFF2F3F5);
@@ -24,6 +26,15 @@ class _LoginScreenState extends State<LoginScreen> {
     super.initState();
     _emailController.addListener(_rebuild);
     _passwordController.addListener(_rebuild);
+
+    if (widget.successMessage != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() => _showBanner = true);
+        Future.delayed(const Duration(milliseconds: 2800), () {
+          if (mounted) setState(() => _showBanner = false);
+        });
+      });
+    }
   }
 
   void _rebuild() => setState(() {});
@@ -94,111 +105,174 @@ class _LoginScreenState extends State<LoginScreen> {
       child: Scaffold(
         backgroundColor: _bgColor,
         resizeToAvoidBottomInset: false,
-        body: SafeArea(
-          child: Column(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 180),
-                      Image.asset('assets/img/MIRMI.png', height: 18),
-                      const SizedBox(height: 40),
-                      _buildLabel('학교 이메일'),
-                      const SizedBox(height: 10),
-                      _buildTextField(
-                        controller: _emailController,
-                        hintText: 'example@e-mirim.hs.kr',
-                        keyboardType: TextInputType.emailAddress,
+        body: Stack(
+          children: [
+            SafeArea(
+              child: Column(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 180),
+                          Image.asset('assets/img/MIRMI.png', height: 18),
+                          const SizedBox(height: 40),
+                          _buildLabel('학교 이메일'),
+                          const SizedBox(height: 10),
+                          _buildTextField(
+                            controller: _emailController,
+                            hintText: 'example@e-mirim.hs.kr',
+                            keyboardType: TextInputType.emailAddress,
+                          ),
+                          const SizedBox(height: 28),
+                          _buildLabel('비밀번호'),
+                          const SizedBox(height: 10),
+                          _buildPasswordField(),
+                          if (_showPasswordHint) ...[
+                            const SizedBox(height: 10),
+                            const Row(
+                              children: [
+                                Icon(Icons.info_outline, color: _teal, size: 16),
+                                SizedBox(width: 5),
+                                Text(
+                                  '특수문자를 포함해 8자리 이상 입력해주세요.',
+                                  style: TextStyle(color: _teal, fontSize: 13),
+                                ),
+                              ],
+                            ),
+                          ],
+                          const SizedBox(height: 40),
+                        ],
                       ),
-                      const SizedBox(height: 28),
-                      _buildLabel('비밀번호'),
-                      const SizedBox(height: 10),
-                      _buildPasswordField(),
-                      if (_showPasswordHint) ...[
-                        const SizedBox(height: 10),
-                        const Row(
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
+                    child: Column(
+                      children: [
+                        SizedBox(
+                          width: double.infinity,
+                          height: 54,
+                          child: ElevatedButton(
+                            onPressed: (_loading || !_isValid) ? null : _onLogin,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  _isValid ? _teal : const Color(0xFFA8A8A8),
+                              disabledBackgroundColor: const Color(0xFFA8A8A8),
+                              disabledForegroundColor: Colors.white,
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                            ),
+                            child: _loading
+                                ? const SizedBox(
+                                    width: 22,
+                                    height: 22,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Text(
+                                    '로그인',
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600),
+                                  ),
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.info_outline, color: _teal, size: 16),
-                            SizedBox(width: 5),
-                            Text(
-                              '특수문자를 포함해 8자리 이상 입력해주세요.',
-                              style: TextStyle(color: _teal, fontSize: 13),
+                            const Text(
+                              '이미 계정이 없다면 ',
+                              style: TextStyle(
+                                  color: Colors.black54, fontSize: 14),
+                            ),
+                            GestureDetector(
+                              onTap: () => context.push('/signup'),
+                              child: const Text(
+                                '회원가입',
+                                style: TextStyle(
+                                  color: _teal,
+                                  fontSize: 14,
+                                  decoration: TextDecoration.underline,
+                                  decorationColor: _teal,
+                                ),
+                              ),
                             ),
                           ],
                         ),
                       ],
-                      const SizedBox(height: 40),
-                    ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (widget.successMessage != null)
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: ClipRect(
+                  child: SafeArea(
+                    child: AnimatedSlide(
+                      offset: _showBanner ? Offset.zero : const Offset(0, -2),
+                      duration: const Duration(milliseconds: 400),
+                      curve: _showBanner ? Curves.easeOut : Curves.easeIn,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 18, vertical: 14),
+                          decoration: BoxDecoration(
+                            color: _teal,
+                            borderRadius: BorderRadius.circular(14),
+                            boxShadow: [
+                              BoxShadow(
+                                color: _teal.withValues(alpha: 0.3),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                width: 28,
+                                height: 28,
+                                decoration: const BoxDecoration(
+                                  color: Colors.white24,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.check,
+                                    color: Colors.white, size: 16),
+                              ),
+                              const SizedBox(width: 10),
+                              Text(
+                                widget.successMessage!,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
-                child: Column(
-                  children: [
-                    SizedBox(
-                      width: double.infinity,
-                      height: 54,
-                      child: ElevatedButton(
-                        onPressed: (_loading || !_isValid) ? null : _onLogin,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              _isValid ? _teal : const Color(0xFFA8A8A8),
-                          disabledBackgroundColor: const Color(0xFFA8A8A8),
-                          disabledForegroundColor: Colors.white,
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                        ),
-                        child: _loading
-                            ? const SizedBox(
-                                width: 22,
-                                height: 22,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Text(
-                                '로그인',
-                                style: TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.w600),
-                              ),
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text(
-                          '이미 계정이 없다면 ',
-                          style:
-                              TextStyle(color: Colors.black54, fontSize: 14),
-                        ),
-                        GestureDetector(
-                          onTap: () => context.push('/signup'),
-                          child: const Text(
-                            '회원가입',
-                            style: TextStyle(
-                              color: _teal,
-                              fontSize: 14,
-                              decoration: TextDecoration.underline,
-                              decorationColor: _teal,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+          ],
         ),
       ),
     );

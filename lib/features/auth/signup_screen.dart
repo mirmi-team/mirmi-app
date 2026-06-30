@@ -266,8 +266,7 @@ class _SignupScreenState extends State<SignupScreen> {
         canStaying: _dormRegion == '경기 외',
       );
       if (!mounted) return;
-      _showInfo('회원가입이 완료되었습니다.');
-      context.go('/login');
+      context.go('/login', extra: '회원가입이 완료되었습니다.');
     } on ApiException catch (e) {
       if (!mounted) return;
       setState(() => _roomFieldError = e.message);
@@ -298,13 +297,7 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
-  void _showInfo(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), backgroundColor: _teal),
-    );
-  }
-
-  // ── Build ──────────────────────────────────────────────────────
+// ── Build ──────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
