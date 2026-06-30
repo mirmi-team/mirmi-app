@@ -45,6 +45,7 @@ class _SignupScreenState extends State<SignupScreen> {
   String? _roomFieldError;
 
   bool _loading = false;
+  bool _goingForward = true;
 
   // inline field errors
   String? _emailFieldError;
@@ -175,6 +176,7 @@ class _SignupScreenState extends State<SignupScreen> {
       if (!mounted) return;
       _timer?.cancel();
       setState(() {
+        _goingForward = true;
         _emailVerified = true;
         _step = _Step.password;
       });
@@ -193,7 +195,7 @@ class _SignupScreenState extends State<SignupScreen> {
     switch (_step) {
       case _Step.email:
         if (_emailVerified) {
-          setState(() => _step = _Step.password);
+          setState(() { _goingForward = true; _step = _Step.password; });
         } else {
           await _verifyCode();
         }
@@ -217,7 +219,7 @@ class _SignupScreenState extends State<SignupScreen> {
           setState(() => _confirmPasswordError = '특수문자를 포함해 8자리 이상 입력해주세요.');
           return;
         }
-        setState(() => _step = _Step.studentInfo);
+        setState(() { _goingForward = true; _step = _Step.studentInfo; });
 
       case _Step.studentInfo:
         if (_nameController.text.trim().isEmpty) {
@@ -228,7 +230,7 @@ class _SignupScreenState extends State<SignupScreen> {
           setState(() => _nameFieldError = '학년과 반을 입력해주세요.');
           return;
         }
-        setState(() => _step = _Step.dormInfo);
+        setState(() { _goingForward = true; _step = _Step.dormInfo; });
 
       case _Step.dormInfo:
         await _submit();
@@ -272,11 +274,11 @@ class _SignupScreenState extends State<SignupScreen> {
       case _Step.email:
         context.pop();
       case _Step.password:
-        setState(() => _step = _Step.email);
+        setState(() { _goingForward = false; _step = _Step.email; });
       case _Step.studentInfo:
-        setState(() => _step = _Step.password);
+        setState(() { _goingForward = false; _step = _Step.password; });
       case _Step.dormInfo:
-        setState(() => _step = _Step.studentInfo);
+        setState(() { _goingForward = false; _step = _Step.studentInfo; });
     }
   }
 
@@ -314,9 +316,41 @@ class _SignupScreenState extends State<SignupScreen> {
               ),
             ),
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: _buildCurrentStep(),
+              child: ClipRect(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 280),
+                    layoutBuilder: (currentChild, previousChildren) => Stack(
+                      alignment: Alignment.topLeft,
+                      children: [
+                        ...previousChildren,
+                        ?currentChild,
+                      ],
+                    ),
+                    transitionBuilder: (child, animation) {
+                      final entering = child.key == ValueKey(_step);
+                      final tween = _goingForward
+                          ? (entering
+                              ? Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero)
+                              : Tween<Offset>(begin: const Offset(-1, 0), end: Offset.zero))
+                          : (entering
+                              ? Tween<Offset>(begin: const Offset(-1, 0), end: Offset.zero)
+                              : Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero));
+                      return SlideTransition(
+                        position: tween.animate(
+                          CurvedAnimation(parent: animation, curve: Curves.easeInOut),
+                        ),
+                        child: child,
+                      );
+                    },
+                    child: SizedBox(
+                      key: ValueKey(_step),
+                      width: double.infinity,
+                      child: _buildCurrentStep(),
+                    ),
+                  ),
+                ),
               ),
             ),
             _buildFooter(),
@@ -354,6 +388,7 @@ class _SignupScreenState extends State<SignupScreen> {
           enabled: !_emailVerified,
           buttonLabel: _sendingCode ? '...' : (_emailVerified ? '발송 완료' : (_codeSent ? '인증번호 다시 보내기' : '인증 번호 보내기')),
           buttonDisabled: _emailVerified || _sendingCode,
+          buttonHighlighted: _codeSent && !_emailVerified,
           onButtonTap: _sendCode,
         ),
         if (_emailFieldError != null) ...[
@@ -771,6 +806,7 @@ class _SignupScreenState extends State<SignupScreen> {
     required VoidCallback onButtonTap,
     TextInputType? keyboardType,
     bool enabled = true,
+    bool buttonHighlighted = false,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -803,14 +839,22 @@ class _SignupScreenState extends State<SignupScreen> {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(4),
                 border: Border.all(
-                  color: buttonDisabled ? const Color(0xFFDDDDDD) : const Color(0xFFA7A7A7),
+                  color: buttonDisabled
+                      ? const Color(0xFFDDDDDD)
+                      : buttonHighlighted
+                          ? _teal
+                          : const Color(0xFFA7A7A7),
                 ),
               ),
               child: Text(
                 buttonLabel,
                 style: TextStyle(
                   fontSize: 12,
-                  color: buttonDisabled ? Colors.grey : Colors.black87,
+                  color: buttonDisabled
+                      ? Colors.grey
+                      : buttonHighlighted
+                          ? _teal
+                          : Colors.black87,
                   fontWeight: FontWeight.w500,
                 ),
               ),
