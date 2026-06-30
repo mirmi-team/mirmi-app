@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -41,10 +42,11 @@ class _SignupScreenState extends State<SignupScreen> {
 
   // dorm info step
   final _dormRoomController = TextEditingController();
-  String _dormRegion = '경기';
+  String _dormRegion = '서울•경기•인천';
   String? _roomFieldError;
 
   bool _loading = false;
+  bool _goingForward = true;
 
   // inline field errors
   String? _emailFieldError;
@@ -70,7 +72,17 @@ class _SignupScreenState extends State<SignupScreen> {
     }
     _emailController.addListener(() => setState(() => _emailFieldError = null));
     _verificationController.addListener(() => setState(() => _codeFieldError = null));
-    _confirmPasswordController.addListener(() => setState(() => _confirmPasswordError = null));
+    _confirmPasswordController.addListener(() {
+      final pw = _passwordController.text;
+      final confirm = _confirmPasswordController.text;
+      setState(() {
+        if (confirm.isNotEmpty && pw != confirm) {
+          _confirmPasswordError = '비밀번호가 일치하지 않습니다.';
+        } else {
+          _confirmPasswordError = null;
+        }
+      });
+    });
     _nameController.addListener(() => setState(() => _nameFieldError = null));
     _dormRoomController.addListener(() => setState(() => _roomFieldError = null));
   }
@@ -109,8 +121,9 @@ class _SignupScreenState extends State<SignupScreen> {
     _timer?.cancel();
     setState(() => _remainingSeconds = 300);
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (_remainingSeconds <= 0) {
+      if (_remainingSeconds <= 1) {
         _timer?.cancel();
+        setState(() => _remainingSeconds = 0);
       } else {
         setState(() => _remainingSeconds--);
       }
@@ -175,6 +188,7 @@ class _SignupScreenState extends State<SignupScreen> {
       if (!mounted) return;
       _timer?.cancel();
       setState(() {
+        _goingForward = true;
         _emailVerified = true;
         _step = _Step.password;
       });
@@ -193,7 +207,7 @@ class _SignupScreenState extends State<SignupScreen> {
     switch (_step) {
       case _Step.email:
         if (_emailVerified) {
-          setState(() => _step = _Step.password);
+          setState(() { _goingForward = true; _step = _Step.password; });
         } else {
           await _verifyCode();
         }
@@ -217,7 +231,7 @@ class _SignupScreenState extends State<SignupScreen> {
           setState(() => _confirmPasswordError = '특수문자를 포함해 8자리 이상 입력해주세요.');
           return;
         }
-        setState(() => _step = _Step.studentInfo);
+        setState(() { _goingForward = true; _step = _Step.studentInfo; });
 
       case _Step.studentInfo:
         if (_nameController.text.trim().isEmpty) {
@@ -228,7 +242,7 @@ class _SignupScreenState extends State<SignupScreen> {
           setState(() => _nameFieldError = '학년과 반을 입력해주세요.');
           return;
         }
-        setState(() => _step = _Step.dormInfo);
+        setState(() { _goingForward = true; _step = _Step.dormInfo; });
 
       case _Step.dormInfo:
         await _submit();
@@ -254,8 +268,7 @@ class _SignupScreenState extends State<SignupScreen> {
         canStaying: _dormRegion == '경기 외',
       );
       if (!mounted) return;
-      _showInfo('회원가입이 완료되었습니다.');
-      context.go('/login');
+      context.go('/login', extra: '회원가입이 완료되었습니다.');
     } on ApiException catch (e) {
       if (!mounted) return;
       setState(() => _roomFieldError = e.message);
@@ -272,11 +285,11 @@ class _SignupScreenState extends State<SignupScreen> {
       case _Step.email:
         context.pop();
       case _Step.password:
-        setState(() => _step = _Step.email);
+        setState(() { _goingForward = false; _step = _Step.email; });
       case _Step.studentInfo:
-        setState(() => _step = _Step.password);
+        setState(() { _goingForward = false; _step = _Step.password; });
       case _Step.dormInfo:
-        setState(() => _step = _Step.studentInfo);
+        setState(() { _goingForward = false; _step = _Step.studentInfo; });
     }
   }
 
@@ -286,13 +299,7 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
-  void _showInfo(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), backgroundColor: _teal),
-    );
-  }
-
-  // ── Build ──────────────────────────────────────────────────────
+// ── Build ──────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -314,9 +321,41 @@ class _SignupScreenState extends State<SignupScreen> {
               ),
             ),
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: _buildCurrentStep(),
+              child: ClipRect(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 280),
+                    layoutBuilder: (currentChild, previousChildren) => Stack(
+                      alignment: Alignment.topLeft,
+                      children: [
+                        ...previousChildren,
+                        ?currentChild,
+                      ],
+                    ),
+                    transitionBuilder: (child, animation) {
+                      final entering = child.key == ValueKey(_step);
+                      final tween = _goingForward
+                          ? (entering
+                              ? Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero)
+                              : Tween<Offset>(begin: const Offset(-1, 0), end: Offset.zero))
+                          : (entering
+                              ? Tween<Offset>(begin: const Offset(-1, 0), end: Offset.zero)
+                              : Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero));
+                      return SlideTransition(
+                        position: tween.animate(
+                          CurvedAnimation(parent: animation, curve: Curves.easeInOut),
+                        ),
+                        child: child,
+                      );
+                    },
+                    child: SizedBox(
+                      key: ValueKey(_step),
+                      width: double.infinity,
+                      child: _buildCurrentStep(),
+                    ),
+                  ),
+                ),
               ),
             ),
             _buildFooter(),
@@ -352,15 +391,17 @@ class _SignupScreenState extends State<SignupScreen> {
           hintText: 'example@e-mirim.hs.kr',
           keyboardType: TextInputType.emailAddress,
           enabled: !_emailVerified,
-          buttonLabel: _sendingCode ? '...' : (_emailVerified ? '발송 완료' : (_codeSent ? '인증번호 다시 보내기' : '인증 번호 보내기')),
+          buttonLabel: _emailVerified ? '발송 완료' : (_codeSent ? '인증번호 다시 보내기' : '인증 번호 보내기'),
           buttonDisabled: _emailVerified || _sendingCode,
+          buttonHighlighted: _codeSent && !_emailVerified,
+          isLoading: _sendingCode,
           onButtonTap: _sendCode,
         ),
         if (_emailFieldError != null) ...[
-          const SizedBox(height: 6),
+          const SizedBox(height: 10),
           _buildInlineError(_emailFieldError!),
         ] else ...[
-          const SizedBox(height: 6),
+          const SizedBox(height: 10),
           _buildHint('미림마이스터고등학교 전용이메일을 입력해주세요.'),
         ],
         const SizedBox(height: 24),
@@ -373,31 +414,46 @@ class _SignupScreenState extends State<SignupScreen> {
           enabled: !_emailVerified,
         ),
         if (_codeFieldError != null) ...[
-          const SizedBox(height: 6),
+          const SizedBox(height: 10),
           _buildInlineError(_codeFieldError!),
         ] else if (_codeSent && !_emailVerified) ...[
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const Icon(Icons.timer_outlined, color: _teal, size: 14),
-              const SizedBox(width: 4),
-              Text(
-                _timerText,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: _remainingSeconds <= 60 ? Colors.redAccent : _teal,
-                  fontWeight: FontWeight.w600,
+          const SizedBox(height: 10),
+          if (_remainingSeconds == 0)
+            const Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Icon(Icons.timer_off_outlined, color: Colors.redAccent, size: 14),
+                SizedBox(width: 4),
+                Text(
+                  '인증번호가 만료되었습니다. 다시 보내주세요.',
+                  style: TextStyle(fontSize: 12, height: 1.0, color: Colors.redAccent),
                 ),
-              ),
-              const SizedBox(width: 4),
-              const Text(
-                '후 만료됩니다.',
-                style: TextStyle(fontSize: 12, color: _teal),
-              ),
-            ],
-          ),
+              ],
+            )
+          else
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Icon(Icons.timer_outlined, color: _teal, size: 14),
+                const SizedBox(width: 4),
+                Text(
+                  _timerText,
+                  style: TextStyle(
+                    fontSize: 12,
+                    height: 1.0,
+                    color: _remainingSeconds <= 60 ? Colors.redAccent : _teal,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                const Text(
+                  '후 만료됩니다.',
+                  style: TextStyle(fontSize: 12, height: 1.0, color: _teal),
+                ),
+              ],
+            ),
         ] else if (_emailVerified) ...[
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           _buildHint('이메일 인증이 완료되었습니다.'),
         ],
         const SizedBox(height: 40),
@@ -445,7 +501,7 @@ class _SignupScreenState extends State<SignupScreen> {
           },
         ),
         if (_showPasswordHint) ...[
-          const SizedBox(height: 6),
+          const SizedBox(height: 10),
           _buildHint('특수문자를 포함해 8자리 이상 입력해주세요.'),
         ],
         const SizedBox(height: 16),
@@ -456,7 +512,7 @@ class _SignupScreenState extends State<SignupScreen> {
           onToggle: () => setState(() => _obscureConfirm = !_obscureConfirm),
         ),
         if (_confirmPasswordError != null) ...[
-          const SizedBox(height: 6),
+          const SizedBox(height: 10),
           _buildInlineError(_confirmPasswordError!),
         ],
         const SizedBox(height: 40),
@@ -483,7 +539,7 @@ class _SignupScreenState extends State<SignupScreen> {
           inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'\s'))],
         ),
         if (_nameFieldError != null) ...[
-          const SizedBox(height: 6),
+          const SizedBox(height: 10),
           _buildInlineError(_nameFieldError!),
         ],
         const SizedBox(height: 28),
@@ -553,12 +609,13 @@ class _SignupScreenState extends State<SignupScreen> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             SizedBox(
-              width: 90,
+              width: 75,
               child: _buildTextField(
                 controller: _dormRoomController,
                 hintText: '515',
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                textAlign: TextAlign.center,
               ),
             ),
             const SizedBox(width: 10),
@@ -566,10 +623,10 @@ class _SignupScreenState extends State<SignupScreen> {
           ],
         ),
         if (_roomFieldError != null) ...[
-          const SizedBox(height: 6),
+          const SizedBox(height: 10),
           _buildInlineError(_roomFieldError!),
         ] else ...[
-          const SizedBox(height: 6),
+          const SizedBox(height: 10),
           _buildHint('배정 받은 호실을 정확하게 적어주세요.'),
         ],
         const SizedBox(height: 28),
@@ -578,9 +635,9 @@ class _SignupScreenState extends State<SignupScreen> {
         Row(
           children: [
             _buildRadio(
-                label: '경기',
-                selected: _dormRegion == '경기',
-                onTap: () => setState(() => _dormRegion = '경기')),
+                label: '서울•경기•인천',
+                selected: _dormRegion == '서울•경기•인천',
+                onTap: () => setState(() => _dormRegion = '서울•경기•인천')),
             const SizedBox(width: 24),
             _buildRadio(
                 label: '경기 외',
@@ -637,30 +694,6 @@ class _SignupScreenState extends State<SignupScreen> {
                       style: const TextStyle(
                           fontSize: 16, fontWeight: FontWeight.w600),
                     ),
-            ),
-          ),
-          const SizedBox(height: 18),
-          Center(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  '이미 계정이 있다면 ',
-                  style: TextStyle(color: Colors.black54, fontSize: 14),
-                ),
-                GestureDetector(
-                  onTap: () => context.go('/login'),
-                  child: const Text(
-                    '로그인하기',
-                    style: TextStyle(
-                      color: _teal,
-                      fontSize: 14,
-                      decoration: TextDecoration.underline,
-                      decorationColor: _teal,
-                    ),
-                  ),
-                ),
-              ],
             ),
           ),
         ],
@@ -724,6 +757,7 @@ class _SignupScreenState extends State<SignupScreen> {
     TextInputType? keyboardType,
     List<TextInputFormatter>? inputFormatters,
     bool enabled = true,
+    TextAlign textAlign = TextAlign.start,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -736,6 +770,7 @@ class _SignupScreenState extends State<SignupScreen> {
         keyboardType: keyboardType,
         inputFormatters: inputFormatters,
         enabled: enabled,
+        textAlign: textAlign,
         style: const TextStyle(fontSize: 13),
         decoration: InputDecoration(
           hintText: hintText,
@@ -795,6 +830,8 @@ class _SignupScreenState extends State<SignupScreen> {
     required VoidCallback onButtonTap,
     TextInputType? keyboardType,
     bool enabled = true,
+    bool buttonHighlighted = false,
+    bool isLoading = false,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -822,22 +859,32 @@ class _SignupScreenState extends State<SignupScreen> {
             onTap: buttonDisabled ? null : onButtonTap,
             child: Container(
               margin: const EdgeInsets.only(right: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(4),
                 border: Border.all(
-                  color: buttonDisabled ? const Color(0xFFDDDDDD) : const Color(0xFFA7A7A7),
+                  color: buttonDisabled
+                      ? const Color(0xFFDDDDDD)
+                      : buttonHighlighted
+                          ? _teal
+                          : const Color(0xFFA7A7A7),
                 ),
               ),
-              child: Text(
-                buttonLabel,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: buttonDisabled ? Colors.grey : Colors.black87,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
+              child: isLoading
+                  ? const _WaveDots()
+                  : Text(
+                      buttonLabel,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: buttonDisabled
+                            ? Colors.grey
+                            : buttonHighlighted
+                                ? _teal
+                                : Colors.black87,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
             ),
           ),
         ],
@@ -895,6 +942,57 @@ class _SignupScreenState extends State<SignupScreen> {
                   const TextStyle(fontSize: 14, color: Colors.black87)),
         ],
       ),
+    );
+  }
+}
+
+class _WaveDots extends StatefulWidget {
+  const _WaveDots();
+  @override
+  State<_WaveDots> createState() => _WaveDotsState();
+}
+
+class _WaveDotsState extends State<_WaveDots> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 900))..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: List.generate(3, (i) {
+            final offset = sin((_controller.value * 2 * pi) - (i * pi / 3));
+            return Transform.translate(
+              offset: Offset(0, -4 * offset),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 2),
+                child: Container(
+                  width: 5,
+                  height: 5,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFCCCCCC),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+            );
+          }),
+        );
+      },
     );
   }
 }
