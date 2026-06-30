@@ -42,8 +42,15 @@ class _SignupScreenState extends State<SignupScreen> {
   // dorm info step
   final _dormRoomController = TextEditingController();
   String _dormRegion = '경기';
+  String? _roomFieldError;
 
   bool _loading = false;
+
+  // inline field errors
+  String? _emailFieldError;
+  String? _codeFieldError;
+  String? _confirmPasswordError;
+  String? _nameFieldError;
 
   static const _teal = Color(0xFF00CFCD);
   static const _bgColor = Color(0xFFF2F3F5);
@@ -61,6 +68,11 @@ class _SignupScreenState extends State<SignupScreen> {
     ]) {
       c.addListener(_rebuild);
     }
+    _emailController.addListener(() => setState(() => _emailFieldError = null));
+    _verificationController.addListener(() => setState(() => _codeFieldError = null));
+    _confirmPasswordController.addListener(() => setState(() => _confirmPasswordError = null));
+    _nameController.addListener(() => setState(() => _nameFieldError = null));
+    _dormRoomController.addListener(() => setState(() => _roomFieldError = null));
   }
 
   void _rebuild() => setState(() {});
@@ -68,7 +80,8 @@ class _SignupScreenState extends State<SignupScreen> {
   bool get _isCurrentStepValid {
     switch (_step) {
       case _Step.email:
-        return _emailVerified;
+        return _emailVerified ||
+            (_codeSent && _verificationController.text.trim().isNotEmpty);
       case _Step.password:
         final pw = _passwordController.text;
         final confirm = _confirmPasswordController.text;
@@ -129,7 +142,7 @@ class _SignupScreenState extends State<SignupScreen> {
   Future<void> _sendCode() async {
     final email = _emailController.text.trim();
     if (email.isEmpty) {
-      _showError('이메일을 입력해주세요.');
+      setState(() => _emailFieldError = '이메일을 입력해주세요.');
       return;
     }
     setState(() => _sendingCode = true);
@@ -138,10 +151,9 @@ class _SignupScreenState extends State<SignupScreen> {
       if (!mounted) return;
       setState(() => _codeSent = true);
       _startTimer();
-      _showInfo('인증번호가 발송되었습니다.');
     } on ApiException catch (e) {
       if (!mounted) return;
-      _showError(e.message);
+      setState(() => _emailFieldError = e.message);
     } catch (_) {
       if (!mounted) return;
       _showError('서버 연결에 실패했습니다.');
@@ -154,7 +166,7 @@ class _SignupScreenState extends State<SignupScreen> {
     final email = _emailController.text.trim();
     final code = _verificationController.text.trim();
     if (code.isEmpty) {
-      _showError('인증번호를 입력해주세요.');
+      setState(() => _codeFieldError = '인증번호를 입력해주세요.');
       return;
     }
     setState(() => _verifyingCode = true);
@@ -162,11 +174,13 @@ class _SignupScreenState extends State<SignupScreen> {
       await AuthService.verifyCode(email, code);
       if (!mounted) return;
       _timer?.cancel();
-      setState(() => _emailVerified = true);
-      _showInfo('이메일 인증이 완료되었습니다.');
+      setState(() {
+        _emailVerified = true;
+        _step = _Step.password;
+      });
     } on ApiException catch (e) {
       if (!mounted) return;
-      _showError(e.message);
+      setState(() => _codeFieldError = e.message);
     } catch (_) {
       if (!mounted) return;
       _showError('서버 연결에 실패했습니다.');
@@ -178,21 +192,21 @@ class _SignupScreenState extends State<SignupScreen> {
   Future<void> _onNext() async {
     switch (_step) {
       case _Step.email:
-        if (!_emailVerified) {
-          _showError('이메일 인증을 완료해주세요.');
-          return;
+        if (_emailVerified) {
+          setState(() => _step = _Step.password);
+        } else {
+          await _verifyCode();
         }
-        setState(() => _step = _Step.password);
 
       case _Step.password:
         final pw = _passwordController.text;
         final confirm = _confirmPasswordController.text;
         if (pw.isEmpty || confirm.isEmpty) {
-          _showError('비밀번호를 입력해주세요.');
+          setState(() => _confirmPasswordError = '비밀번호를 입력해주세요.');
           return;
         }
         if (pw != confirm) {
-          _showError('비밀번호가 일치하지 않습니다.');
+          setState(() => _confirmPasswordError = '비밀번호가 일치하지 않습니다.');
           return;
         }
         final hasSpecial = RegExp(
@@ -200,18 +214,18 @@ class _SignupScreenState extends State<SignupScreen> {
           r"'`~/]",
         ).hasMatch(pw);
         if (pw.length < 8 || !hasSpecial) {
-          _showError('특수문자를 포함해 8자리 이상 입력해주세요.');
+          setState(() => _confirmPasswordError = '특수문자를 포함해 8자리 이상 입력해주세요.');
           return;
         }
         setState(() => _step = _Step.studentInfo);
 
       case _Step.studentInfo:
         if (_nameController.text.trim().isEmpty) {
-          _showError('이름을 입력해주세요.');
+          setState(() => _nameFieldError = '이름을 입력해주세요.');
           return;
         }
         if (_gradeController.text.isEmpty || _classController.text.isEmpty) {
-          _showError('학년과 반을 입력해주세요.');
+          setState(() => _nameFieldError = '학년과 반을 입력해주세요.');
           return;
         }
         setState(() => _step = _Step.dormInfo);
@@ -244,7 +258,7 @@ class _SignupScreenState extends State<SignupScreen> {
       context.go('/login');
     } on ApiException catch (e) {
       if (!mounted) return;
-      _showError(e.message);
+      setState(() => _roomFieldError = e.message);
     } catch (_) {
       if (!mounted) return;
       _showError('서버 연결에 실패했습니다.');
@@ -342,21 +356,26 @@ class _SignupScreenState extends State<SignupScreen> {
           buttonDisabled: _emailVerified || _sendingCode,
           onButtonTap: _sendCode,
         ),
-        const SizedBox(height: 6),
-        _buildHint('미림마이스터고등학교 전용이메일을 입력해주세요.'),
+        if (_emailFieldError != null) ...[
+          const SizedBox(height: 6),
+          _buildInlineError(_emailFieldError!),
+        ] else ...[
+          const SizedBox(height: 6),
+          _buildHint('미림마이스터고등학교 전용이메일을 입력해주세요.'),
+        ],
         const SizedBox(height: 24),
         _buildLabel('인증번호 입력'),
         const SizedBox(height: 10),
-        _buildFieldWithButton(
+        _buildTextField(
           controller: _verificationController,
           hintText: '이메일로 발송된 인증번호를 입력해 주세요.',
           keyboardType: TextInputType.number,
           enabled: !_emailVerified,
-          buttonLabel: _verifyingCode ? '...' : (_emailVerified ? '인증 완료' : '확인'),
-          buttonDisabled: _emailVerified || _verifyingCode,
-          onButtonTap: _verifyCode,
         ),
-        if (_codeSent && !_emailVerified) ...[
+        if (_codeFieldError != null) ...[
+          const SizedBox(height: 6),
+          _buildInlineError(_codeFieldError!),
+        ] else if (_codeSent && !_emailVerified) ...[
           const SizedBox(height: 8),
           Row(
             children: [
@@ -377,8 +396,7 @@ class _SignupScreenState extends State<SignupScreen> {
               ),
             ],
           ),
-        ],
-        if (_emailVerified) ...[
+        ] else if (_emailVerified) ...[
           const SizedBox(height: 8),
           _buildHint('이메일 인증이 완료되었습니다.'),
         ],
@@ -437,6 +455,10 @@ class _SignupScreenState extends State<SignupScreen> {
           obscure: _obscureConfirm,
           onToggle: () => setState(() => _obscureConfirm = !_obscureConfirm),
         ),
+        if (_confirmPasswordError != null) ...[
+          const SizedBox(height: 6),
+          _buildInlineError(_confirmPasswordError!),
+        ],
         const SizedBox(height: 40),
       ],
     );
@@ -460,6 +482,10 @@ class _SignupScreenState extends State<SignupScreen> {
           hintText: '',
           inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'\s'))],
         ),
+        if (_nameFieldError != null) ...[
+          const SizedBox(height: 6),
+          _buildInlineError(_nameFieldError!),
+        ],
         const SizedBox(height: 28),
         _buildLabel('학년과 반을 선택해주세요.'),
         const SizedBox(height: 10),
@@ -485,8 +511,8 @@ class _SignupScreenState extends State<SignupScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (gradeInvalid) _buildHint('학년은 1~3 사이로 입력해주세요.'),
-                if (classInvalid) _buildHint('반은 1~6 사이로 입력해주세요.'),
+                if (gradeInvalid) _buildInlineError('학년은 1~3 사이로 입력해주세요.'),
+                if (classInvalid) _buildInlineError('반은 1~6 사이로 입력해주세요.'),
               ],
             ),
           );
@@ -539,8 +565,13 @@ class _SignupScreenState extends State<SignupScreen> {
             const Text('호', style: TextStyle(fontSize: 15)),
           ],
         ),
-        const SizedBox(height: 6),
-        _buildHint('배정 받은 호실을 정확하게 적어주세요.'),
+        if (_roomFieldError != null) ...[
+          const SizedBox(height: 6),
+          _buildInlineError(_roomFieldError!),
+        ] else ...[
+          const SizedBox(height: 6),
+          _buildHint('배정 받은 호실을 정확하게 적어주세요.'),
+        ],
         const SizedBox(height: 28),
         _buildLabel('거주 지역'),
         const SizedBox(height: 10),
@@ -564,8 +595,15 @@ class _SignupScreenState extends State<SignupScreen> {
 
   // ── Footer ─────────────────────────────────────────────────────
 
+  String get _footerButtonLabel {
+    if (_step == _Step.dormInfo) return '완료';
+    return '다음으로';
+  }
+
+  bool get _footerLoading =>
+      _loading || (_step == _Step.email && _verifyingCode);
+
   Widget _buildFooter() {
-    final isLast = _step == _Step.dormInfo;
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
       child: Column(
@@ -574,7 +612,7 @@ class _SignupScreenState extends State<SignupScreen> {
             width: double.infinity,
             height: 54,
             child: ElevatedButton(
-              onPressed: (_loading || !_isCurrentStepValid) ? null : _onNext,
+              onPressed: (_footerLoading || !_isCurrentStepValid) ? null : _onNext,
               style: ElevatedButton.styleFrom(
                 backgroundColor: _isCurrentStepValid ? _teal : const Color(0xFFA8A8A8),
                 disabledBackgroundColor: const Color(0xFFA8A8A8),
@@ -585,7 +623,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   borderRadius: BorderRadius.circular(30),
                 ),
               ),
-              child: _loading
+              child: _footerLoading
                   ? const SizedBox(
                       width: 22,
                       height: 22,
@@ -595,7 +633,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       ),
                     )
                   : Text(
-                      isLast ? '완료' : '다음으로',
+                      _footerButtonLabel,
                       style: const TextStyle(
                           fontSize: 16, fontWeight: FontWeight.w600),
                     ),
@@ -661,6 +699,21 @@ class _SignupScreenState extends State<SignupScreen> {
         const Icon(Icons.info_outline, color: _teal, size: 14),
         const SizedBox(width: 4),
         Text(text, style: const TextStyle(color: _teal, fontSize: 12)),
+      ],
+    );
+  }
+
+  Widget _buildInlineError(String text) {
+    return Row(
+      children: [
+        const Icon(Icons.info_outline, color: Colors.redAccent, size: 14),
+        const SizedBox(width: 4),
+        Flexible(
+          child: Text(
+            text,
+            style: const TextStyle(color: Colors.redAccent, fontSize: 12),
+          ),
+        ),
       ],
     );
   }
