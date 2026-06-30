@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -120,8 +121,9 @@ class _SignupScreenState extends State<SignupScreen> {
     _timer?.cancel();
     setState(() => _remainingSeconds = 300);
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (_remainingSeconds <= 0) {
+      if (_remainingSeconds <= 1) {
         _timer?.cancel();
+        setState(() => _remainingSeconds = 0);
       } else {
         setState(() => _remainingSeconds--);
       }
@@ -389,16 +391,17 @@ class _SignupScreenState extends State<SignupScreen> {
           hintText: 'example@e-mirim.hs.kr',
           keyboardType: TextInputType.emailAddress,
           enabled: !_emailVerified,
-          buttonLabel: _sendingCode ? '...' : (_emailVerified ? '발송 완료' : (_codeSent ? '인증번호 다시 보내기' : '인증 번호 보내기')),
+          buttonLabel: _emailVerified ? '발송 완료' : (_codeSent ? '인증번호 다시 보내기' : '인증 번호 보내기'),
           buttonDisabled: _emailVerified || _sendingCode,
           buttonHighlighted: _codeSent && !_emailVerified,
+          isLoading: _sendingCode,
           onButtonTap: _sendCode,
         ),
         if (_emailFieldError != null) ...[
-          const SizedBox(height: 6),
+          const SizedBox(height: 10),
           _buildInlineError(_emailFieldError!),
         ] else ...[
-          const SizedBox(height: 6),
+          const SizedBox(height: 10),
           _buildHint('미림마이스터고등학교 전용이메일을 입력해주세요.'),
         ],
         const SizedBox(height: 24),
@@ -411,31 +414,46 @@ class _SignupScreenState extends State<SignupScreen> {
           enabled: !_emailVerified,
         ),
         if (_codeFieldError != null) ...[
-          const SizedBox(height: 6),
+          const SizedBox(height: 10),
           _buildInlineError(_codeFieldError!),
         ] else if (_codeSent && !_emailVerified) ...[
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const Icon(Icons.timer_outlined, color: _teal, size: 14),
-              const SizedBox(width: 4),
-              Text(
-                _timerText,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: _remainingSeconds <= 60 ? Colors.redAccent : _teal,
-                  fontWeight: FontWeight.w600,
+          const SizedBox(height: 10),
+          if (_remainingSeconds == 0)
+            const Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Icon(Icons.timer_off_outlined, color: Colors.redAccent, size: 14),
+                SizedBox(width: 4),
+                Text(
+                  '인증번호가 만료되었습니다. 다시 보내주세요.',
+                  style: TextStyle(fontSize: 12, height: 1.0, color: Colors.redAccent),
                 ),
-              ),
-              const SizedBox(width: 4),
-              const Text(
-                '후 만료됩니다.',
-                style: TextStyle(fontSize: 12, color: _teal),
-              ),
-            ],
-          ),
+              ],
+            )
+          else
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Icon(Icons.timer_outlined, color: _teal, size: 14),
+                const SizedBox(width: 4),
+                Text(
+                  _timerText,
+                  style: TextStyle(
+                    fontSize: 12,
+                    height: 1.0,
+                    color: _remainingSeconds <= 60 ? Colors.redAccent : _teal,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                const Text(
+                  '후 만료됩니다.',
+                  style: TextStyle(fontSize: 12, height: 1.0, color: _teal),
+                ),
+              ],
+            ),
         ] else if (_emailVerified) ...[
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           _buildHint('이메일 인증이 완료되었습니다.'),
         ],
         const SizedBox(height: 40),
@@ -483,7 +501,7 @@ class _SignupScreenState extends State<SignupScreen> {
           },
         ),
         if (_showPasswordHint) ...[
-          const SizedBox(height: 6),
+          const SizedBox(height: 10),
           _buildHint('특수문자를 포함해 8자리 이상 입력해주세요.'),
         ],
         const SizedBox(height: 16),
@@ -494,7 +512,7 @@ class _SignupScreenState extends State<SignupScreen> {
           onToggle: () => setState(() => _obscureConfirm = !_obscureConfirm),
         ),
         if (_confirmPasswordError != null) ...[
-          const SizedBox(height: 6),
+          const SizedBox(height: 10),
           _buildInlineError(_confirmPasswordError!),
         ],
         const SizedBox(height: 40),
@@ -521,7 +539,7 @@ class _SignupScreenState extends State<SignupScreen> {
           inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'\s'))],
         ),
         if (_nameFieldError != null) ...[
-          const SizedBox(height: 6),
+          const SizedBox(height: 10),
           _buildInlineError(_nameFieldError!),
         ],
         const SizedBox(height: 28),
@@ -605,10 +623,10 @@ class _SignupScreenState extends State<SignupScreen> {
           ],
         ),
         if (_roomFieldError != null) ...[
-          const SizedBox(height: 6),
+          const SizedBox(height: 10),
           _buildInlineError(_roomFieldError!),
         ] else ...[
-          const SizedBox(height: 6),
+          const SizedBox(height: 10),
           _buildHint('배정 받은 호실을 정확하게 적어주세요.'),
         ],
         const SizedBox(height: 28),
@@ -813,6 +831,7 @@ class _SignupScreenState extends State<SignupScreen> {
     TextInputType? keyboardType,
     bool enabled = true,
     bool buttonHighlighted = false,
+    bool isLoading = false,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -840,7 +859,7 @@ class _SignupScreenState extends State<SignupScreen> {
             onTap: buttonDisabled ? null : onButtonTap,
             child: Container(
               margin: const EdgeInsets.only(right: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(4),
@@ -852,18 +871,20 @@ class _SignupScreenState extends State<SignupScreen> {
                           : const Color(0xFFA7A7A7),
                 ),
               ),
-              child: Text(
-                buttonLabel,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: buttonDisabled
-                      ? Colors.grey
-                      : buttonHighlighted
-                          ? _teal
-                          : Colors.black87,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
+              child: isLoading
+                  ? const _WaveDots()
+                  : Text(
+                      buttonLabel,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: buttonDisabled
+                            ? Colors.grey
+                            : buttonHighlighted
+                                ? _teal
+                                : Colors.black87,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
             ),
           ),
         ],
@@ -921,6 +942,57 @@ class _SignupScreenState extends State<SignupScreen> {
                   const TextStyle(fontSize: 14, color: Colors.black87)),
         ],
       ),
+    );
+  }
+}
+
+class _WaveDots extends StatefulWidget {
+  const _WaveDots();
+  @override
+  State<_WaveDots> createState() => _WaveDotsState();
+}
+
+class _WaveDotsState extends State<_WaveDots> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 900))..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: List.generate(3, (i) {
+            final offset = sin((_controller.value * 2 * pi) - (i * pi / 3));
+            return Transform.translate(
+              offset: Offset(0, -4 * offset),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 2),
+                child: Container(
+                  width: 5,
+                  height: 5,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFCCCCCC),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+            );
+          }),
+        );
+      },
     );
   }
 }

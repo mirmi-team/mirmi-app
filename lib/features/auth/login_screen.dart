@@ -190,7 +190,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             const Text(
-                              '이미 계정이 없다면 ',
+                              '아직 계정이 없다면 ',
                               style: TextStyle(
                                   color: Colors.black54, fontSize: 14),
                             ),
