@@ -71,7 +71,17 @@ class _SignupScreenState extends State<SignupScreen> {
     }
     _emailController.addListener(() => setState(() => _emailFieldError = null));
     _verificationController.addListener(() => setState(() => _codeFieldError = null));
-    _confirmPasswordController.addListener(() => setState(() => _confirmPasswordError = null));
+    _confirmPasswordController.addListener(() {
+      final pw = _passwordController.text;
+      final confirm = _confirmPasswordController.text;
+      setState(() {
+        if (confirm.isNotEmpty && pw != confirm) {
+          _confirmPasswordError = '비밀번호가 일치하지 않습니다.';
+        } else {
+          _confirmPasswordError = null;
+        }
+      });
+    });
     _nameController.addListener(() => setState(() => _nameFieldError = null));
     _dormRoomController.addListener(() => setState(() => _roomFieldError = null));
   }
