@@ -14,7 +14,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
-  bool _showPasswordHint = false;
   bool _loading = false;
   bool _showBanner = false;
   bool _showErrorBanner = false;
@@ -43,13 +42,8 @@ class _LoginScreenState extends State<LoginScreen> {
   void _rebuild() => setState(() {});
 
   bool get _isValid {
-    final email = _emailController.text.trim();
-    final pw = _passwordController.text;
-    final hasSpecial = RegExp(
-      r'[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\;'
-      r"'`~/]",
-    ).hasMatch(pw);
-    return email.isNotEmpty && pw.length >= 8 && hasSpecial;
+    return _emailController.text.trim().isNotEmpty &&
+        _passwordController.text.isNotEmpty;
   }
 
   @override
@@ -57,17 +51,6 @@ class _LoginScreenState extends State<LoginScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
-  }
-
-  void _onPasswordChanged(String value) {
-    final hasSpecialChar = RegExp(
-      r'[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\;'
-      r"'`~/]",
-    ).hasMatch(value);
-    setState(() {
-      _showPasswordHint =
-          value.isNotEmpty && !(value.length >= 8 && hasSpecialChar);
-    });
   }
 
   Future<void> _onLogin() async {
@@ -140,19 +123,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           _buildLabel('비밀번호'),
                           const SizedBox(height: 10),
                           _buildPasswordField(),
-                          if (_showPasswordHint) ...[
-                            const SizedBox(height: 10),
-                            const Row(
-                              children: [
-                                Icon(Icons.info_outline, color: _teal, size: 16),
-                                SizedBox(width: 5),
-                                Text(
-                                  '특수문자를 포함해 8자리 이상 입력해주세요.',
-                                  style: TextStyle(color: _teal, fontSize: 13),
-                                ),
-                              ],
-                            ),
-                          ],
                           const SizedBox(height: 40),
                         ],
                       ),
@@ -393,7 +363,6 @@ class _LoginScreenState extends State<LoginScreen> {
         style: const TextStyle(fontSize: 14),
         controller: _passwordController,
         obscureText: _obscurePassword,
-        onChanged: _onPasswordChanged,
         decoration: InputDecoration(
           hintText: 'mirim123!',
           hintStyle: const TextStyle(color: Color(0xFFA7A7A7), fontSize: 13),
