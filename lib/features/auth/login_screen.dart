@@ -95,6 +95,7 @@ class _LoginScreenState extends State<LoginScreen> {
         backgroundColor: _bgColor,
         resizeToAvoidBottomInset: false,
         body: SafeArea(
+          bottom: false,
           child: Column(
             children: [
               Expanded(
@@ -145,8 +146,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: ElevatedButton(
                         onPressed: (_loading || !_isValid) ? null : _onLogin,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              _isValid ? _teal : const Color(0xFFA8A8A8),
+                          backgroundColor: _isValid
+                              ? _teal
+                              : const Color(0xFFA8A8A8),
                           disabledBackgroundColor: const Color(0xFFA8A8A8),
                           disabledForegroundColor: Colors.white,
                           foregroundColor: Colors.white,
@@ -167,7 +169,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             : const Text(
                                 '로그인',
                                 style: TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.w600),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                       ),
                     ),
@@ -177,8 +181,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: [
                         const Text(
                           '이미 계정이 없다면 ',
-                          style:
-                              TextStyle(color: Colors.black54, fontSize: 14),
+                          style: TextStyle(color: Colors.black54, fontSize: 14),
                         ),
                         GestureDetector(
                           onTap: () => context.push('/signup'),
@@ -234,8 +237,10 @@ class _LoginScreenState extends State<LoginScreen> {
           hintText: hintText,
           hintStyle: const TextStyle(color: Color(0xFFA7A7A7), fontSize: 13),
           border: InputBorder.none,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 15,
+            vertical: 12,
+          ),
         ),
       ),
     );
@@ -257,8 +262,10 @@ class _LoginScreenState extends State<LoginScreen> {
           hintText: 'mirim123!',
           hintStyle: const TextStyle(color: Color(0xFFA7A7A7), fontSize: 13),
           border: InputBorder.none,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 15,
+            vertical: 12,
+          ),
           suffixIcon: IconButton(
             icon: Icon(
               _obscurePassword
