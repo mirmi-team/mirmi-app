@@ -71,7 +71,9 @@ class _SignupScreenState extends State<SignupScreen> {
       c.addListener(_rebuild);
     }
     _emailController.addListener(() => setState(() => _emailFieldError = null));
-    _verificationController.addListener(() => setState(() => _codeFieldError = null));
+    _verificationController.addListener(() {
+      if (_remainingSeconds > 0) setState(() => _codeFieldError = null);
+    });
     _confirmPasswordController.addListener(() {
       final pw = _passwordController.text;
       final confirm = _confirmPasswordController.text;
@@ -93,7 +95,7 @@ class _SignupScreenState extends State<SignupScreen> {
     switch (_step) {
       case _Step.email:
         return _emailVerified ||
-            (_codeSent && _verificationController.text.trim().isNotEmpty);
+            (_codeSent && _remainingSeconds > 0 && _verificationController.text.trim().isNotEmpty);
       case _Step.password:
         final pw = _passwordController.text;
         final confirm = _confirmPasswordController.text;
@@ -123,7 +125,10 @@ class _SignupScreenState extends State<SignupScreen> {
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (_remainingSeconds <= 1) {
         _timer?.cancel();
-        setState(() => _remainingSeconds = 0);
+        setState(() {
+          _remainingSeconds = 0;
+          _codeFieldError = '인증번호가 만료되었습니다. 다시 보내주세요.';
+        });
       } else {
         setState(() => _remainingSeconds--);
       }
@@ -162,7 +167,11 @@ class _SignupScreenState extends State<SignupScreen> {
     try {
       await AuthService.sendVerificationCode(email);
       if (!mounted) return;
-      setState(() => _codeSent = true);
+      setState(() {
+        _codeSent = true;
+        _codeFieldError = null;
+        _verificationController.clear();
+      });
       _startTimer();
     } on ApiException catch (e) {
       if (!mounted) return;
@@ -208,6 +217,8 @@ class _SignupScreenState extends State<SignupScreen> {
       case _Step.email:
         if (_emailVerified) {
           setState(() { _goingForward = true; _step = _Step.password; });
+        } else if (_remainingSeconds == 0) {
+          setState(() => _codeFieldError = '인증번호가 만료되었습니다. 다시 보내주세요.');
         } else {
           await _verifyCode();
         }
@@ -416,42 +427,29 @@ class _SignupScreenState extends State<SignupScreen> {
         if (_codeFieldError != null) ...[
           const SizedBox(height: 10),
           _buildInlineError(_codeFieldError!),
-        ] else if (_codeSent && !_emailVerified) ...[
+        ] else if (_codeSent && !_emailVerified && _remainingSeconds > 0) ...[
           const SizedBox(height: 10),
-          if (_remainingSeconds == 0)
-            const Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Icon(Icons.timer_off_outlined, color: Colors.redAccent, size: 14),
-                SizedBox(width: 4),
-                Text(
-                  '인증번호가 만료되었습니다. 다시 보내주세요.',
-                  style: TextStyle(fontSize: 12, height: 1.0, color: Colors.redAccent),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Icon(Icons.timer_outlined, color: _teal, size: 14),
+              const SizedBox(width: 4),
+              Text(
+                _timerText,
+                style: TextStyle(
+                  fontSize: 12,
+                  height: 1.0,
+                  color: _remainingSeconds <= 60 ? Colors.redAccent : _teal,
+                  fontWeight: FontWeight.w600,
                 ),
-              ],
-            )
-          else
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const Icon(Icons.timer_outlined, color: _teal, size: 14),
-                const SizedBox(width: 4),
-                Text(
-                  _timerText,
-                  style: TextStyle(
-                    fontSize: 12,
-                    height: 1.0,
-                    color: _remainingSeconds <= 60 ? Colors.redAccent : _teal,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(width: 4),
-                const Text(
-                  '후 만료됩니다.',
-                  style: TextStyle(fontSize: 12, height: 1.0, color: _teal),
-                ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 4),
+              const Text(
+                '후 만료됩니다.',
+                style: TextStyle(fontSize: 12, height: 1.0, color: _teal),
+              ),
+            ],
+          ),
         ] else if (_emailVerified) ...[
           const SizedBox(height: 10),
           _buildHint('이메일 인증이 완료되었습니다.'),
