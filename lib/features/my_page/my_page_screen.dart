@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +20,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
   Map<String, dynamic>? _user;
   bool _loading = true;
   bool _uploading = false;
+  File? _localImage; // 선택 직후 즉시 표시할 로컬 파일
 
   static const _teal = Color(0xFF00CFCD);
   static const _bgColor = Color(0xFFF2F3F5);
@@ -46,13 +48,14 @@ class _MyPageScreenState extends State<MyPageScreen> {
         type: FileType.image,
         allowMultiple: false,
       );
-      filePath = result?.files.firstOrNull?.path;
+      final file = result?.files.firstOrNull;
+      filePath = file?.path ?? file?.xFile.path;
     } else {
       final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
       filePath = picked?.path;
     }
 
-    if (filePath == null || !mounted) return;
+    if (!mounted || filePath == null) return;
 
     setState(() => _uploading = true);
     try {
@@ -68,15 +71,24 @@ class _MyPageScreenState extends State<MyPageScreen> {
       );
       if (rotated != null) uploadPath = rotated.path;
 
+      // 압축 완료 즉시 로컬 파일로 UI 반영
+      if (mounted) setState(() => _localImage = File(uploadPath));
+
+      final oldPath = _user?['profile_image'] as String?;
+      if (oldPath != null) {
+        PaintingBinding.instance.imageCache.evict(NetworkImage('$kBaseUrl/$oldPath'));
+      }
+
       final newPath = await AuthService.uploadProfileImage(uploadPath);
       if (mounted) {
         PaintingBinding.instance.imageCache.evict(NetworkImage('$kBaseUrl/$newPath'));
         setState(() => _user = {...?_user, 'profile_image': newPath});
       }
-    } catch (_) {
+    } catch (e) {
       if (mounted) {
+        setState(() => _localImage = null);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('사진 업로드에 실패했습니다.')),
+          SnackBar(content: Text('업로드 실패: $e')),
         );
       }
     } finally {
@@ -90,6 +102,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
   }
 
   ImageProvider? _profileImageProvider() {
+    if (_localImage != null) return FileImage(_localImage!);
     final path = _user?['profile_image'] as String?;
     if (path == null || path.isEmpty) return null;
     return NetworkImage('$kBaseUrl/$path');

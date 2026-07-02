@@ -23,13 +23,61 @@ class AuthService {
     return prefs.getString(_accessKey);
   }
 
+  static Future<String?> getRefreshToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_refreshKey);
+  }
+
   static Future<void> clearTokens() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_accessKey);
     await prefs.remove(_refreshKey);
   }
 
-  // ── API calls ──────────────────────────────────────────────────
+  // ── Token refresh ──────────────────────────────────────────────
+
+  static Future<bool> _tryRefresh() async {
+    try {
+      final refreshToken = await getRefreshToken();
+      if (refreshToken == null) return false;
+
+      final res = await http.post(
+        Uri.parse('$kBaseUrl/auth/refresh'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'refreshToken': refreshToken}),
+      );
+      if (res.statusCode != 200) return false;
+
+      final body = jsonDecode(res.body) as Map<String, dynamic>;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_accessKey, body['accessToken'] as String);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  // 401 시 자동 refresh 후 재시도하는 공통 헬퍼
+  static Future<http.Response> _send(
+    Future<http.Response> Function(String token) request,
+  ) async {
+    var token = await getAccessToken() ?? '';
+    var res = await request(token);
+
+    if (res.statusCode == 401) {
+      final ok = await _tryRefresh();
+      if (!ok) {
+        await clearTokens();
+        throw const ApiException('세션이 만료되었습니다. 다시 로그인해주세요.');
+      }
+      token = await getAccessToken() ?? '';
+      res = await request(token);
+    }
+
+    return res;
+  }
+
+  // ── Public API calls ───────────────────────────────────────────
 
   static Future<void> sendVerificationCode(String email) async {
     final res = await http.post(
@@ -93,46 +141,47 @@ class AuthService {
   }
 
   static Future<Map<String, dynamic>> getMe() async {
-    final token = await getAccessToken();
-    final res = await http.get(
+    final res = await _send((token) => http.get(
       Uri.parse('$kBaseUrl/users/me'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       },
-    );
+    ));
     _checkStatus(res);
     return jsonDecode(res.body) as Map<String, dynamic>;
   }
 
-
   static Future<String> uploadProfileImage(String filePath) async {
-    final token = await getAccessToken();
-    final request = http.MultipartRequest(
-      'PATCH',
-      Uri.parse('$kBaseUrl/users/me/profile-image'),
-    )
-      ..headers['Authorization'] = 'Bearer $token'
-      ..files.add(await http.MultipartFile.fromPath('image', filePath));
-    final streamed = await request.send();
-    final res = await http.Response.fromStream(streamed);
+    final res = await _send((token) async {
+      final request = http.MultipartRequest(
+        'PATCH',
+        Uri.parse('$kBaseUrl/users/me/profile-image'),
+      )
+        ..headers['Authorization'] = 'Bearer $token'
+        ..files.add(await http.MultipartFile.fromPath('image', filePath));
+      final streamed = await request.send();
+      return http.Response.fromStream(streamed);
+    });
     _checkStatus(res);
     final body = jsonDecode(res.body) as Map<String, dynamic>;
     return body['profile_image'] as String;
   }
 
   static Future<void> logout() async {
-    final token = await getAccessToken();
-    if (token != null) {
-      await http.post(
+    try {
+      await _send((token) => http.post(
         Uri.parse('$kBaseUrl/auth/logout'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
-      );
+      ));
+    } catch (_) {
+      // 백엔드 실패해도 로컬 토큰은 반드시 삭제
+    } finally {
+      await clearTokens();
     }
-    await clearTokens();
   }
 
   // ── Helper ─────────────────────────────────────────────────────
