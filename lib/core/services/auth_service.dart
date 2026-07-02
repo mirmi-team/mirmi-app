@@ -92,6 +92,35 @@ class AuthService {
     return body;
   }
 
+  static Future<Map<String, dynamic>> getMe() async {
+    final token = await getAccessToken();
+    final res = await http.get(
+      Uri.parse('$kBaseUrl/users/me'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+    _checkStatus(res);
+    return jsonDecode(res.body) as Map<String, dynamic>;
+  }
+
+
+  static Future<String> uploadProfileImage(String filePath) async {
+    final token = await getAccessToken();
+    final request = http.MultipartRequest(
+      'PATCH',
+      Uri.parse('$kBaseUrl/users/me/profile-image'),
+    )
+      ..headers['Authorization'] = 'Bearer $token'
+      ..files.add(await http.MultipartFile.fromPath('image', filePath));
+    final streamed = await request.send();
+    final res = await http.Response.fromStream(streamed);
+    _checkStatus(res);
+    final body = jsonDecode(res.body) as Map<String, dynamic>;
+    return body['profile_image'] as String;
+  }
+
   static Future<void> logout() async {
     final token = await getAccessToken();
     if (token != null) {

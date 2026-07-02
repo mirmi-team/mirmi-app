@@ -1,0 +1,223 @@
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import '../../core/constants/api.dart';
+import '../../core/services/auth_service.dart';
+
+class MyPageScreen extends StatefulWidget {
+  const MyPageScreen({super.key});
+
+  @override
+  State<MyPageScreen> createState() => _MyPageScreenState();
+}
+
+class _MyPageScreenState extends State<MyPageScreen> {
+  Map<String, dynamic>? _user;
+  bool _loading = true;
+  bool _uploading = false;
+
+  static const _teal = Color(0xFF00CFCD);
+  static const _bgColor = Color(0xFFF2F3F5);
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUser();
+  }
+
+  Future<void> _loadUser() async {
+    try {
+      final user = await AuthService.getMe();
+      if (mounted) setState(() { _user = user; _loading = false; });
+    } catch (_) {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _pickAndUploadImage() async {
+    String? filePath;
+
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.image,
+        allowMultiple: false,
+      );
+      filePath = result?.files.firstOrNull?.path;
+    } else {
+      final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
+      filePath = picked?.path;
+    }
+
+    if (filePath == null || !mounted) return;
+
+    setState(() => _uploading = true);
+    try {
+      final tmpDir = await getTemporaryDirectory();
+      final tempPath = '${tmpDir.path}/${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+      String uploadPath = filePath;
+      final rotated = await FlutterImageCompress.compressAndGetFile(
+        filePath,
+        tempPath,
+        autoCorrectionAngle: true,
+        quality: 85,
+      );
+      if (rotated != null) uploadPath = rotated.path;
+
+      final newPath = await AuthService.uploadProfileImage(uploadPath);
+      if (mounted) {
+        PaintingBinding.instance.imageCache.evict(NetworkImage('$kBaseUrl/$newPath'));
+        setState(() => _user = {...?_user, 'profile_image': newPath});
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('사진 업로드에 실패했습니다.')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _uploading = false);
+    }
+  }
+
+  Future<void> _logout() async {
+    await AuthService.logout();
+    if (mounted) context.go('/login');
+  }
+
+  ImageProvider? _profileImageProvider() {
+    final path = _user?['profile_image'] as String?;
+    if (path == null || path.isEmpty) return null;
+    return NetworkImage('$kBaseUrl/$path');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final name = _user?['username'] as String? ?? '';
+    final grade = _user?['grade'] as int?;
+    final classNo = _user?['class_no'] as int?;
+    final roomId = _user?['room_id'] as int?;
+    final imageProvider = _profileImageProvider();
+
+    return Scaffold(
+      backgroundColor: _bgColor,
+      appBar: AppBar(
+        backgroundColor: _bgColor,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.chevron_left, size: 28, color: Colors.black87),
+          onPressed: () => context.pop(),
+        ),
+        title: Text(
+          _loading ? '' : '$name님의 정보',
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+        ),
+      ),
+      body: _loading
+          ? const Center(child: CircularProgressIndicator(color: _teal))
+          : SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                children: [
+                  const SizedBox(height: 36),
+                  Stack(
+                    children: [
+                      Container(
+                        width: 104,
+                        height: 104,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFD9D9D9),
+                          shape: BoxShape.circle,
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: imageProvider == null
+                            ? const Icon(Icons.person, size: 52, color: Colors.white)
+                            : Image(
+                                image: imageProvider,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, _, _) => const Icon(
+                                  Icons.person,
+                                  size: 52,
+                                  color: Colors.white,
+                                ),
+                              ),
+                      ),
+                      Positioned(
+                        right: 0,
+                        bottom: 0,
+                        child: GestureDetector(
+                          onTap: _uploading ? null : _pickAndUploadImage,
+                          child: Container(
+                            width: 30,
+                            height: 30,
+                            decoration: BoxDecoration(
+                              color: _teal,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
+                            ),
+                            child: _uploading
+                                ? const Padding(
+                                    padding: EdgeInsets.all(6),
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Icon(Icons.edit, color: Colors.white, size: 14),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    name,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    (grade != null && classNo != null && roomId != null)
+                        ? '$grade학년 $classNo반 • $roomId호'
+                        : '',
+                    style: const TextStyle(fontSize: 14, color: Color(0xFF888888)),
+                  ),
+                  const SizedBox(height: 60),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 54,
+                    child: ElevatedButton(
+                      onPressed: _logout,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFEEEEEE),
+                        foregroundColor: Colors.black54,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                      child: const Text(
+                        '로그아웃',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+    );
+  }
+}

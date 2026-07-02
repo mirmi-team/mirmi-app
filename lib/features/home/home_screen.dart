@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import '../../core/constants/api.dart';
+import '../../core/services/auth_service.dart';
 import '../laundry/laundry_screen.dart';
 import '../return_stay/return_stay_screen.dart';
 import '../notice/notice_screen.dart';
@@ -13,6 +16,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
+  String? _profileImage;
 
   static const _bgColor = Color(0xFFF5F5F5);
 
@@ -25,7 +29,29 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _loadProfileImage();
+  }
+
+  Future<void> _loadProfileImage() async {
+    try {
+      final user = await AuthService.getMe();
+      if (mounted) setState(() => _profileImage = user['profile_image'] as String?);
+    } catch (_) {}
+  }
+
+  Future<void> _goToMyPage() async {
+    await context.push('/my');
+    _loadProfileImage();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final imageProvider = (_profileImage != null && _profileImage!.isNotEmpty)
+        ? NetworkImage('$kBaseUrl/$_profileImage') as ImageProvider
+        : null;
+
     return Scaffold(
       backgroundColor: _bgColor,
       appBar: AppBar(
@@ -39,10 +65,14 @@ class _HomeScreenState extends State<HomeScreen> {
           Padding(
             padding: const EdgeInsets.only(right: 20),
             child: GestureDetector(
-              onTap: () {},
-              child: const CircleAvatar(
+              onTap: _goToMyPage,
+              child: CircleAvatar(
                 radius: 20,
-                backgroundColor: Color(0xFFD9D9D9),
+                backgroundColor: const Color(0xFFD9D9D9),
+                backgroundImage: imageProvider,
+                child: imageProvider == null
+                    ? const Icon(Icons.person, size: 20, color: Colors.white)
+                    : null,
               ),
             ),
           ),
