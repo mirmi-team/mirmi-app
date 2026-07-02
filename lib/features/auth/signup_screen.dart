@@ -86,7 +86,18 @@ class _SignupScreenState extends State<SignupScreen> {
       });
     });
     _nameController.addListener(() => setState(() => _nameFieldError = null));
-    _dormRoomController.addListener(() => setState(() => _roomFieldError = null));
+    _dormRoomController.addListener(() {
+      final text = _dormRoomController.text.trim();
+      setState(() {
+        if (text.isEmpty) {
+          _roomFieldError = null;
+        } else if (text.length < 3) {
+          _roomFieldError = '올바른 호실 번호를 입력해주세요.';
+        } else {
+          _roomFieldError = null;
+        }
+      });
+    });
   }
 
   void _rebuild() => setState(() {});
@@ -115,7 +126,7 @@ class _SignupScreenState extends State<SignupScreen> {
             grade >= 1 && grade <= 3 &&
             classNo >= 1 && classNo <= 6;
       case _Step.dormInfo:
-        return _dormRoomController.text.trim().isNotEmpty;
+        return _dormRoomController.text.trim().length >= 3;
     }
   }
 
