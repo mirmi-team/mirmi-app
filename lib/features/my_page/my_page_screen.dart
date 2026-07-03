@@ -101,6 +101,27 @@ class _MyPageScreenState extends State<MyPageScreen> {
     if (mounted) context.go('/login');
   }
 
+  void _showImagePreview(ImageProvider imageProvider) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black87,
+      builder: (ctx) => GestureDetector(
+        onTap: () => Navigator.of(ctx).pop(),
+        behavior: HitTestBehavior.opaque,
+        child: Center(
+          child: ClipOval(
+            child: Image(
+              image: imageProvider,
+              width: 280,
+              height: 280,
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   ImageProvider? _profileImageProvider() {
     if (_localImage != null) return FileImage(_localImage!);
     final path = _user?['profile_image'] as String?;
@@ -145,7 +166,11 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   const SizedBox(height: 36),
                   Stack(
                     children: [
-                      Container(
+                      GestureDetector(
+                        onLongPress: imageProvider != null
+                            ? () => _showImagePreview(imageProvider)
+                            : null,
+                        child: Container(
                         width: 104,
                         height: 104,
                         decoration: const BoxDecoration(
@@ -164,6 +189,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                                   color: Colors.white,
                                 ),
                               ),
+                      ),
                       ),
                       Positioned(
                         right: 0,
