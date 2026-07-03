@@ -265,32 +265,12 @@ class _ImagePreviewOverlay extends StatefulWidget {
   State<_ImagePreviewOverlay> createState() => _ImagePreviewOverlayState();
 }
 
-class _ImagePreviewOverlayState extends State<_ImagePreviewOverlay>
-    with SingleTickerProviderStateMixin {
+
+class _ImagePreviewOverlayState extends State<_ImagePreviewOverlay> {
   double _scale = 1.0;
   double _startScale = 1.0;
-  late final AnimationController _anim;
-  Animation<double>? _resetAnim;
-
-  @override
-  void initState() {
-    super.initState();
-    _anim = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 250),
-    )..addListener(() {
-        if (_resetAnim != null) setState(() => _scale = _resetAnim!.value);
-      });
-  }
-
-  @override
-  void dispose() {
-    _anim.dispose();
-    super.dispose();
-  }
 
   void _onScaleStart(ScaleStartDetails _) {
-    _anim.reset();
     _startScale = _scale;
   }
 
@@ -299,9 +279,7 @@ class _ImagePreviewOverlayState extends State<_ImagePreviewOverlay>
   }
 
   void _onScaleEnd(ScaleEndDetails _) {
-    _resetAnim = Tween<double>(begin: _scale, end: 1.0)
-        .animate(CurvedAnimation(parent: _anim, curve: Curves.easeOut));
-    _anim.forward(from: 0);
+    setState(() => _scale = 1.0);
   }
 
   @override
