@@ -86,6 +86,8 @@ class _MyPageScreenState extends State<MyPageScreen> {
         PaintingBinding.instance.imageCache.evict(NetworkImage('$kBaseUrl/$newPath'));
         setState(() => _user = {...?_user, 'profile_image': newPath});
       }
+    } on SessionExpiredException {
+      if (mounted) context.go('/login');
     } catch (e) {
       if (mounted) {
         setState(() => _localImage = null);
