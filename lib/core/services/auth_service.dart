@@ -46,7 +46,7 @@ class AuthService {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'refreshToken': refreshToken}),
       );
-      if (res.statusCode != 200) return false;
+      if (res.statusCode < 200 || res.statusCode >= 300) return false;
 
       final body = jsonDecode(res.body) as Map<String, dynamic>;
       final prefs = await SharedPreferences.getInstance();
