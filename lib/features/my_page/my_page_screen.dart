@@ -101,6 +101,20 @@ class _MyPageScreenState extends State<MyPageScreen> {
     if (mounted) context.go('/login');
   }
 
+  void _showImagePreview(ImageProvider imageProvider) {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: false,
+        barrierColor: Colors.black87,
+        transitionDuration: const Duration(milliseconds: 350),
+        reverseTransitionDuration: const Duration(milliseconds: 250),
+        pageBuilder: (_, a, b) => _ImagePreviewOverlay(imageProvider: imageProvider),
+        transitionsBuilder: (_, animation, b, child) =>
+            FadeTransition(opacity: animation, child: child),
+      ),
+    );
+  }
+
   ImageProvider? _profileImageProvider() {
     if (_localImage != null) return FileImage(_localImage!);
     final path = _user?['profile_image'] as String?;
@@ -145,25 +159,33 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   const SizedBox(height: 36),
                   Stack(
                     children: [
-                      Container(
-                        width: 104,
-                        height: 104,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFD9D9D9),
-                          shape: BoxShape.circle,
+                      GestureDetector(
+                        onLongPress: imageProvider != null
+                            ? () => _showImagePreview(imageProvider)
+                            : null,
+                        child: Hero(
+                          tag: 'profile_photo',
+                          child: Container(
+                            width: 104,
+                            height: 104,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFD9D9D9),
+                              shape: BoxShape.circle,
+                            ),
+                            clipBehavior: Clip.antiAlias,
+                            child: imageProvider == null
+                                ? const Icon(Icons.person, size: 52, color: Colors.white)
+                                : Image(
+                                    image: imageProvider,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, e, s) => const Icon(
+                                      Icons.person,
+                                      size: 52,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                          ),
                         ),
-                        clipBehavior: Clip.antiAlias,
-                        child: imageProvider == null
-                            ? const Icon(Icons.person, size: 52, color: Colors.white)
-                            : Image(
-                                image: imageProvider,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, _, _) => const Icon(
-                                  Icons.person,
-                                  size: 52,
-                                  color: Colors.white,
-                                ),
-                              ),
                       ),
                       Positioned(
                         right: 0,
@@ -231,6 +253,64 @@ class _MyPageScreenState extends State<MyPageScreen> {
                 ],
               ),
             ),
+    );
+  }
+}
+
+class _ImagePreviewOverlay extends StatefulWidget {
+  const _ImagePreviewOverlay({required this.imageProvider});
+  final ImageProvider imageProvider;
+
+  @override
+  State<_ImagePreviewOverlay> createState() => _ImagePreviewOverlayState();
+}
+
+
+class _ImagePreviewOverlayState extends State<_ImagePreviewOverlay> {
+  double _scale = 1.0;
+  double _startScale = 1.0;
+
+  void _onScaleStart(ScaleStartDetails _) {
+    _startScale = _scale;
+  }
+
+  void _onScaleUpdate(ScaleUpdateDetails details) {
+    setState(() => _scale = (_startScale * details.scale).clamp(1.0, 4.0));
+  }
+
+  void _onScaleEnd(ScaleEndDetails _) {
+    setState(() => _scale = 1.0);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      type: MaterialType.transparency,
+      child: GestureDetector(
+        onTap: () => Navigator.of(context).pop(),
+        behavior: HitTestBehavior.opaque,
+        child: Center(
+          child: GestureDetector(
+            onScaleStart: _onScaleStart,
+            onScaleUpdate: _onScaleUpdate,
+            onScaleEnd: _onScaleEnd,
+            child: Transform.scale(
+              scale: _scale,
+              child: Hero(
+                tag: 'profile_photo',
+                child: ClipOval(
+                  child: Image(
+                    image: widget.imageProvider,
+                    width: 280,
+                    height: 280,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

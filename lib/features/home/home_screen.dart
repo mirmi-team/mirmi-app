@@ -54,6 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       backgroundColor: _bgColor,
+      extendBody: true,
       appBar: AppBar(
         backgroundColor: _bgColor,
         elevation: 0,
