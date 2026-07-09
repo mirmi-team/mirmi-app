@@ -60,7 +60,7 @@ class AuthService {
       final ok = await _tryRefresh();
       if (!ok) {
         await clearTokens();
-        throw const ApiException('세션이 만료되었습니다. 다시 로그인해주세요.');
+        throw const SessionExpiredException();
       }
       token = await getAccessToken() ?? '';
       res = await request(token);
@@ -193,4 +193,8 @@ class ApiException implements Exception {
   final String message;
   @override
   String toString() => message;
+}
+
+class SessionExpiredException extends ApiException {
+  const SessionExpiredException() : super('세션이 만료되었습니다. 다시 로그인해주세요.');
 }

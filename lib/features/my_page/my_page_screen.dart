@@ -35,6 +35,8 @@ class _MyPageScreenState extends State<MyPageScreen> {
     try {
       final user = await AuthService.getMe();
       if (mounted) setState(() { _user = user; _loading = false; });
+    } on SessionExpiredException {
+      if (mounted) context.go('/login');
     } catch (_) {
       if (mounted) setState(() => _loading = false);
     }
