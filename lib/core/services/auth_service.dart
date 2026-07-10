@@ -1,9 +1,10 @@
 import 'dart:convert';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import '../constants/api.dart';
 
 class AuthService {
+  static const _storage = FlutterSecureStorage();
   static const _accessKey = 'accessToken';
   static const _refreshKey = 'refreshToken';
 
@@ -13,25 +14,17 @@ class AuthService {
     required String accessToken,
     required String refreshToken,
   }) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_accessKey, accessToken);
-    await prefs.setString(_refreshKey, refreshToken);
+    await _storage.write(key: _accessKey, value: accessToken);
+    await _storage.write(key: _refreshKey, value: refreshToken);
   }
 
-  static Future<String?> getAccessToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_accessKey);
-  }
+  static Future<String?> getAccessToken() => _storage.read(key: _accessKey);
 
-  static Future<String?> getRefreshToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_refreshKey);
-  }
+  static Future<String?> getRefreshToken() => _storage.read(key: _refreshKey);
 
   static Future<void> clearTokens() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_accessKey);
-    await prefs.remove(_refreshKey);
+    await _storage.delete(key: _accessKey);
+    await _storage.delete(key: _refreshKey);
   }
 
   // ── Token refresh ──────────────────────────────────────────────
@@ -46,11 +39,10 @@ class AuthService {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'refreshToken': refreshToken}),
       );
-      if (res.statusCode != 200) return false;
+      if (res.statusCode < 200 || res.statusCode >= 300) return false;
 
       final body = jsonDecode(res.body) as Map<String, dynamic>;
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_accessKey, body['accessToken'] as String);
+      await _storage.write(key: _accessKey, value: body['accessToken'] as String);
       return true;
     } catch (_) {
       return false;
@@ -68,7 +60,7 @@ class AuthService {
       final ok = await _tryRefresh();
       if (!ok) {
         await clearTokens();
-        throw const ApiException('세션이 만료되었습니다. 다시 로그인해주세요.');
+        throw const SessionExpiredException();
       }
       token = await getAccessToken() ?? '';
       res = await request(token);
@@ -201,4 +193,8 @@ class ApiException implements Exception {
   final String message;
   @override
   String toString() => message;
+}
+
+class SessionExpiredException extends ApiException {
+  const SessionExpiredException() : super('세션이 만료되었습니다. 다시 로그인해주세요.');
 }

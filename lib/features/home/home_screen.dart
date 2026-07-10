@@ -38,6 +38,8 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final user = await AuthService.getMe();
       if (mounted) setState(() => _profileImage = user['profile_image'] as String?);
+    } on SessionExpiredException {
+      if (mounted) context.go('/login');
     } catch (_) {}
   }
 
