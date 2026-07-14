@@ -6,7 +6,6 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
-import '../../core/constants/api.dart';
 import '../../core/services/auth_service.dart';
 
 class MyPageScreen extends StatefulWidget {
@@ -78,12 +77,12 @@ class _MyPageScreenState extends State<MyPageScreen> {
 
       final oldPath = _user?['profile_image'] as String?;
       if (oldPath != null) {
-        PaintingBinding.instance.imageCache.evict(NetworkImage('$kBaseUrl/$oldPath'));
+        PaintingBinding.instance.imageCache.evict(NetworkImage(oldPath));
       }
 
       final newPath = await AuthService.uploadProfileImage(uploadPath);
       if (mounted) {
-        PaintingBinding.instance.imageCache.evict(NetworkImage('$kBaseUrl/$newPath'));
+        PaintingBinding.instance.imageCache.evict(NetworkImage(newPath));
         setState(() => _user = {...?_user, 'profile_image': newPath});
       }
     } on SessionExpiredException {
@@ -123,7 +122,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
     if (_localImage != null) return FileImage(_localImage!);
     final path = _user?['profile_image'] as String?;
     if (path == null || path.isEmpty) return null;
-    return NetworkImage('$kBaseUrl/$path');
+    return NetworkImage(path);
   }
 
   @override
