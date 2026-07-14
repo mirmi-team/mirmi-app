@@ -288,6 +288,7 @@ class _SignupScreenState extends State<SignupScreen> {
         classNo: int.parse(_classController.text),
         roomNumber: int.parse(roomText),
         canStaying: _dormRegion == '경기 외',
+        gender: _gender,
       );
       if (!mounted) return;
       context.go('/login', extra: '회원가입이 완료되었습니다.');

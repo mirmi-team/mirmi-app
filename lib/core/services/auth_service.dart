@@ -97,6 +97,7 @@ class AuthService {
     required int classNo,
     required int roomNumber,
     required bool canStaying,
+    required String gender,
   }) async {
     final res = await http.post(
       Uri.parse('$kBaseUrl/auth/signup'),
@@ -109,6 +110,7 @@ class AuthService {
         'class_no': classNo,
         'room_number': roomNumber,
         'can_staying': canStaying,
+        'gender': gender == '남자' ? 'MALE' : 'FEMALE',
       }),
     );
     _checkStatus(res);
