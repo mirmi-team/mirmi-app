@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/constants/api.dart';
 import '../../core/services/auth_service.dart';
 import '../laundry/laundry_screen.dart';
 import '../return_stay/return_stay_screen.dart';
@@ -51,7 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final imageProvider = (_profileImage != null && _profileImage!.isNotEmpty)
-        ? NetworkImage('$kBaseUrl/$_profileImage') as ImageProvider
+        ? NetworkImage(_profileImage!) as ImageProvider
         : null;
 
     return Scaffold(
