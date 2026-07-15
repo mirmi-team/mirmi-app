@@ -130,8 +130,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
     final name = _user?['username'] as String? ?? '';
     final grade = _user?['grade'] as int?;
     final classNo = _user?['class_no'] as int?;
-    final roomInfo = _user?['room_number'] as Map<String, dynamic>?;
-    final roomNumber = roomInfo?['room_number'] as int?;
+    final roomNumber = _user?['room_number'] as int?;
     final imageProvider = _profileImageProvider();
 
     return Scaffold(
