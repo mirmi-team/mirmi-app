@@ -130,7 +130,8 @@ class _MyPageScreenState extends State<MyPageScreen> {
     final name = _user?['username'] as String? ?? '';
     final grade = _user?['grade'] as int?;
     final classNo = _user?['class_no'] as int?;
-    final roomId = _user?['room_id'] as int?;
+    final roomInfo = _user?['room_number'] as Map<String, dynamic>?;
+    final roomNumber = roomInfo?['room_number'] as int?;
     final imageProvider = _profileImageProvider();
 
     return Scaffold(
@@ -228,8 +229,8 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    (grade != null && classNo != null && roomId != null)
-                        ? '$grade학년 $classNo반 • $roomId호'
+                    (grade != null && classNo != null && roomNumber != null)
+                        ? '$grade학년 $classNo반 • $roomNumber호'
                         : '',
                     style: const TextStyle(fontSize: 14, color: Color(0xFF888888)),
                   ),
