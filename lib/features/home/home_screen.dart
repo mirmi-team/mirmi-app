@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
@@ -19,10 +18,17 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  static const _teal = AppColors.mainColor;
+  static const _errorColor = AppColors.error;
+  static const _bgColor = AppColors.backB;
+  static const _captainColor = AppColors.caption;
+  static const _cardColor = AppColors.card;
+  static const _textColor = AppColors.mainText;
+  static const _surfaceColor = AppColors.surfaceHover;
+  static const _bodyColor = AppColors.body;
+
   int _currentIndex = 0;
   String? _profileImage;
-
-  static const _bgColor = AppColors.backB;
 
   final List<Widget> _pages = const [
     _HomeTab(),
@@ -41,7 +47,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadProfileImage() async {
     try {
       final user = await AuthService.getMe();
-      if (mounted) setState(() => _profileImage = user['profile_image'] as String?);
+      if (mounted)
+        setState(() => _profileImage = user['profile_image'] as String?);
     } on SessionExpiredException {
       if (mounted) context.go('/login');
     } catch (_) {}
@@ -60,7 +67,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       backgroundColor: _bgColor,
-      extendBody: true,
       appBar: AppBar(
         backgroundColor: _bgColor,
         elevation: 0,
@@ -85,25 +91,31 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onHorizontalDragEnd: (d) {
-          final v = d.primaryVelocity ?? 0;
-          if (v.abs() < 400) return;
-          if (v < 0 && _currentIndex < _pages.length - 1) {
-            setState(() => _currentIndex++);
-          } else if (v > 0 && _currentIndex > 0) {
-            setState(() => _currentIndex--);
-          }
-        },
-        child: IndexedStack(
-          index: _currentIndex,
-          children: _pages,
-        ),
-      ),
-      bottomNavigationBar: _NavBar(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
+      body: Stack(
+        children: [
+          GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onHorizontalDragEnd: (d) {
+              final v = d.primaryVelocity ?? 0;
+              if (v.abs() < 400) return;
+              if (v < 0 && _currentIndex < _pages.length - 1) {
+                setState(() => _currentIndex++);
+              } else if (v > 0 && _currentIndex > 0) {
+                setState(() => _currentIndex--);
+              }
+            },
+            child: IndexedStack(index: _currentIndex, children: _pages),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: _NavBar(
+              currentIndex: _currentIndex,
+              onTap: (index) => setState(() => _currentIndex = index),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -125,15 +137,34 @@ class _NavBar extends StatefulWidget {
 }
 
 class _NavBarState extends State<_NavBar> with SingleTickerProviderStateMixin {
+  static const _teal = AppColors.mainColor;
+  static const _errorColor = AppColors.error;
+  static const _bgColor = AppColors.backB;
+  static const _captainColor = AppColors.caption;
+  static const _cardColor = AppColors.card;
+  static const _textColor = AppColors.mainText;
+  static const _surfaceColor = AppColors.surfaceHover;
+  static const _bodyColor = AppColors.body;
+
   static const _items = [
-    _NavItem(icon: Icons.home_outlined,                  activeIcon: Icons.home_rounded),
-    _NavItem(icon: Icons.local_laundry_service_outlined, activeIcon: Icons.local_laundry_service),
-    _NavItem(icon: Icons.alarm_outlined,                 activeIcon: Icons.alarm),
-    _NavItem(icon: Icons.notifications_outlined,         activeIcon: Icons.notifications),
-    _NavItem(icon: Icons.music_note_outlined,            activeIcon: Icons.music_note),
+    _NavItem(icon: Icons.home_outlined, activeIcon: Icons.home_rounded),
+    _NavItem(
+      icon: Icons.local_laundry_service_outlined,
+      activeIcon: Icons.local_laundry_service,
+    ),
+    _NavItem(icon: Icons.alarm_outlined, activeIcon: Icons.alarm),
+    _NavItem(
+      icon: Icons.notifications_outlined,
+      activeIcon: Icons.notifications,
+    ),
+    _NavItem(icon: Icons.music_note_outlined, activeIcon: Icons.music_note),
   ];
 
-  static const _spring = SpringDescription(mass: 1.0, stiffness: 280.0, damping: 24.0);
+  static const _spring = SpringDescription(
+    mass: 1.0,
+    stiffness: 280.0,
+    damping: 24.0,
+  );
 
   late final AnimationController _ctrl;
   bool _pressed = false;
@@ -189,111 +220,112 @@ class _NavBarState extends State<_NavBar> with SingleTickerProviderStateMixin {
         child: LayoutBuilder(
           builder: (context, constraints) {
             final totalW = constraints.maxWidth;
-            final itemW  = totalW / _items.length;
-            final pos    = _ctrl.value.clamp(0.0, (_items.length - 1).toDouble());
+            final itemW = totalW / _items.length;
+            final pos = _ctrl.value.clamp(0.0, (_items.length - 1).toDouble());
 
-            const navH   = 66.0;
+            const navH = 66.0;
             const margin = 2.0;
-            final slotL  = pos * itemW;
-            final slotR  = slotL + itemW;
+            final slotL = pos * itemW;
+            final slotR = slotL + itemW;
 
             return Listener(
               onPointerDown: (_) => setState(() => _pressed = true),
               onPointerUp: (_) => setState(() => _pressed = false),
               onPointerCancel: (_) => setState(() => _pressed = false),
               child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onHorizontalDragStart: (_) => _ctrl.stop(),
-              onHorizontalDragUpdate: (d) {
-                _ctrl.value = (_ctrl.value + d.delta.dx / itemW)
-                    .clamp(0.0, (_items.length - 1).toDouble());
-              },
-              onHorizontalDragEnd: (d) {
-                final v = (d.primaryVelocity ?? 0.0) / itemW;
-                final int target;
-                if (v > 2.0) {
-                  target = pos.ceil().clamp(0, _items.length - 1);
-                } else if (v < -2.0) {
-                  target = pos.floor().clamp(0, _items.length - 1);
-                } else {
-                  target = pos.round().clamp(0, _items.length - 1);
-                }
-                _select(target, velocity: v);
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(32),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.06),
-                      blurRadius: 20,
-                      offset: const Offset(0, 4),
+                behavior: HitTestBehavior.opaque,
+                onHorizontalDragStart: (_) => _ctrl.stop(),
+                onHorizontalDragUpdate: (d) {
+                  _ctrl.value = (_ctrl.value + d.delta.dx / itemW).clamp(
+                    0.0,
+                    (_items.length - 1).toDouble(),
+                  );
+                },
+                onHorizontalDragEnd: (d) {
+                  final v = (d.primaryVelocity ?? 0.0) / itemW;
+                  final int target;
+                  if (v > 2.0) {
+                    target = pos.ceil().clamp(0, _items.length - 1);
+                  } else if (v < -2.0) {
+                    target = pos.floor().clamp(0, _items.length - 1);
+                  } else {
+                    target = pos.round().clamp(0, _items.length - 1);
+                  }
+                  _select(target, velocity: v);
+                },
+                child: Container(
+                  height: navH,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(32),
+                    border: Border.all(
+                      color: const Color(0xffa7a7a7).withValues(alpha: 0.40),
+                      width: 1.0,
                     ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(32),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
-                    child: Container(
-                      height: navH,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.14),
-                        borderRadius: BorderRadius.circular(32),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.40),
-                          width: 1.0,
-                        ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 1),
+                        blurRadius: 20,
+                        offset: const Offset(0, 4),
                       ),
-                      child: Stack(
-                        children: [
-                          Positioned(
-                            left: slotL + margin,
-                            right: totalW - slotR + margin,
-                            top: margin,
-                            bottom: margin,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFE5E5E5),
-                                borderRadius: BorderRadius.circular(navH / 2 - margin),
-                              ),
+                    ],
+                  ),
+                  child: Stack(
+                    children: [
+                      Positioned(
+                        left: slotL + margin,
+                        right: totalW - slotR + margin,
+                        top: margin,
+                        bottom: margin,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: _surfaceColor,
+                            borderRadius: BorderRadius.circular(
+                              navH / 2 - margin,
                             ),
                           ),
-                          Row(
-                            children: List.generate(_items.length, (i) {
-                              final active = _targetIndex == i;
-                              return Expanded(
-                                child: GestureDetector(
-                                  behavior: HitTestBehavior.opaque,
-                                  onTap: () => _select(i),
-                                  child: SizedBox(
-                                    height: navH,
-                                    child: Center(
-                                      child: Icon(
-                                        active ? _items[i].activeIcon : _items[i].icon,
-                                        color: const Color(0xFF898989),
-                                        size: 27.0,
-                                        shadows: active
-                                            ? const [
-                                                Shadow(color: Color(0xFF898989), blurRadius: 1.8),
-                                                Shadow(color: Color(0xFF898989), blurRadius: 1.8),
-                                              ]
-                                            : null,
-                                      ),
-                                    ),
+                        ),
+                      ),
+                      Row(
+                        children: List.generate(_items.length, (i) {
+                          final active = _targetIndex == i;
+                          return Expanded(
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () => _select(i),
+                              child: SizedBox(
+                                height: navH,
+                                child: Center(
+                                  child: Icon(
+                                    active
+                                        ? _items[i].activeIcon
+                                        : _items[i].icon,
+                                    color: const Color(0xFF898989),
+                                    size: 27.0,
+                                    shadows: active
+                                        ? const [
+                                            Shadow(
+                                              color: Color(0xFF898989),
+                                              blurRadius: 1.8,
+                                            ),
+                                            Shadow(
+                                              color: Color(0xFF898989),
+                                              blurRadius: 1.8,
+                                            ),
+                                          ]
+                                        : null,
                                   ),
                                 ),
-                              );
-                            }),
-                          ),
-                        ],
+                              ),
+                            ),
+                          );
+                        }),
                       ),
-                    ),
+                    ],
                   ),
                 ),
-              ),
-            ),  // GestureDetector
-            );  // Listener
+              ), // GestureDetector
+            ); // Listener
           },
         ),
       ),
