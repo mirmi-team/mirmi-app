@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/services/auth_service.dart';
+import '../../shared/app_colors.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -56,7 +57,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.backB,
       body: AnimatedOpacity(
         opacity: screenOpacity,
         duration: const Duration(milliseconds: 300),
@@ -70,7 +71,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 curve: Curves.easeInOut,
                 child: Image.asset(
                   'assets/img/logo.png',
-                  width: 150,
+                  width: 170,
                 ),
               ),
 

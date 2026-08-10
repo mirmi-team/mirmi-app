@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/services/auth_service.dart';
+import '../../shared/app_colors.dart';
 
 class LoginScreen extends StatefulWidget {
   final String? successMessage;
@@ -19,9 +20,12 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _showErrorBanner = false;
   String? _errorMessage;
 
-  static const _teal = Color(0xFF00CFCD);
-  static const _errorColor = Color(0xFFFF6B6B);
-  static const _bgColor = Color(0xFFF2F3F5);
+  static const _teal = AppColors.mainColor;
+  static const _errorColor = AppColors.error;
+  static const _bgColor = AppColors.backB;
+  static const _captainColor = AppColors.caption;
+  static const _cardColor = AppColors.card;
+  static const _textColor = AppColors.mainText;
 
   @override
   void initState() {
@@ -111,7 +115,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         children: [
                           const SizedBox(height: 180),
                           Image.asset('assets/img/MIRMI.png', height: 18),
-                          const SizedBox(height: 40),
+                          const SizedBox(height: 60),
                           _buildLabel('학교 이메일'),
                           const SizedBox(height: 10),
                           _buildTextField(
@@ -129,7 +133,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
                     child: Column(
                       children: [
                         SizedBox(
@@ -139,8 +143,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             onPressed: (_loading || !_isValid) ? null : _onLogin,
                             style: ElevatedButton.styleFrom(
                               backgroundColor:
-                                  _isValid ? _teal : const Color(0xFFA8A8A8),
-                              disabledBackgroundColor: const Color(0xFFA8A8A8),
+                                  _isValid ? _teal : _captainColor,
+                              disabledBackgroundColor: _captainColor,
                               disabledForegroundColor: Colors.white,
                               foregroundColor: Colors.white,
                               elevation: 0,
@@ -172,7 +176,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             const Text(
                               '아직 계정이 없다면 ',
                               style: TextStyle(
-                                  color: Colors.black54, fontSize: 14),
+                                  color: _captainColor, fontSize: 14),
                             ),
                             GestureDetector(
                               onTap: () => context.push('/signup'),
@@ -181,7 +185,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                 style: TextStyle(
                                   color: _teal,
                                   fontSize: 14,
-                                  decoration: TextDecoration.underline,
                                   decorationColor: _teal,
                                 ),
                               ),
@@ -202,7 +205,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: ClipRect(
                   child: SafeArea(
                     child: AnimatedSlide(
-                      offset: _showBanner ? Offset.zero : const Offset(0, -2),
+                      offset: _showBanner ? Offset.zero : const Offset(0, -3),
                       duration: const Duration(milliseconds: 400),
                       curve: _showBanner ? Curves.easeOut : Curves.easeIn,
                       child: Padding(
@@ -260,7 +263,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: ClipRect(
                   child: SafeArea(
                     child: AnimatedSlide(
-                      offset: _showErrorBanner ? Offset.zero : const Offset(0, -2),
+                      offset: _showErrorBanner ? Offset.zero : const Offset(0, -3),
                       duration: const Duration(milliseconds: 400),
                       curve: _showErrorBanner ? Curves.easeOut : Curves.easeIn,
                       child: Padding(
@@ -319,8 +322,8 @@ class _LoginScreenState extends State<LoginScreen> {
     return Text(
       text,
       style: const TextStyle(
-        color: _teal,
-        fontSize: 16,
+        color: _textColor,
+        fontSize: 18,
         fontWeight: FontWeight.w600,
       ),
     );
@@ -333,20 +336,19 @@ class _LoginScreenState extends State<LoginScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xffEDEDED)),
+        color: _cardColor,
+        borderRadius: BorderRadius.circular(15),
       ),
       child: TextField(
-        style: const TextStyle(fontSize: 14),
+        style: const TextStyle(fontSize: 14, color: _textColor),
         controller: controller,
         keyboardType: keyboardType,
         decoration: InputDecoration(
           hintText: hintText,
-          hintStyle: const TextStyle(color: Color(0xFFA7A7A7), fontSize: 13),
+          hintStyle: const TextStyle(color: _captainColor, fontSize: 13),
           border: InputBorder.none,
           contentPadding:
-              const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 17),
         ),
       ),
     );
@@ -355,20 +357,19 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildPasswordField() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xffEDEDED)),
+        color: _cardColor,
+        borderRadius: BorderRadius.circular(15),
       ),
       child: TextField(
-        style: const TextStyle(fontSize: 14),
+        style: const TextStyle(fontSize: 14, color: _textColor),
         controller: _passwordController,
         obscureText: _obscurePassword,
         decoration: InputDecoration(
           hintText: 'mirim123!',
-          hintStyle: const TextStyle(color: Color(0xFFA7A7A7), fontSize: 13),
+          hintStyle: const TextStyle(color: _captainColor, fontSize: 13),
           border: InputBorder.none,
           contentPadding:
-              const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 17),
           suffixIcon: IconButton(
             icon: Icon(
               _obscurePassword
