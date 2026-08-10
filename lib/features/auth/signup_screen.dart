@@ -99,7 +99,7 @@ class _SignupScreenState extends State<SignupScreen> {
       setState(() {
         if (text.isEmpty) {
           _roomFieldError = null;
-        } else if (text.length < 3) {
+        } else if (!_isValidRoom(text)) {
           _roomFieldError = '올바른 호실 번호를 입력해주세요.';
         } else {
           _roomFieldError = null;
@@ -109,6 +109,12 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   void _rebuild() => setState(() {});
+
+  bool _isValidRoom(String text) {
+    final n = int.tryParse(text);
+    if (n == null) return false;
+    return (n >= 301 && n <= 319) || (n >= 401 && n <= 419) || (n >= 501 && n <= 519);
+  }
 
   bool get _isCurrentStepValid {
     switch (_step) {
@@ -133,7 +139,7 @@ class _SignupScreenState extends State<SignupScreen> {
             grade >= 1 && grade <= 3 &&
             classNo >= 1 && classNo <= 6;
       case _Step.dormInfo:
-        return _dormRoomController.text.trim().length >= 3;
+        return _isValidRoom(_dormRoomController.text.trim());
     }
   }
 
