@@ -9,6 +9,7 @@ import '../laundry/laundry_screen.dart';
 import '../return_stay/return_stay_screen.dart';
 import '../notice/notice_screen.dart';
 import '../song/song_screen.dart';
+import '../../shared/app_colors.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -21,7 +22,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
   String? _profileImage;
 
-  static const _bgColor = Color(0xFFF5F5F5);
+  static const _bgColor = AppColors.backB;
 
   final List<Widget> _pages = const [
     _HomeTab(),

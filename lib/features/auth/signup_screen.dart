@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/services/auth_service.dart';
+import '../../shared/app_colors.dart';
 
 enum _Step { email, password, studentInfo, dormInfo }
 
@@ -54,8 +55,15 @@ class _SignupScreenState extends State<SignupScreen> {
   String? _confirmPasswordError;
   String? _nameFieldError;
 
-  static const _teal = Color(0xFF00CFCD);
-  static const _bgColor = Color(0xFFF2F3F5);
+
+  static const _teal = AppColors.mainColor;
+  static const _errorColor = AppColors.error;
+  static const _bgColor = AppColors.backB;
+  static const _captainColor = AppColors.caption;
+  static const _cardColor = AppColors.card;
+  static const _textColor = AppColors.mainText;
+  static const _surfaceColor = AppColors.surfaceHover;
+  static const _bodyColor = AppColors.body;
 
   @override
   void initState() {
@@ -105,8 +113,7 @@ class _SignupScreenState extends State<SignupScreen> {
   bool get _isCurrentStepValid {
     switch (_step) {
       case _Step.email:
-        return _emailVerified ||
-            (_codeSent && _remainingSeconds > 0 && _verificationController.text.trim().isNotEmpty);
+        return true; // TODO: 임시 - 이메일 인증 서버 복구 후 원래 로직으로 교체
       case _Step.password:
         final pw = _passwordController.text;
         final confirm = _confirmPasswordController.text;
@@ -226,13 +233,8 @@ class _SignupScreenState extends State<SignupScreen> {
   Future<void> _onNext() async {
     switch (_step) {
       case _Step.email:
-        if (_emailVerified) {
-          setState(() { _goingForward = true; _step = _Step.password; });
-        } else if (_remainingSeconds == 0) {
-          setState(() => _codeFieldError = '인증번호가 만료되었습니다. 다시 보내주세요.');
-        } else {
-          await _verifyCode();
-        }
+        // TODO: 임시 - 이메일 인증 서버 복구 후 원래 로직으로 교체
+        setState(() { _goingForward = true; _step = _Step.password; });
 
       case _Step.password:
         final pw = _passwordController.text;
@@ -318,7 +320,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
   void _showError(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), backgroundColor: Colors.redAccent),
+      SnackBar(content: Text(msg), backgroundColor: _errorColor),
     );
   }
 
@@ -340,7 +342,7 @@ class _SignupScreenState extends State<SignupScreen> {
               child: IconButton(
                 icon: const Icon(Icons.chevron_left, size: 28),
                 onPressed: _onBack,
-                color: Colors.black87,
+                color: Colors.white,
               ),
             ),
             Expanded(
@@ -404,7 +406,7 @@ class _SignupScreenState extends State<SignupScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 12),
+        const SizedBox(height: 85),
         _buildTitle('본인 확인을 위해\n인증을 진행해주세요.'),
         const SizedBox(height: 36),
         _buildLabel('이메일'),
@@ -451,7 +453,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 style: TextStyle(
                   fontSize: 12,
                   height: 1.0,
-                  color: _remainingSeconds <= 60 ? Colors.redAccent : _teal,
+                  color: _remainingSeconds <= 60 ? _errorColor : _teal,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -477,7 +479,7 @@ class _SignupScreenState extends State<SignupScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 12),
+        const SizedBox(height: 85),
         RichText(
           text: const TextSpan(
             style: TextStyle(
@@ -536,7 +538,7 @@ class _SignupScreenState extends State<SignupScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 12),
+        const SizedBox(height: 85),
         _buildTitle('학생 정보를\n입력해 주세요.'),
         const SizedBox(height: 36),
         _buildLabel('이름'),
@@ -559,11 +561,11 @@ class _SignupScreenState extends State<SignupScreen> {
           children: [
             _buildNumberInput(_gradeController),
             const SizedBox(width: 8),
-            const Text('학년', style: TextStyle(fontSize: 15)),
+            const Text('학년', style: TextStyle(color: Colors.white, fontSize: 18)),
             const SizedBox(width: 16),
             _buildNumberInput(_classController),
             const SizedBox(width: 8),
-            const Text('반', style: TextStyle(fontSize: 15)),
+            const Text('반', style: TextStyle(color: Colors.white, fontSize: 18)),
           ],
         ),
         Builder(builder: (_) {
@@ -610,7 +612,7 @@ class _SignupScreenState extends State<SignupScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 12),
+        const SizedBox(height: 85),
         _buildTitle('기숙사 정보를\n입력해 주세요.'),
         const SizedBox(height: 36),
         _buildLabel('기숙사 호실'),
@@ -681,10 +683,10 @@ class _SignupScreenState extends State<SignupScreen> {
             child: ElevatedButton(
               onPressed: (_footerLoading || !_isCurrentStepValid) ? null : _onNext,
               style: ElevatedButton.styleFrom(
-                backgroundColor: _isCurrentStepValid ? _teal : const Color(0xFFA8A8A8),
-                disabledBackgroundColor: const Color(0xFFA8A8A8),
-                disabledForegroundColor: Colors.white,
-                foregroundColor: Colors.white,
+                backgroundColor: _isCurrentStepValid ? _teal : _captainColor,
+                disabledBackgroundColor: _captainColor,
+                disabledForegroundColor: _textColor,
+                foregroundColor: _textColor,
                 elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30),
@@ -729,8 +731,8 @@ class _SignupScreenState extends State<SignupScreen> {
     return Text(
       text,
       style: const TextStyle(
-        color: _teal,
-        fontSize: 15,
+        color: _textColor,
+        fontSize: 18,
         fontWeight: FontWeight.w600,
       ),
     );
@@ -749,12 +751,12 @@ class _SignupScreenState extends State<SignupScreen> {
   Widget _buildInlineError(String text) {
     return Row(
       children: [
-        const Icon(Icons.info_outline, color: Colors.redAccent, size: 14),
+        const Icon(Icons.info_outline, color: _errorColor, size: 14),
         const SizedBox(width: 4),
         Flexible(
           child: Text(
             text,
-            style: const TextStyle(color: Colors.redAccent, fontSize: 12),
+            style: const TextStyle(color: _errorColor, fontSize: 12),
           ),
         ),
       ],
@@ -771,9 +773,8 @@ class _SignupScreenState extends State<SignupScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: enabled ? Colors.white : const Color(0xFFEEEEEE),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFEDEDED)),
+        color: enabled ? _cardColor : const Color(0xFFEEEEEE),
+        borderRadius: BorderRadius.circular(15),
       ),
       child: TextField(
         controller: controller,
@@ -781,13 +782,13 @@ class _SignupScreenState extends State<SignupScreen> {
         inputFormatters: inputFormatters,
         enabled: enabled,
         textAlign: textAlign,
-        style: const TextStyle(fontSize: 13),
+        style: const TextStyle(color: _textColor, fontSize: 13),
         decoration: InputDecoration(
           hintText: hintText,
-          hintStyle: const TextStyle(color: Color(0xFFA7A7A7), fontSize: 13),
+          hintStyle: const TextStyle(color: _captainColor, fontSize: 13),
           border: InputBorder.none,
           contentPadding:
-              const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 17),
         ),
       ),
     );
@@ -802,27 +803,26 @@ class _SignupScreenState extends State<SignupScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFEDEDED)),
+        color: _cardColor,
+        borderRadius: BorderRadius.circular(15),
       ),
       child: TextField(
         controller: controller,
         obscureText: obscure,
         onChanged: onChanged,
-        style: const TextStyle(fontSize: 13),
+        style: const TextStyle(color: _textColor, fontSize: 13),
         decoration: InputDecoration(
           hintText: hintText,
-          hintStyle: const TextStyle(color: Color(0xFFA7A7A7), fontSize: 13),
+          hintStyle: const TextStyle(color: _captainColor, fontSize: 13),
           border: InputBorder.none,
           contentPadding:
-              const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 17),
           suffixIcon: IconButton(
             icon: Icon(
               obscure
                   ? Icons.visibility_off_outlined
                   : Icons.visibility_outlined,
-              color: Colors.grey,
+              color: _captainColor,
               size: 20,
             ),
             onPressed: onToggle,
@@ -845,9 +845,8 @@ class _SignupScreenState extends State<SignupScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: enabled ? Colors.white : const Color(0xFFEEEEEE),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFEDEDED)),
+        color: enabled ? _cardColor : const Color(0xFFEEEEEE),
+        borderRadius: BorderRadius.circular(15),
       ),
       child: Row(
         children: [
@@ -856,30 +855,23 @@ class _SignupScreenState extends State<SignupScreen> {
               controller: controller,
               keyboardType: keyboardType,
               enabled: enabled,
-              style: const TextStyle(fontSize: 13),
+              style: const TextStyle(color: _textColor, fontSize: 13),
               decoration: InputDecoration(
                 hintText: hintText,
-                hintStyle: const TextStyle(color: Color(0xFFA7A7A7), fontSize: 13),
+                hintStyle: const TextStyle(color: _captainColor, fontSize: 13),
                 border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 14),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 17),
               ),
             ),
           ),
           GestureDetector(
             onTap: buttonDisabled ? null : onButtonTap,
             child: Container(
-              margin: const EdgeInsets.only(right: 8),
+              margin: const EdgeInsets.only(right: 7),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(4),
-                border: Border.all(
-                  color: buttonDisabled
-                      ? const Color(0xFFDDDDDD)
-                      : buttonHighlighted
-                          ? _teal
-                          : const Color(0xFFA7A7A7),
-                ),
+                color: _surfaceColor,
+                borderRadius: BorderRadius.circular(10)
               ),
               child: isLoading
                   ? const _WaveDots()
@@ -891,7 +883,7 @@ class _SignupScreenState extends State<SignupScreen> {
                             ? Colors.grey
                             : buttonHighlighted
                                 ? _teal
-                                : Colors.black87,
+                                : _textColor,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -907,19 +899,18 @@ class _SignupScreenState extends State<SignupScreen> {
       width: 56,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFFEDEDED)),
+          color: _cardColor,
+          borderRadius: BorderRadius.circular(15),
         ),
         child: TextField(
           controller: controller,
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 14),
+          style: const TextStyle(color: _textColor, fontSize: 14),
           decoration: const InputDecoration(
             border: InputBorder.none,
-            contentPadding: EdgeInsets.symmetric(vertical: 12),
+            contentPadding: EdgeInsets.symmetric(vertical: 17),
           ),
         ),
       ),
@@ -940,16 +931,14 @@ class _SignupScreenState extends State<SignupScreen> {
             height: 22,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: selected ? _teal : const Color(0xFFD0D0D0),
+              color: selected ? _teal : _bodyColor,
+              border: Border.all(color: Colors.white)
             ),
-            child: selected
-                ? const Icon(Icons.check, color: Colors.white, size: 14)
-                : null,
           ),
           const SizedBox(width: 8),
           Text(label,
               style:
-                  const TextStyle(fontSize: 14, color: Colors.black87)),
+                  const TextStyle(fontSize: 14, color: _textColor)),
         ],
       ),
     );
