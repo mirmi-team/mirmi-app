@@ -263,7 +263,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: ClipRect(
                   child: SafeArea(
                     child: AnimatedSlide(
-                      offset: _showErrorBanner ? Offset.zero : const Offset(0, -2),
+                      offset: _showErrorBanner ? Offset.zero : const Offset(0, -3),
                       duration: const Duration(milliseconds: 400),
                       curve: _showErrorBanner ? Curves.easeOut : Curves.easeIn,
                       child: Padding(
