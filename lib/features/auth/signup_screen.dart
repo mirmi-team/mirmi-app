@@ -119,7 +119,8 @@ class _SignupScreenState extends State<SignupScreen> {
   bool get _isCurrentStepValid {
     switch (_step) {
       case _Step.email:
-        return true; // TODO: 임시 - 이메일 인증 서버 복구 후 원래 로직으로 교체
+        return _emailVerified ||
+            (_codeSent && _remainingSeconds > 0 && _verificationController.text.trim().isNotEmpty);
       case _Step.password:
         final pw = _passwordController.text;
         final confirm = _confirmPasswordController.text;
@@ -239,8 +240,13 @@ class _SignupScreenState extends State<SignupScreen> {
   Future<void> _onNext() async {
     switch (_step) {
       case _Step.email:
-        // TODO: 임시 - 이메일 인증 서버 복구 후 원래 로직으로 교체
-        setState(() { _goingForward = true; _step = _Step.password; });
+        if (_emailVerified) {
+          setState(() { _goingForward = true; _step = _Step.password; });
+        } else if (_remainingSeconds == 0) {
+          setState(() => _codeFieldError = '인증번호가 만료되었습니다. 다시 보내주세요.');
+        } else {
+          await _verifyCode();
+        }
 
       case _Step.password:
         final pw = _passwordController.text;

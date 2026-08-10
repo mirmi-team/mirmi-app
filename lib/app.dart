@@ -21,15 +21,19 @@ class MyApp extends StatelessWidget {
             ),
             child: result,
           );
-          result = AnnotatedRegion<SystemUiOverlayStyle>(
-            value: const SystemUiOverlayStyle(
-              systemNavigationBarColor: Colors.transparent,
-              systemNavigationBarContrastEnforced: false,
-              systemNavigationBarIconBrightness: Brightness.dark,
-            ),
-            child: result,
-          );
         }
+        final isDark = MediaQuery.platformBrightnessOf(context) == Brightness.dark;
+        result = AnnotatedRegion<SystemUiOverlayStyle>(
+          value: SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+            statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+            systemNavigationBarColor: Colors.transparent,
+            systemNavigationBarContrastEnforced: false,
+            systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+          ),
+          child: result,
+        );
         return result;
       },
     );

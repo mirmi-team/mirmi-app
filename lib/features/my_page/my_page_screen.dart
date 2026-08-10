@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../core/services/auth_service.dart';
+import '../../shared/app_colors.dart';
 
 class MyPageScreen extends StatefulWidget {
   const MyPageScreen({super.key});
@@ -21,8 +22,14 @@ class _MyPageScreenState extends State<MyPageScreen> {
   bool _uploading = false;
   File? _localImage; // 선택 직후 즉시 표시할 로컬 파일
 
-  static const _teal = Color(0xFF00CFCD);
-  static const _bgColor = Color(0xFFF2F3F5);
+  static const _teal = AppColors.mainColor;
+  static const _errorColor = AppColors.error;
+  static const _bgColor = AppColors.backB;
+  static const _captainColor = AppColors.caption;
+  static const _cardColor = AppColors.card;
+  static const _textColor = AppColors.mainText;
+  static const _surfaceColor = AppColors.surfaceHover;
+  static const _bodyColor = AppColors.body;
 
   @override
   void initState() {
@@ -33,7 +40,11 @@ class _MyPageScreenState extends State<MyPageScreen> {
   Future<void> _loadUser() async {
     try {
       final user = await AuthService.getMe();
-      if (mounted) setState(() { _user = user; _loading = false; });
+      if (mounted)
+        setState(() {
+          _user = user;
+          _loading = false;
+        });
     } on SessionExpiredException {
       if (mounted) context.go('/login');
     } catch (_) {
@@ -61,7 +72,8 @@ class _MyPageScreenState extends State<MyPageScreen> {
     setState(() => _uploading = true);
     try {
       final tmpDir = await getTemporaryDirectory();
-      final tempPath = '${tmpDir.path}/${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final tempPath =
+          '${tmpDir.path}/${DateTime.now().millisecondsSinceEpoch}.jpg';
 
       String uploadPath = filePath;
       final rotated = await FlutterImageCompress.compressAndGetFile(
@@ -90,9 +102,9 @@ class _MyPageScreenState extends State<MyPageScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _localImage = null);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('업로드 실패: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('업로드 실패: $e')));
       }
     } finally {
       if (mounted) setState(() => _uploading = false);
@@ -111,7 +123,8 @@ class _MyPageScreenState extends State<MyPageScreen> {
         barrierColor: Colors.black87,
         transitionDuration: const Duration(milliseconds: 350),
         reverseTransitionDuration: const Duration(milliseconds: 250),
-        pageBuilder: (_, a, b) => _ImagePreviewOverlay(imageProvider: imageProvider),
+        pageBuilder: (_, a, b) =>
+            _ImagePreviewOverlay(imageProvider: imageProvider),
         transitionsBuilder: (_, animation, b, child) =>
             FadeTransition(opacity: animation, child: child),
       ),
@@ -141,7 +154,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
         scrolledUnderElevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.chevron_left, size: 28, color: Colors.black87),
+          icon: const Icon(Icons.chevron_left, size: 28, color: Colors.white),
           onPressed: () => context.pop(),
         ),
         title: Text(
@@ -149,7 +162,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
           style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: Colors.black87,
+            color: _textColor,
           ),
         ),
       ),
@@ -177,7 +190,11 @@ class _MyPageScreenState extends State<MyPageScreen> {
                             ),
                             clipBehavior: Clip.antiAlias,
                             child: imageProvider == null
-                                ? const Icon(Icons.person, size: 52, color: Colors.white)
+                                ? const Icon(
+                                    Icons.person,
+                                    size: 52,
+                                    color: Colors.white,
+                                  )
                                 : Image(
                                     image: imageProvider,
                                     fit: BoxFit.cover,
@@ -211,7 +228,11 @@ class _MyPageScreenState extends State<MyPageScreen> {
                                       strokeWidth: 2,
                                     ),
                                   )
-                                : const Icon(Icons.edit, color: Colors.white, size: 14),
+                                : const Icon(
+                                    Icons.edit,
+                                    color: Colors.white,
+                                    size: 14,
+                                  ),
                           ),
                         ),
                       ),
@@ -223,7 +244,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      color: _textColor,
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -231,7 +252,10 @@ class _MyPageScreenState extends State<MyPageScreen> {
                     (grade != null && classNo != null && roomNumber != null)
                         ? '$grade학년 $classNo반 • $roomNumber호'
                         : '',
-                    style: const TextStyle(fontSize: 14, color: Color(0xFF888888)),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: _captainColor,
+                    ),
                   ),
                   const SizedBox(height: 60),
                   SizedBox(
@@ -249,7 +273,10 @@ class _MyPageScreenState extends State<MyPageScreen> {
                       ),
                       child: const Text(
                         '로그아웃',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),
@@ -267,7 +294,6 @@ class _ImagePreviewOverlay extends StatefulWidget {
   @override
   State<_ImagePreviewOverlay> createState() => _ImagePreviewOverlayState();
 }
-
 
 class _ImagePreviewOverlayState extends State<_ImagePreviewOverlay> {
   double _scale = 1.0;
