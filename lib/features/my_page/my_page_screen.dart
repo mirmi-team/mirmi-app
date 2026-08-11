@@ -171,7 +171,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
         ),
         title: Text(
           _loading ? '' : '$name님의 정보',
-          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: _textColor),
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: _textColor),
         ),
       ),
       body: _loading
@@ -221,48 +221,41 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   const SizedBox(height: 14),
 
                   // ── 이름 ──────────────────────────────────────
-                  Text(name, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: _textColor)),
+                  Text(name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: _textColor)),
 
                   const SizedBox(height: 28),
 
                   // ── 호실·학년반·상벌점 ────────────────────────
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 40),
-                    child: IntrinsicHeight(
-                      child: Row(
-                        children: [
-                          _InfoCell(
-                            value: roomNumber != null ? '$roomNumber호' : '-',
-                            label: '호실',
-                          ),
-                          VerticalDivider(color: _surfaceColor, width: 1, thickness: 1),
-                          _InfoCell(
-                            value: (grade != null && classNo != null) ? '$grade학년 $classNo반' : '-',
-                            label: '학년•반',
-                          ),
-                          VerticalDivider(color: _surfaceColor, width: 1, thickness: 1),
-                          _InfoCell(
-                            value: demerits != null ? '$demerits점' : '-',
-                            label: '상벌점',
-                            valueColor: demerits != null && demerits < 0 ? _errorColor : _textColor,
-                          ),
-                        ],
-                      ),
+                  IntrinsicHeight(
+                    child: Row(
+                      children: [
+                        _InfoCell(
+                          value: roomNumber != null ? '$roomNumber호' : '-',
+                          label: '호실',
+                        ),
+                        _InfoCell(
+                          value: (grade != null && classNo != null) ? '$grade학년 $classNo반' : '-',
+                          label: '학년•반',
+                        ),
+                        _InfoCell(
+                          value: demerits != null ? '$demerits점' : '-',
+                          label: '상벌점',
+                          valueColor: demerits != null && demerits < 0 ? _errorColor : _textColor,
+                        ),
+                      ],
                     ),
                   ),
 
                   const SizedBox(height: 48),
 
                   // ── 메뉴 리스트 ───────────────────────────────
-                  Divider(color: _surfaceColor, height: 1, thickness: 1),
                   _MenuItem(label: '상벌점 내역',  onTap: () {}),
-                  Divider(color: _surfaceColor, height: 1, thickness: 1),
+                  const SizedBox(height: 20),
                   _MenuItem(label: '비밀번호 변경', onTap: () {}),
-                  Divider(color: _surfaceColor, height: 1, thickness: 1),
+                  const SizedBox(height: 20),
                   _MenuItem(label: '로그아웃',    onTap: _logout),
-                  Divider(color: _surfaceColor, height: 1, thickness: 1),
+                  const SizedBox(height: 20),
                   _MenuItem(label: '회원 탈퇴',   onTap: _deleteAccount, labelColor: _errorColor),
-                  Divider(color: _surfaceColor, height: 1, thickness: 1),
                 ],
               ),
             ),
@@ -282,9 +275,9 @@ class _InfoCell extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: valueColor ?? AppColors.mainText)),
+          Text(value, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: valueColor ?? AppColors.mainText)),
           const SizedBox(height: 4),
-          Text(label, style: const TextStyle(fontSize: 12, color: AppColors.caption)),
+          Text(label, style: const TextStyle(fontSize: 13, color: AppColors.caption)),
         ],
       ),
     );
@@ -303,12 +296,12 @@ class _MenuItem extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(label, style: TextStyle(fontSize: 16, color: labelColor ?? AppColors.mainText)),
-            Icon(Icons.chevron_right, color: AppColors.caption, size: 22),
+            Icon(Icons.chevron_right, color: Colors.white, size: 26),
           ],
         ),
       ),
