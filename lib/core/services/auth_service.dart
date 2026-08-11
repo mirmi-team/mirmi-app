@@ -162,6 +162,18 @@ class AuthService {
     return body['profile_image'] as String;
   }
 
+  static Future<void> deleteAccount() async {
+    final res = await _send((token) => http.post(
+      Uri.parse('$kBaseUrl/auth/quit'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    ));
+    _checkStatus(res);
+    await clearTokens();
+  }
+
   static Future<void> logout() async {
     try {
       await _send((token) => http.post(

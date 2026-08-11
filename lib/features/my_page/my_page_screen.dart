@@ -138,8 +138,19 @@ class _MyPageScreenState extends State<MyPageScreen> {
         ],
       ),
     );
-    if (ok != true) return;
-    // TODO: 회원 탈퇴 API 연결
+    if (ok != true || !mounted) return;
+    try {
+      await AuthService.deleteAccount();
+      if (mounted) context.go('/login');
+    } on SessionExpiredException {
+      if (mounted) context.go('/login');
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('탈퇴 실패: $e'), backgroundColor: _errorColor),
+        );
+      }
+    }
   }
 
   @override
