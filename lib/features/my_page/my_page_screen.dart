@@ -125,33 +125,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
     if (mounted) context.go('/login');
   }
 
-  Future<void> _deleteAccount() async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: _cardColor,
-        title: const Text('회원 탈퇴', style: TextStyle(color: _textColor)),
-        content: const Text('탈퇴하면 모든 정보가 삭제됩니다.\n정말 탈퇴하시겠어요?', style: TextStyle(color: _captionColor)),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('취소',  style: TextStyle(color: _captionColor))),
-          TextButton(onPressed: () => Navigator.pop(context, true),  child: const Text('탈퇴하기', style: TextStyle(color: _errorColor))),
-        ],
-      ),
-    );
-    if (ok != true || !mounted) return;
-    try {
-      await AuthService.deleteAccount();
-      if (mounted) context.go('/login');
-    } on SessionExpiredException {
-      if (mounted) context.go('/login');
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('탈퇴 실패: $e'), backgroundColor: _errorColor),
-        );
-      }
-    }
-  }
+  void _deleteAccount() => context.push('/delete-account');
 
   @override
   Widget build(BuildContext context) {
