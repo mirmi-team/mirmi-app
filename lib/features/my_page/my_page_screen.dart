@@ -24,9 +24,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
 
   static const _teal        = AppColors.mainColor;
   static const _bgColor     = AppColors.backB;
-  static const _captionColor = AppColors.caption;
   static const _textColor   = AppColors.mainText;
-  static const _cardColor   = AppColors.card;
   static const _surfaceColor = AppColors.surfaceHover;
   static const _errorColor  = AppColors.error;
 
@@ -107,23 +105,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
     return NetworkImage(path);
   }
 
-  Future<void> _logout() async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: _cardColor,
-        title: const Text('로그아웃', style: TextStyle(color: _textColor)),
-        content: const Text('정말 로그아웃 하시겠어요?', style: TextStyle(color: _captionColor)),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('취소', style: TextStyle(color: _captionColor))),
-          TextButton(onPressed: () => Navigator.pop(context, true),  child: const Text('로그아웃', style: TextStyle(color: _teal))),
-        ],
-      ),
-    );
-    if (ok != true || !mounted) return;
-    await AuthService.logout();
-    if (mounted) context.go('/login');
-  }
+  void _logout() => context.push('/logout');
 
   void _deleteAccount() => context.push('/delete-account');
 

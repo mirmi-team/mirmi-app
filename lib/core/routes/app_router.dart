@@ -7,6 +7,7 @@ import '../../features/auth/signup_screen.dart';
 import '../../features/home/home_screen.dart';
 import '../../features/my_page/my_page_screen.dart';
 import '../../features/my_page/delete_account_screen.dart';
+import '../../features/my_page/logout_screen.dart';
 import '../services/auth_service.dart';
 
 const _protectedRoutes = {'/home', '/my'};
@@ -60,6 +61,13 @@ final router = GoRouter(
       path: '/delete-account',
       pageBuilder: (context, state) => const MaterialPage(
         child: DeleteAccountScreen(),
+      ),
+    ),
+
+    GoRoute(
+      path: '/logout',
+      pageBuilder: (context, state) => const MaterialPage(
+        child: LogoutScreen(),
       ),
     ),
   ],
