@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/services/auth_service.dart';
 import '../../shared/app_colors.dart';
+import '../../shared/app_banner.dart';
 
 class DeleteAccountScreen extends StatefulWidget {
   const DeleteAccountScreen({super.key});
@@ -10,7 +11,8 @@ class DeleteAccountScreen extends StatefulWidget {
   State<DeleteAccountScreen> createState() => _DeleteAccountScreenState();
 }
 
-class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
+class _DeleteAccountScreenState extends State<DeleteAccountScreen>
+    with AppBannerMixin {
   bool _agreed = false;
   bool _loading = false;
 
@@ -18,7 +20,6 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
   static const _textColor    = AppColors.mainText;
   static const _captionColor = AppColors.caption;
   static const _surfaceColor = AppColors.surfaceHover;
-  static const _errorColor   = AppColors.error;
   static const _teal         = AppColors.mainColor;
   static const _bodyColor    = AppColors.body;
 
@@ -33,9 +34,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _loading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('탈퇴 실패: $e'), backgroundColor: _errorColor),
-        );
+        showErrorBanner('탈퇴 실패: $e');
       }
     }
   }
@@ -65,8 +64,10 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: _textColor),
         ),
       ),
-      body: SafeArea(
-        child: Column(
+      body: Stack(
+        children: [
+          SafeArea(
+            child: Column(
           children: [
             Expanded(
               child: Column(
@@ -151,7 +152,10 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
               ),
             ),
           ],
-        ),
+            ),
+          ),
+          buildBanner(),
+        ],
       ),
     );
   }
