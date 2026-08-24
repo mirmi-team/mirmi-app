@@ -162,6 +162,31 @@ class AuthService {
     return body['profile_image'] as String;
   }
 
+  static Future<List<dynamic>> getMeritLogs() async {
+    final res = await _send((token) => http.get(
+      Uri.parse('$kBaseUrl/merit-logs/me'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    ));
+    _checkStatus(res);
+    return jsonDecode(res.body) as List<dynamic>;
+  }
+
+  static Future<int> getMeritSummary() async {
+    final res = await _send((token) => http.get(
+      Uri.parse('$kBaseUrl/merit-logs/me/summary'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    ));
+    _checkStatus(res);
+    final body = jsonDecode(res.body) as Map<String, dynamic>;
+    return body['total_merit_score'] as int;
+  }
+
   static Future<void> changePassword({
     required String oldPassword,
     required String newPassword,
