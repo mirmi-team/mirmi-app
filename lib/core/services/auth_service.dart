@@ -162,6 +162,21 @@ class AuthService {
     return body['profile_image'] as String;
   }
 
+  static Future<void> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    final res = await _send((token) => http.patch(
+      Uri.parse('$kBaseUrl/users/me/password'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({'oldPassword': oldPassword, 'newPassword': newPassword}),
+    ));
+    _checkStatus(res);
+  }
+
   static Future<void> deleteAccount() async {
     final res = await _send((token) => http.post(
       Uri.parse('$kBaseUrl/auth/quit'),

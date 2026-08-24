@@ -218,7 +218,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   // ── 메뉴 리스트 ───────────────────────────────
                   _MenuItem(label: '상벌점 내역',  onTap: () {}),
                   const SizedBox(height: 20),
-                  _MenuItem(label: '비밀번호 변경', onTap: () {}),
+                  _MenuItem(label: '비밀번호 변경', onTap: () => context.push('/change-password')),
                   const SizedBox(height: 20),
                   _MenuItem(label: '로그아웃',    onTap: _logout),
                   const SizedBox(height: 20),
