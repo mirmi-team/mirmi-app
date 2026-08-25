@@ -282,7 +282,7 @@ class _MeritLogScreenState extends State<MeritLogScreen> with AppBannerMixin {
                               return Padding(
                                 padding: const EdgeInsets.only(
                                   top: 34,
-                                  bottom: 8,
+                                  bottom: 4,
                                 ),
                                 child: Text(
                                   item,
