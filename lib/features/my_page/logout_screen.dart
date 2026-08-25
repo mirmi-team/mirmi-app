@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mirmi_app/shared/submit_button.dart';
 import '../../core/services/auth_service.dart';
 import '../../shared/app_colors.dart';
+import '../../shared/app_banner.dart';
 
 class LogoutScreen extends StatefulWidget {
   const LogoutScreen({super.key});
@@ -13,11 +15,11 @@ class LogoutScreen extends StatefulWidget {
 class _LogoutScreenState extends State<LogoutScreen> {
   bool _loading = false;
 
-  static const _bgColor      = AppColors.backB;
-  static const _textColor    = AppColors.mainText;
+  static const _bgColor = AppColors.backB;
+  static const _textColor = AppColors.mainText;
   static const _surfaceColor = AppColors.surfaceHover;
-  static const _bodyColor    = AppColors.body;
-  static const _teal         = AppColors.mainColor;
+  static const _bodyColor = AppColors.body;
+  static const _teal = AppColors.mainColor;
 
   Future<void> _logout() async {
     setState(() => _loading = true);
@@ -42,15 +44,27 @@ class _LogoutScreenState extends State<LogoutScreen> {
           child: GestureDetector(
             onTap: () => context.pop(),
             child: Container(
-              width: 36, height: 36,
-              decoration: BoxDecoration(color: _surfaceColor, shape: BoxShape.circle),
-              child: const Icon(Icons.chevron_left, color: _textColor, size: 22),
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: _surfaceColor,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.chevron_left,
+                color: _textColor,
+                size: 22,
+              ),
             ),
           ),
         ),
         title: const Text(
           '로그아웃',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: _textColor),
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: _textColor,
+          ),
         ),
       ),
       body: SafeArea(
@@ -62,47 +76,44 @@ class _LogoutScreenState extends State<LogoutScreen> {
                 children: [
                   const SizedBox(height: 20),
                   Container(
-                    width: 100, height: 100,
-                    decoration: BoxDecoration(color: _surfaceColor, shape: BoxShape.circle),
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      color: _surfaceColor,
+                      shape: BoxShape.circle,
+                    ),
                     child: Center(
-                      child: Image.asset('assets/img/log_out.png', width: 45, height: 45),
+                      child: Image.asset(
+                        'assets/img/log_out.png',
+                        width: 45,
+                        height: 45,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 34),
                   const Text(
                     '로그아웃 하시겠어요?',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: _textColor),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: _textColor,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   const Text(
                     '로그아웃 시 현재 계정에서\n안전하게 로그아웃됩니다.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 10, color: _bodyColor, height: 1.6),
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: _bodyColor,
+                      height: 1.6,
+                    ),
                   ),
                 ],
               ),
             ),
 
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
-              child: SizedBox(
-                width: double.infinity,
-                height: 54,
-                child: ElevatedButton(
-                  onPressed: _loading ? null : _logout,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _teal,
-                    foregroundColor: Colors.white,
-                    disabledBackgroundColor: _surfaceColor,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                  ),
-                  child: _loading
-                      ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                      : const Text('로그아웃', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                ),
-              ),
-            ),
+            SubmitButton(onPressed: _logout, text: '로그아웃'),
           ],
         ),
       ),
