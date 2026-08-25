@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:mirmi_app/shared/submit_button.dart';
 import '../../core/services/auth_service.dart';
 import '../../shared/app_colors.dart';
-import '../../shared/app_banner.dart';
 
 class LogoutScreen extends StatefulWidget {
   const LogoutScreen({super.key});
@@ -19,7 +18,6 @@ class _LogoutScreenState extends State<LogoutScreen> {
   static const _textColor = AppColors.mainText;
   static const _surfaceColor = AppColors.surfaceHover;
   static const _bodyColor = AppColors.body;
-  static const _teal = AppColors.mainColor;
 
   Future<void> _logout() async {
     setState(() => _loading = true);

@@ -30,7 +30,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
   static const _surfaceColor = AppColors.surfaceHover;
   static const _bodyColor    = AppColors.body;
   static const _errorColor   = AppColors.error;
-  static const _teal         = AppColors.mainColor;
 
   static final _pwRegex = RegExp(r'^(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$');
 
