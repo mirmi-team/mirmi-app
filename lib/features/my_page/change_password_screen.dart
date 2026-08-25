@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/services/auth_service.dart';
 import '../../shared/app_colors.dart';
 import '../../shared/app_banner.dart';
+import '../../shared/submit_button.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -193,27 +194,12 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
                     ),
                   ),
 
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
-                    child: SizedBox(
-                      width: double.infinity,
-                      height: 54,
-                      child: ElevatedButton(
-                        onPressed: _loading ? null : _submit,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _teal,
-                          disabledBackgroundColor: _surfaceColor,
-                          disabledForegroundColor: _captionColor,
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                        ),
-                        child: _loading
-                            ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                            : const Text('변경하기', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                      ),
-                    ),
+                  SubmitButton(
+                    onPressed: _submit,
+                    text: '변경하기',
+                    loadingButton: _loading,
                   ),
+                  
                 ],
               ),
             ),
