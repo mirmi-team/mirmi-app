@@ -301,7 +301,7 @@ class _SignupScreenState extends State<SignupScreen> {
         grade: int.parse(_gradeController.text),
         classNo: int.parse(_classController.text),
         roomNumber: int.parse(roomText),
-        canStaying: _dormRegion == '경기 외',
+        canStaying: _dormRegion == '그 외 지역',
         gender: _gender,
       );
       if (!mounted) return;
@@ -664,9 +664,9 @@ class _SignupScreenState extends State<SignupScreen> {
                 onTap: () => setState(() => _dormRegion = '서울•경기•인천')),
             const SizedBox(width: 24),
             _buildRadio(
-                label: '경기 외',
-                selected: _dormRegion == '경기 외',
-                onTap: () => setState(() => _dormRegion = '경기 외')),
+                label: '그 외 지역',
+                selected: _dormRegion == '그 외 지역',
+                onTap: () => setState(() => _dormRegion = '그 외 지역')),
           ],
         ),
         const SizedBox(height: 40),
@@ -785,14 +785,14 @@ class _SignupScreenState extends State<SignupScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: enabled ? _cardColor : const Color(0xFFEEEEEE),
+        color: _cardColor,
         borderRadius: BorderRadius.circular(15),
       ),
       child: TextField(
         controller: controller,
         keyboardType: keyboardType,
         inputFormatters: inputFormatters,
-        enabled: enabled,
+        readOnly: !enabled,
         textAlign: textAlign,
         style: const TextStyle(color: _textColor, fontSize: 13),
         decoration: InputDecoration(
@@ -857,7 +857,7 @@ class _SignupScreenState extends State<SignupScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: enabled ? _cardColor : const Color(0xFFEEEEEE),
+        color: _cardColor,
         borderRadius: BorderRadius.circular(15),
       ),
       child: Row(
@@ -866,7 +866,7 @@ class _SignupScreenState extends State<SignupScreen> {
             child: TextField(
               controller: controller,
               keyboardType: keyboardType,
-              enabled: enabled,
+              readOnly: !enabled,
               style: const TextStyle(color: _textColor, fontSize: 13),
               decoration: InputDecoration(
                 hintText: hintText,

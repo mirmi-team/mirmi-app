@@ -8,34 +8,38 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      debugShowCheckedModeBanner: false,
-      routerConfig: router,
-      builder: (context, child) {
-        Widget result = child!;
-        if (Platform.isAndroid) {
-          final mq = MediaQuery.of(context);
-          result = MediaQuery(
-            data: mq.copyWith(
-              padding: mq.padding.copyWith(top: mq.padding.top + 10),
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      behavior: HitTestBehavior.opaque,
+      child: MaterialApp.router(
+        debugShowCheckedModeBanner: false,
+        routerConfig: router,
+        builder: (context, child) {
+          Widget result = child!;
+          if (Platform.isAndroid) {
+            final mq = MediaQuery.of(context);
+            result = MediaQuery(
+              data: mq.copyWith(
+                padding: mq.padding.copyWith(top: mq.padding.top + 10),
+              ),
+              child: result,
+            );
+          }
+          final isDark = MediaQuery.platformBrightnessOf(context) == Brightness.dark;
+          result = AnnotatedRegion<SystemUiOverlayStyle>(
+            value: SystemUiOverlayStyle(
+              statusBarColor: Colors.transparent,
+              statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+              statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+              systemNavigationBarColor: Colors.transparent,
+              systemNavigationBarContrastEnforced: false,
+              systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
             ),
             child: result,
           );
-        }
-        final isDark = MediaQuery.platformBrightnessOf(context) == Brightness.dark;
-        result = AnnotatedRegion<SystemUiOverlayStyle>(
-          value: SystemUiOverlayStyle(
-            statusBarColor: Colors.transparent,
-            statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
-            statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
-            systemNavigationBarColor: Colors.transparent,
-            systemNavigationBarContrastEnforced: false,
-            systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
-          ),
-          child: result,
-        );
-        return result;
-      },
+          return result;
+        },
+      ),
     );
   }
 }

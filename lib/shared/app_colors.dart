@@ -15,4 +15,5 @@ abstract final class AppColors {
   static const error       = Color(0xFFEF4444);
   static const caption     = Color(0xFFA1A1AA);
   static const btn         = Color(0xFF06B6D4);
+  static const card2       = Color(0xFF18181B);
 }

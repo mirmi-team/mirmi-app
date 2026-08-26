@@ -18,14 +18,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  static const _teal = AppColors.mainColor;
-  static const _errorColor = AppColors.error;
   static const _bgColor = AppColors.backB;
-  static const _captainColor = AppColors.caption;
-  static const _cardColor = AppColors.card;
-  static const _textColor = AppColors.mainText;
-  static const _surfaceColor = AppColors.surfaceHover;
-  static const _bodyColor = AppColors.body;
 
   int _currentIndex = 0;
   String? _profileImage;
@@ -137,14 +130,7 @@ class _NavBar extends StatefulWidget {
 }
 
 class _NavBarState extends State<_NavBar> with SingleTickerProviderStateMixin {
-  static const _teal = AppColors.mainColor;
-  static const _errorColor = AppColors.error;
-  static const _bgColor = AppColors.backB;
-  static const _captainColor = AppColors.caption;
-  static const _cardColor = AppColors.card;
-  static const _textColor = AppColors.mainText;
   static const _surfaceColor = AppColors.surfaceHover;
-  static const _bodyColor = AppColors.body;
 
   static const _items = [
     _NavItem(icon: Icons.home_outlined, activeIcon: Icons.home_rounded),
