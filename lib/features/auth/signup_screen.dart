@@ -785,14 +785,14 @@ class _SignupScreenState extends State<SignupScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: enabled ? _cardColor : const Color(0xFFEEEEEE),
+        color: _cardColor,
         borderRadius: BorderRadius.circular(15),
       ),
       child: TextField(
         controller: controller,
         keyboardType: keyboardType,
         inputFormatters: inputFormatters,
-        enabled: enabled,
+        readOnly: !enabled,
         textAlign: textAlign,
         style: const TextStyle(color: _textColor, fontSize: 13),
         decoration: InputDecoration(
@@ -857,7 +857,7 @@ class _SignupScreenState extends State<SignupScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: enabled ? _cardColor : const Color(0xFFEEEEEE),
+        color: _cardColor,
         borderRadius: BorderRadius.circular(15),
       ),
       child: Row(
@@ -866,7 +866,7 @@ class _SignupScreenState extends State<SignupScreen> {
             child: TextField(
               controller: controller,
               keyboardType: keyboardType,
-              enabled: enabled,
+              readOnly: !enabled,
               style: const TextStyle(color: _textColor, fontSize: 13),
               decoration: InputDecoration(
                 hintText: hintText,
