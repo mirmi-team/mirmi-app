@@ -206,7 +206,7 @@ class TextInput extends StatelessWidget {
       style: TextStyle(color: _textColor, fontSize: 14),
       decoration: InputDecoration(
         hintText: hintText,
-        hintStyle: TextStyle(color: Color(0xffa7a7a7), fontSize: 14),
+        hintStyle: TextStyle(color: AppColors.hint, fontSize: 14),
         filled: true,
         fillColor: _cardColor,
         border: OutlineInputBorder(

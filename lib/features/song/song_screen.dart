@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../shared/app_colors.dart';
 
 class SongScreen extends StatelessWidget {
   const SongScreen({super.key});
@@ -8,7 +9,7 @@ class SongScreen extends StatelessWidget {
     return const Center(
       child: Text(
         '기상송',
-        style: TextStyle(fontSize: 18, color: Color(0xFF888888)),
+        style: TextStyle(fontSize: 18, color: AppColors.placeholder),
       ),
     );
   }
