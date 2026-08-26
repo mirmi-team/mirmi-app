@@ -74,7 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
               onTap: _goToMyPage,
               child: CircleAvatar(
                 radius: 20,
-                backgroundColor: const Color(0xFFD9D9D9),
+                backgroundColor: AppColors.avatarBg,
                 backgroundImage: imageProvider,
                 child: imageProvider == null
                     ? const Icon(Icons.person, size: 20, color: Colors.white)
@@ -245,7 +245,7 @@ class _NavBarState extends State<_NavBar> with SingleTickerProviderStateMixin {
                     color: Colors.white.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(32),
                     border: Border.all(
-                      color: const Color(0xffa7a7a7).withValues(alpha: 0.40),
+                      color: AppColors.hint.withValues(alpha: 0.40),
                       width: 1.0,
                     ),
                     boxShadow: [
@@ -286,16 +286,16 @@ class _NavBarState extends State<_NavBar> with SingleTickerProviderStateMixin {
                                     active
                                         ? _items[i].activeIcon
                                         : _items[i].icon,
-                                    color: const Color(0xFF898989),
+                                    color: AppColors.navIcon,
                                     size: 27.0,
                                     shadows: active
                                         ? const [
                                             Shadow(
-                                              color: Color(0xFF898989),
+                                              color: AppColors.navIcon,
                                               blurRadius: 1.8,
                                             ),
                                             Shadow(
-                                              color: Color(0xFF898989),
+                                              color: AppColors.navIcon,
                                               blurRadius: 1.8,
                                             ),
                                           ]
@@ -327,7 +327,7 @@ class _HomeTab extends StatelessWidget {
     return const Center(
       child: Text(
         '홈',
-        style: TextStyle(fontSize: 18, color: Color(0xFF888888)),
+        style: TextStyle(fontSize: 18, color: AppColors.placeholder),
       ),
     );
   }

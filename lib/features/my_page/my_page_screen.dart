@@ -165,7 +165,7 @@ class _MyPageScreenState extends State<MyPageScreen> with AppBannerMixin {
                           tag: 'profile_photo',
                           child: Container(
                             width: 100, height: 100,
-                            decoration: const BoxDecoration(color: Color(0xFFD9D9D9), shape: BoxShape.circle),
+                            decoration: const BoxDecoration(color: AppColors.avatarBg, shape: BoxShape.circle),
                             clipBehavior: Clip.antiAlias,
                             child: imageProvider == null
                                 ? const Icon(Icons.person, size: 50, color: Colors.white)

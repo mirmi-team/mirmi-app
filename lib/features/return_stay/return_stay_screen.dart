@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../shared/app_colors.dart';
 
 class ReturnStayScreen extends StatelessWidget {
   const ReturnStayScreen({super.key});
@@ -8,7 +9,7 @@ class ReturnStayScreen extends StatelessWidget {
     return const Center(
       child: Text(
         '복귀/잔류',
-        style: TextStyle(fontSize: 18, color: Color(0xFF888888)),
+        style: TextStyle(fontSize: 18, color: AppColors.placeholder),
       ),
     );
   }
