@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../core/services/auth_service.dart';
+import '../../shared/app_banner.dart';
 import '../../shared/app_colors.dart';
 
 class MyPageScreen extends StatefulWidget {
@@ -16,7 +17,7 @@ class MyPageScreen extends StatefulWidget {
   State<MyPageScreen> createState() => _MyPageScreenState();
 }
 
-class _MyPageScreenState extends State<MyPageScreen> {
+class _MyPageScreenState extends State<MyPageScreen> with AppBannerMixin {
   Map<String, dynamic>? _user;
   bool _loading = true;
   bool _uploading = false;
@@ -109,6 +110,11 @@ class _MyPageScreenState extends State<MyPageScreen> {
 
   void _deleteAccount() => context.push('/delete-account');
 
+  Future<void> _inquiry() async {
+    final message = await context.push<String>('/inquiry');
+    if (mounted && message != null) showSuccessBanner(message);
+  }
+
   @override
   Widget build(BuildContext context) {
     final name       = _user?['username']    as String? ?? '';
@@ -141,7 +147,9 @@ class _MyPageScreenState extends State<MyPageScreen> {
           style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: _textColor),
         ),
       ),
-      body: _loading
+      body: Stack(
+        children: [
+          _loading
           ? const Center(child: CircularProgressIndicator(color: _teal))
           : SingleChildScrollView(
               child: Column(
@@ -218,7 +226,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   // ── 메뉴 리스트 ───────────────────────────────
                   _MenuItem(label: '상벌점 내역',  onTap: () => context.push('/merit-logs')),
                   const SizedBox(height: 20),
-                  _MenuItem(label: '문의하기',  onTap: () => context.push('/inquiry')),
+                  _MenuItem(label: '문의하기',  onTap: _inquiry),
                   const SizedBox(height: 20),
                   _MenuItem(label: '비밀번호 변경', onTap: () => context.push('/change-password')),
                   const SizedBox(height: 20),
@@ -228,6 +236,9 @@ class _MyPageScreenState extends State<MyPageScreen> {
                 ],
               ),
             ),
+          buildBanner(),
+        ],
+      ),
     );
   }
 }

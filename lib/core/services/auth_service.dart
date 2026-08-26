@@ -162,6 +162,21 @@ class AuthService {
     return body['profile_image'] as String;
   }
 
+  static Future<void> sendContact({
+    required String subject,
+    required String message,
+  }) async {
+    final res = await _send((token) => http.post(
+      Uri.parse('$kBaseUrl/contact'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({'subject': subject, 'message': message}),
+    ));
+    _checkStatus(res);
+  }
+
   static Future<List<dynamic>> getMeritLogs() async {
     final res = await _send((token) => http.get(
       Uri.parse('$kBaseUrl/merit-logs/me'),
