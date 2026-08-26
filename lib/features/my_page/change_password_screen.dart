@@ -41,6 +41,11 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
     super.dispose();
   }
 
+  bool get _isValid =>
+      _oldCtrl.text.isNotEmpty &&
+      _newCtrl.text.isNotEmpty &&
+      _confCtrl.text.isNotEmpty;
+
   bool _validate() {
     final newPw = _newCtrl.text;
     if (!_pwRegex.hasMatch(newPw)) {
@@ -147,6 +152,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
                             obscure: _oldObscure,
                             onToggle: () => setState(() => _oldObscure = !_oldObscure),
                             hint: 'mirim123!',
+                            onChanged: (_) => setState(() {}),
                           ),
 
                           const SizedBox(height: 24),
@@ -159,7 +165,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
                             obscure: _newObscure,
                             onToggle: () => setState(() => _newObscure = !_newObscure),
                             hint: 'mirim123!',
-                            onChanged: (_) { if (_newError != null) setState(() => _newError = null); },
+                            onChanged: (_) => setState(() => _newError = null),
                           ),
                           const SizedBox(height: 8),
                           Row(
@@ -185,6 +191,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
                             obscure: true,
                             showToggle: false,
                             hint: '비밀번호를 다시 한 번 입력해주세요.',
+                            onChanged: (_) => setState(() {}),
                           ),
 
                           const SizedBox(height: 32),
@@ -194,7 +201,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
                   ),
 
                   SubmitButton(
-                    onPressed: _submit,
+                    onPressed: _isValid ? _submit : null,
                     text: '변경하기',
                     loadingButton: _loading,
                   ),
@@ -231,8 +238,8 @@ class _PasswordField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surfaceHover,
-        borderRadius: BorderRadius.circular(12),
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(8),
       ),
       child: TextField(
         controller: controller,
@@ -241,7 +248,7 @@ class _PasswordField extends StatelessWidget {
         style: const TextStyle(fontSize: 15, color: AppColors.mainText),
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle: const TextStyle(fontSize: 15, color: AppColors.caption),
+          hintStyle: const TextStyle(fontSize: 13, color: AppColors.caption),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           suffixIcon: showToggle
