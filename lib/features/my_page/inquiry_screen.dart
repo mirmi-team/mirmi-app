@@ -5,6 +5,7 @@ import 'package:mirmi_app/shared/submit_button.dart';
 import '../../core/services/auth_service.dart';
 import '../../shared/app_banner.dart';
 import '../../shared/app_colors.dart';
+import '../../shared/app_dialog.dart';
 
 class InquiryScreen extends StatefulWidget {
   const InquiryScreen({super.key});
@@ -38,6 +39,17 @@ class _InquiryScreenState extends State<InquiryScreen> with AppBannerMixin {
 
   Future<void> _submit() async {
     if (!_isValid) return;
+
+    final confirmed = await showConfirmDialog(
+      context,
+      title: '문의를 보낼까요?',
+      message:
+          '허위 사실이나 장난성 문의는 삼가주세요.\n'
+          '작성자 정보(이름·이메일)가 함께 전송됩니다.',
+      confirmText: '보내기',
+    );
+    if (confirmed != true || !mounted) return;
+
     setState(() => _loading = true);
     try {
       await AuthService.sendContact(
@@ -142,11 +154,21 @@ class _InquiryScreenState extends State<InquiryScreen> with AppBannerMixin {
                               const SizedBox(height: 16),
                               Row(
                                 children: [
-                                  Icon(Icons.info_outline_rounded, color: _captionColor, size: 16),
+                                  Icon(
+                                    Icons.info_outline_rounded,
+                                    color: _captionColor,
+                                    size: 16,
+                                  ),
                                   const SizedBox(width: 8),
-                                  Text('이 메일은 mirmi.dev@gmail.com으로 발송됩니다.', style: TextStyle(color: _captionColor, fontSize: 13)),
+                                  Text(
+                                    '이 메일은 mirmi.dev@gmail.com으로 발송됩니다.',
+                                    style: TextStyle(
+                                      color: _captionColor,
+                                      fontSize: 13,
+                                    ),
+                                  ),
                                 ],
-                              )
+                              ),
                             ],
                           ),
                         ],
