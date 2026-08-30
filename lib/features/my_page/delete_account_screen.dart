@@ -20,8 +20,8 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen>
   static const _bgColor = AppColors.backB;
   static const _textColor = AppColors.mainText;
   static const _surfaceColor = AppColors.surfaceHover;
-  static const _teal = AppColors.mainColor;
   static const _bodyColor = AppColors.body;
+  static const _borderColor = AppColors.border;
 
   Future<void> _submit() async {
     if (!_agreed) return;
@@ -136,7 +136,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen>
                         width: 22,
                         height: 22,
                         decoration: BoxDecoration(
-                          color: _agreed ? _teal : Colors.white,
+                          color: _agreed ? _borderColor : Colors.white,
 
                           borderRadius: BorderRadius.circular(4),
                         ),
@@ -163,6 +163,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen>
                 SubmitButton(
                   onPressed: _agreed ? _submit : null,
                   text: '회원 탈퇴하기',
+                  errorButton: true,
                 ),
               ],
             ),

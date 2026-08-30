@@ -9,15 +9,18 @@ class SubmitButton extends StatelessWidget {
     required this.text,
     this.loadingButton = false,
     this.submitButton = false,
+    this.errorButton = false,
   });
   final VoidCallback? onPressed;
   final String text;
   final bool loadingButton;
   final bool submitButton;
+  final bool errorButton;
 
   static const _teal = AppColors.mainColor;
   static const _surfaceColor = AppColors.surfaceHover;
   static const _captionColor = AppColors.caption;
+  static const _errorColor = AppColors.error;
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +32,7 @@ class SubmitButton extends StatelessWidget {
         child: ElevatedButton(
           onPressed: loadingButton ? null : onPressed,
           style: ElevatedButton.styleFrom(
-            backgroundColor: _teal,
+            backgroundColor: errorButton ? _errorColor : _teal,
             disabledBackgroundColor: _surfaceColor,
             disabledForegroundColor: _captionColor,
             foregroundColor: Colors.white,
