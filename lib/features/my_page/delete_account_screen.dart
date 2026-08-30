@@ -20,7 +20,6 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen>
   static const _bgColor = AppColors.backB;
   static const _textColor = AppColors.mainText;
   static const _surfaceColor = AppColors.surfaceHover;
-  static const _teal = AppColors.mainColor;
   static const _bodyColor = AppColors.body;
   static const _borderColor = AppColors.border;
 

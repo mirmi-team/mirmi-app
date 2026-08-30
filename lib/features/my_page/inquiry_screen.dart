@@ -19,8 +19,6 @@ class _InquiryScreenState extends State<InquiryScreen> with AppBannerMixin {
   static const _textColor = AppColors.mainText;
   static const _captionColor = AppColors.caption;
   static const _surfaceColor = AppColors.surfaceHover;
-  static const _teal = AppColors.mainColor;
-  static const _bodyColor = AppColors.body;
 
   final _subjectCtrl = TextEditingController();
   final _messageCtrl = TextEditingController();
