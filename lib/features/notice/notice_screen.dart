@@ -15,7 +15,7 @@ class _NoticeScreenState extends State<NoticeScreen>
   static const _textColor = AppColors.mainText;
   static const _teal = AppColors.mainColor;
 
-  /// 0 = 기숙사 전달 사항, 1 = 건의사항
+  /// 0 = 공지 사항, 1 = 건의사항
   int _tabIndex = 0;
 
   bool _loading = true;
@@ -84,7 +84,7 @@ class _NoticeScreenState extends State<NoticeScreen>
             ),
             const SizedBox(height: 16),
 
-            // ── 기숙사 전달 사항 / 건의사항 토글 ──────────────────
+            // ── 공지 사항 / 건의사항 토글 ──────────────────────────
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: _SegmentedTabs(
