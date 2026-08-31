@@ -105,6 +105,7 @@ class _LoginScreenState extends State<LoginScreen> {
         body: Stack(
           children: [
             SafeArea(
+              maintainBottomViewPadding: true,
               child: Column(
                 children: [
                   Expanded(
@@ -140,10 +141,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           width: double.infinity,
                           height: 54,
                           child: ElevatedButton(
-                            onPressed: (_loading || !_isValid) ? null : _onLogin,
+                            onPressed: (_loading || !_isValid)
+                                ? null
+                                : _onLogin,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  _isValid ? _teal : _captainColor,
+                              backgroundColor: _isValid ? _teal : _captainColor,
                               disabledBackgroundColor: _captainColor,
                               disabledForegroundColor: Colors.white,
                               foregroundColor: Colors.white,
@@ -164,8 +166,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                 : const Text(
                                     '로그인',
                                     style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600),
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
                           ),
                         ),
@@ -176,7 +179,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             const Text(
                               '아직 계정이 없다면 ',
                               style: TextStyle(
-                                  color: _captainColor, fontSize: 14),
+                                color: _captainColor,
+                                fontSize: 14,
+                              ),
                             ),
                             GestureDetector(
                               onTap: () => context.push('/signup'),
@@ -213,7 +218,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: Container(
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 18, vertical: 14),
+                            horizontal: 18,
+                            vertical: 14,
+                          ),
                           decoration: BoxDecoration(
                             color: _teal,
                             borderRadius: BorderRadius.circular(14),
@@ -235,8 +242,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                   color: Colors.white24,
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Icon(Icons.check,
-                                    color: Colors.white, size: 16),
+                                child: const Icon(
+                                  Icons.check,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
                               ),
                               const SizedBox(width: 10),
                               Text(
@@ -263,14 +273,19 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: ClipRect(
                   child: SafeArea(
                     child: AnimatedSlide(
-                      offset: _showErrorBanner ? Offset.zero : const Offset(0, -3),
+                      offset: _showErrorBanner
+                          ? Offset.zero
+                          : const Offset(0, -3),
                       duration: const Duration(milliseconds: 400),
                       curve: _showErrorBanner ? Curves.easeOut : Curves.easeIn,
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
                         child: Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 18,
+                            vertical: 14,
+                          ),
                           decoration: BoxDecoration(
                             color: _errorColor,
                             borderRadius: BorderRadius.circular(14),
@@ -292,8 +307,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                   color: Colors.white24,
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Icon(Icons.priority_high_rounded,
-                                    color: Colors.white, size: 16),
+                                child: const Icon(
+                                  Icons.priority_high_rounded,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
                               ),
                               const SizedBox(width: 10),
                               Text(
@@ -347,8 +365,10 @@ class _LoginScreenState extends State<LoginScreen> {
           hintText: hintText,
           hintStyle: const TextStyle(color: _captainColor, fontSize: 13),
           border: InputBorder.none,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 20, vertical: 17),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 17,
+          ),
         ),
       ),
     );
@@ -368,8 +388,10 @@ class _LoginScreenState extends State<LoginScreen> {
           hintText: 'mirim123!',
           hintStyle: const TextStyle(color: _captainColor, fontSize: 13),
           border: InputBorder.none,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 20, vertical: 17),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 17,
+          ),
           suffixIcon: IconButton(
             icon: Icon(
               _obscurePassword
