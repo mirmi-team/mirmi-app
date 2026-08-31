@@ -15,4 +15,14 @@ abstract final class AppColors {
   static const error       = Color(0xFFEF4444);
   static const caption     = Color(0xFFA1A1AA);
   static const btn         = Color(0xFF06B6D4);
+  static const card2       = Color(0xFF18181B);
+
+  /// 미구현 화면 안내 문구
+  static const placeholder = Color(0xFF888888);
+  /// 하단 네비게이션 아이콘 및 글로우
+  static const navIcon     = Color(0xFF898989);
+  /// 입력 필드 힌트, 네비게이션 테두리
+  static const hint        = Color(0xFFA7A7A7);
+  /// 프로필 사진 기본 배경
+  static const avatarBg    = Color(0xFFD9D9D9);
 }

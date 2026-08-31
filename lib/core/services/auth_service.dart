@@ -162,6 +162,73 @@ class AuthService {
     return body['profile_image'] as String;
   }
 
+  static Future<void> sendContact({
+    required String subject,
+    required String message,
+  }) async {
+    final res = await _send((token) => http.post(
+      Uri.parse('$kBaseUrl/contact'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({'subject': subject, 'message': message}),
+    ));
+    _checkStatus(res);
+  }
+
+  static Future<List<dynamic>> getMeritLogs() async {
+    final res = await _send((token) => http.get(
+      Uri.parse('$kBaseUrl/merit-logs/me'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    ));
+    _checkStatus(res);
+    return jsonDecode(res.body) as List<dynamic>;
+  }
+
+  static Future<int> getMeritSummary() async {
+    final res = await _send((token) => http.get(
+      Uri.parse('$kBaseUrl/merit-logs/me/summary'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    ));
+    _checkStatus(res);
+    final body = jsonDecode(res.body) as Map<String, dynamic>;
+    return body['total_merit_score'] as int;
+  }
+
+  static Future<void> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    final res = await _send((token) => http.patch(
+      Uri.parse('$kBaseUrl/users/me/password'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({'oldPassword': oldPassword, 'newPassword': newPassword}),
+    ));
+    _checkStatus(res);
+  }
+
+  static Future<void> deleteAccount() async {
+    final res = await _send((token) => http.post(
+      Uri.parse('$kBaseUrl/auth/quit'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    ));
+    _checkStatus(res);
+    await clearTokens();
+  }
+
   static Future<void> logout() async {
     try {
       await _send((token) => http.post(

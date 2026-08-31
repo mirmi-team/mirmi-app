@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../core/services/auth_service.dart';
+import '../../shared/app_banner.dart';
 import '../../shared/app_colors.dart';
 
 class MyPageScreen extends StatefulWidget {
@@ -16,7 +17,7 @@ class MyPageScreen extends StatefulWidget {
   State<MyPageScreen> createState() => _MyPageScreenState();
 }
 
-class _MyPageScreenState extends State<MyPageScreen> {
+class _MyPageScreenState extends State<MyPageScreen> with AppBannerMixin {
   Map<String, dynamic>? _user;
   bool _loading = true;
   bool _uploading = false;
@@ -24,9 +25,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
 
   static const _teal        = AppColors.mainColor;
   static const _bgColor     = AppColors.backB;
-  static const _captionColor = AppColors.caption;
   static const _textColor   = AppColors.mainText;
-  static const _cardColor   = AppColors.card;
   static const _surfaceColor = AppColors.surfaceHover;
   static const _errorColor  = AppColors.error;
 
@@ -107,39 +106,13 @@ class _MyPageScreenState extends State<MyPageScreen> {
     return NetworkImage(path);
   }
 
-  Future<void> _logout() async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: _cardColor,
-        title: const Text('로그아웃', style: TextStyle(color: _textColor)),
-        content: const Text('정말 로그아웃 하시겠어요?', style: TextStyle(color: _captionColor)),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('취소', style: TextStyle(color: _captionColor))),
-          TextButton(onPressed: () => Navigator.pop(context, true),  child: const Text('로그아웃', style: TextStyle(color: _teal))),
-        ],
-      ),
-    );
-    if (ok != true || !mounted) return;
-    await AuthService.logout();
-    if (mounted) context.go('/login');
-  }
+  void _logout() => context.push('/logout');
 
-  Future<void> _deleteAccount() async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: _cardColor,
-        title: const Text('회원 탈퇴', style: TextStyle(color: _textColor)),
-        content: const Text('탈퇴하면 모든 정보가 삭제됩니다.\n정말 탈퇴하시겠어요?', style: TextStyle(color: _captionColor)),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('취소',  style: TextStyle(color: _captionColor))),
-          TextButton(onPressed: () => Navigator.pop(context, true),  child: const Text('탈퇴하기', style: TextStyle(color: _errorColor))),
-        ],
-      ),
-    );
-    if (ok != true) return;
-    // TODO: 회원 탈퇴 API 연결
+  void _deleteAccount() => context.push('/delete-account');
+
+  Future<void> _inquiry() async {
+    final message = await context.push<String>('/inquiry');
+    if (mounted && message != null) showSuccessBanner(message);
   }
 
   @override
@@ -171,10 +144,12 @@ class _MyPageScreenState extends State<MyPageScreen> {
         ),
         title: Text(
           _loading ? '' : '$name님의 정보',
-          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: _textColor),
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: _textColor),
         ),
       ),
-      body: _loading
+      body: Stack(
+        children: [
+          _loading
           ? const Center(child: CircularProgressIndicator(color: _teal))
           : SingleChildScrollView(
               child: Column(
@@ -190,7 +165,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                           tag: 'profile_photo',
                           child: Container(
                             width: 100, height: 100,
-                            decoration: const BoxDecoration(color: Color(0xFFD9D9D9), shape: BoxShape.circle),
+                            decoration: const BoxDecoration(color: AppColors.avatarBg, shape: BoxShape.circle),
                             clipBehavior: Clip.antiAlias,
                             child: imageProvider == null
                                 ? const Icon(Icons.person, size: 50, color: Colors.white)
@@ -221,51 +196,49 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   const SizedBox(height: 14),
 
                   // ── 이름 ──────────────────────────────────────
-                  Text(name, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: _textColor)),
+                  Text(name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: _textColor)),
 
                   const SizedBox(height: 28),
 
                   // ── 호실·학년반·상벌점 ────────────────────────
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 40),
-                    child: IntrinsicHeight(
-                      child: Row(
-                        children: [
-                          _InfoCell(
-                            value: roomNumber != null ? '$roomNumber호' : '-',
-                            label: '호실',
-                          ),
-                          VerticalDivider(color: _surfaceColor, width: 1, thickness: 1),
-                          _InfoCell(
-                            value: (grade != null && classNo != null) ? '$grade학년 $classNo반' : '-',
-                            label: '학년•반',
-                          ),
-                          VerticalDivider(color: _surfaceColor, width: 1, thickness: 1),
-                          _InfoCell(
-                            value: demerits != null ? '$demerits점' : '-',
-                            label: '상벌점',
-                            valueColor: demerits != null && demerits < 0 ? _errorColor : _textColor,
-                          ),
-                        ],
-                      ),
+                  IntrinsicHeight(
+                    child: Row(
+                      children: [
+                        _InfoCell(
+                          value: roomNumber != null ? '$roomNumber호' : '-',
+                          label: '호실',
+                        ),
+                        _InfoCell(
+                          value: (grade != null && classNo != null) ? '$grade학년 $classNo반' : '-',
+                          label: '학년•반',
+                        ),
+                        _InfoCell(
+                          value: demerits != null ? '$demerits점' : '-',
+                          label: '상벌점',
+                          valueColor: demerits != null && demerits < 0 ? _errorColor : _textColor,
+                        ),
+                      ],
                     ),
                   ),
 
                   const SizedBox(height: 48),
 
                   // ── 메뉴 리스트 ───────────────────────────────
-                  Divider(color: _surfaceColor, height: 1, thickness: 1),
-                  _MenuItem(label: '상벌점 내역',  onTap: () {}),
-                  Divider(color: _surfaceColor, height: 1, thickness: 1),
-                  _MenuItem(label: '비밀번호 변경', onTap: () {}),
-                  Divider(color: _surfaceColor, height: 1, thickness: 1),
+                  _MenuItem(label: '상벌점 내역',  onTap: () => context.push('/merit-logs')),
+                  const SizedBox(height: 20),
+                  _MenuItem(label: '문의하기',  onTap: _inquiry),
+                  const SizedBox(height: 20),
+                  _MenuItem(label: '비밀번호 변경', onTap: () => context.push('/change-password')),
+                  const SizedBox(height: 20),
                   _MenuItem(label: '로그아웃',    onTap: _logout),
-                  Divider(color: _surfaceColor, height: 1, thickness: 1),
+                  const SizedBox(height: 20),
                   _MenuItem(label: '회원 탈퇴',   onTap: _deleteAccount, labelColor: _errorColor),
-                  Divider(color: _surfaceColor, height: 1, thickness: 1),
                 ],
               ),
             ),
+          buildBanner(),
+        ],
+      ),
     );
   }
 }
@@ -282,9 +255,9 @@ class _InfoCell extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: valueColor ?? AppColors.mainText)),
+          Text(value, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: valueColor ?? AppColors.mainText)),
           const SizedBox(height: 4),
-          Text(label, style: const TextStyle(fontSize: 12, color: AppColors.caption)),
+          Text(label, style: const TextStyle(fontSize: 13, color: AppColors.caption)),
         ],
       ),
     );
@@ -303,12 +276,12 @@ class _MenuItem extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(label, style: TextStyle(fontSize: 16, color: labelColor ?? AppColors.mainText)),
-            Icon(Icons.chevron_right, color: AppColors.caption, size: 22),
+            Icon(Icons.chevron_right, color: Colors.white, size: 26),
           ],
         ),
       ),

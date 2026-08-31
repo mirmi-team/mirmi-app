@@ -78,6 +78,9 @@ flutter:
     - assets/img/logo.png
     - assets/img/MIRMI.png
     - assets/img/app_icon.png
+    - assets/img/error.png
+    - assets/img/log_out.png
+    - assets/img/lock.png
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 
