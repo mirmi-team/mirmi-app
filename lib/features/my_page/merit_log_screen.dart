@@ -349,7 +349,7 @@ class _MeritLogScreenState extends State<MeritLogScreen> with AppBannerMixin {
                                               )
                                             else
                                               Text(
-                                                '-$score점',
+                                                '$score점',
                                                 style: const TextStyle(
                                                   fontSize: 15,
                                                   fontWeight: FontWeight.w600,
