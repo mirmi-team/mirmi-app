@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/services/auth_service.dart';
 import '../../shared/app_colors.dart';
+import '../../shared/app_refresh.dart';
 
 class LoginScreen extends StatefulWidget {
   final String? successMessage;
@@ -153,14 +154,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                             child: _loading
-                                ? const SizedBox(
-                                    width: 22,
-                                    height: 22,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 2,
-                                    ),
-                                  )
+                                ? const AppLoadingIndicator.onButton()
                                 : const Text(
                                     '로그인',
                                     style: TextStyle(

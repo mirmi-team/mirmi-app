@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/services/notice_service.dart';
 import '../../shared/app_banner.dart';
 import '../../shared/app_colors.dart';
+import '../../shared/app_refresh.dart';
 
 class NoticeScreen extends StatefulWidget {
   const NoticeScreen({super.key});
@@ -13,7 +14,6 @@ class NoticeScreen extends StatefulWidget {
 class _NoticeScreenState extends State<NoticeScreen>
     with AppBannerMixin, WidgetsBindingObserver {
   static const _textColor = AppColors.mainText;
-  static const _teal = AppColors.mainColor;
 
   /// 0 = 공지 사항, 1 = 건의사항
   int _tabIndex = 0;
@@ -112,36 +112,37 @@ class _NoticeScreenState extends State<NoticeScreen>
 
   Widget _buildNoticeTab() {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator(color: _teal));
+      return const AppLoadingIndicator();
     }
 
-    return RefreshIndicator(
+    return AppRefreshScrollView(
       onRefresh: () => _load(silent: true),
-      color: _teal,
-      backgroundColor: AppColors.card,
-      child: ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        // 하단 네비게이션 바에 가리지 않도록 여유 패딩
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
-        children: [
-          const Text(
-            '공지 사항',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: _textColor,
-            ),
+      slivers: [
+        SliverPadding(
+          // 하단 네비게이션 바에 가리지 않도록 여유 패딩
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
+          sliver: SliverList(
+            delegate: SliverChildListDelegate([
+              const Text(
+                '공지 사항',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: _textColor,
+                ),
+              ),
+              const SizedBox(height: 12),
+              if (_notices.isEmpty)
+                const _EmptyNotice()
+              else
+                for (final notice in _notices) ...[
+                  _NoticeCard(notice: notice),
+                  const SizedBox(height: 10),
+                ],
+            ]),
           ),
-          const SizedBox(height: 12),
-          if (_notices.isEmpty)
-            const _EmptyNotice()
-          else
-            for (final notice in _notices) ...[
-              _NoticeCard(notice: notice),
-              const SizedBox(height: 10),
-            ],
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

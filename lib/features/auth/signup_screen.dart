@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/services/auth_service.dart';
 import '../../shared/app_colors.dart';
+import '../../shared/app_refresh.dart';
 
 enum _Step { email, password, studentInfo, dormInfo }
 
@@ -705,14 +706,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
               ),
               child: _footerLoading
-                  ? const SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    )
+                  ? const AppLoadingIndicator.onButton()
                   : Text(
                       _footerButtonLabel,
                       style: const TextStyle(
