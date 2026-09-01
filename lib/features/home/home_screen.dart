@@ -2,13 +2,12 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
-import 'package:go_router/go_router.dart';
-import '../../core/services/auth_service.dart';
 import '../laundry/laundry_screen.dart';
 import '../return_stay/return_stay_screen.dart';
 import '../notice/notice_screen.dart';
 import '../song/song_screen.dart';
 import '../../shared/app_colors.dart';
+import '../../shared/app_top_bar.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -21,7 +20,6 @@ class _HomeScreenState extends State<HomeScreen> {
   static const _bgColor = AppColors.backB;
 
   final PageController _pageController = PageController();
-  String? _profileImage;
 
   final List<Widget> _pages = const [
     _HomeTab(),
@@ -30,12 +28,6 @@ class _HomeScreenState extends State<HomeScreen> {
     NoticeScreen(),
     SongScreen(),
   ];
-
-  @override
-  void initState() {
-    super.initState();
-    _loadProfileImage();
-  }
 
   @override
   void dispose() {
@@ -47,53 +39,11 @@ class _HomeScreenState extends State<HomeScreen> {
   /// (손가락을 따라 움직이는 건 스와이프할 때만)
   void _goToPage(int index) => _pageController.jumpToPage(index);
 
-  Future<void> _loadProfileImage() async {
-    try {
-      final user = await AuthService.getMe();
-      if (mounted)
-        setState(() => _profileImage = user['profile_image'] as String?);
-    } on SessionExpiredException {
-      if (mounted) context.go('/login');
-    } catch (_) {}
-  }
-
-  Future<void> _goToMyPage() async {
-    await context.push('/my');
-    _loadProfileImage();
-  }
-
   @override
   Widget build(BuildContext context) {
-    final imageProvider = (_profileImage != null && _profileImage!.isNotEmpty)
-        ? NetworkImage(_profileImage!) as ImageProvider
-        : null;
-
     return Scaffold(
       backgroundColor: _bgColor,
-      appBar: AppBar(
-        backgroundColor: _bgColor,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        centerTitle: false,
-        titleSpacing: 20,
-        title: Image.asset('assets/img/MIRMI.png', height: 18),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 20),
-            child: GestureDetector(
-              onTap: _goToMyPage,
-              child: CircleAvatar(
-                radius: 20,
-                backgroundColor: AppColors.avatarBg,
-                backgroundImage: imageProvider,
-                child: imageProvider == null
-                    ? const Icon(Icons.person, size: 20, color: Colors.white)
-                    : null,
-              ),
-            ),
-          ),
-        ],
-      ),
+      appBar: const AppTopBar(),
       body: Stack(
         children: [
           // PageView 는 손가락을 따라 페이지가 같이 밀리고, 놓으면 이어서 넘어간다.
@@ -155,8 +105,7 @@ class _NavBar extends StatefulWidget {
   State<_NavBar> createState() => _NavBarState();
 }
 
-class _NavBarState extends State<_NavBar>
-    with SingleTickerProviderStateMixin {
+class _NavBarState extends State<_NavBar> with SingleTickerProviderStateMixin {
   static const _surfaceColor = AppColors.surfaceHover;
 
   static const _items = [
