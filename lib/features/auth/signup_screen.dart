@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/services/auth_service.dart';
 import '../../shared/app_colors.dart';
+import '../../shared/app_refresh.dart';
 
 enum _Step { email, password, studentInfo, dormInfo }
 
@@ -54,7 +55,6 @@ class _SignupScreenState extends State<SignupScreen> {
   String? _codeFieldError;
   String? _confirmPasswordError;
   String? _nameFieldError;
-
 
   static const _teal = AppColors.mainColor;
   static const _errorColor = AppColors.error;
@@ -113,14 +113,18 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _isValidRoom(String text) {
     final n = int.tryParse(text);
     if (n == null) return false;
-    return (n >= 301 && n <= 319) || (n >= 401 && n <= 419) || (n >= 501 && n <= 519);
+    return (n >= 301 && n <= 319) ||
+        (n >= 401 && n <= 419) ||
+        (n >= 501 && n <= 519);
   }
 
   bool get _isCurrentStepValid {
     switch (_step) {
       case _Step.email:
         return _emailVerified ||
-            (_codeSent && _remainingSeconds > 0 && _verificationController.text.trim().isNotEmpty);
+            (_codeSent &&
+                _remainingSeconds > 0 &&
+                _verificationController.text.trim().isNotEmpty);
       case _Step.password:
         final pw = _passwordController.text;
         final confirm = _confirmPasswordController.text;
@@ -137,8 +141,10 @@ class _SignupScreenState extends State<SignupScreen> {
         final grade = int.tryParse(_gradeController.text) ?? 0;
         final classNo = int.tryParse(_classController.text) ?? 0;
         return _nameController.text.trim().isNotEmpty &&
-            grade >= 1 && grade <= 3 &&
-            classNo >= 1 && classNo <= 6;
+            grade >= 1 &&
+            grade <= 3 &&
+            classNo >= 1 &&
+            classNo <= 6;
       case _Step.dormInfo:
         return _isValidRoom(_dormRoomController.text.trim());
     }
@@ -241,7 +247,10 @@ class _SignupScreenState extends State<SignupScreen> {
     switch (_step) {
       case _Step.email:
         if (_emailVerified) {
-          setState(() { _goingForward = true; _step = _Step.password; });
+          setState(() {
+            _goingForward = true;
+            _step = _Step.password;
+          });
         } else if (_remainingSeconds == 0) {
           setState(() => _codeFieldError = '인증번호가 만료되었습니다. 다시 보내주세요.');
         } else {
@@ -267,7 +276,10 @@ class _SignupScreenState extends State<SignupScreen> {
           setState(() => _confirmPasswordError = '특수문자를 포함해 8자리 이상 입력해주세요.');
           return;
         }
-        setState(() { _goingForward = true; _step = _Step.studentInfo; });
+        setState(() {
+          _goingForward = true;
+          _step = _Step.studentInfo;
+        });
 
       case _Step.studentInfo:
         if (_nameController.text.trim().isEmpty) {
@@ -278,7 +290,10 @@ class _SignupScreenState extends State<SignupScreen> {
           setState(() => _nameFieldError = '학년과 반을 입력해주세요.');
           return;
         }
-        setState(() { _goingForward = true; _step = _Step.dormInfo; });
+        setState(() {
+          _goingForward = true;
+          _step = _Step.dormInfo;
+        });
 
       case _Step.dormInfo:
         await _submit();
@@ -322,21 +337,30 @@ class _SignupScreenState extends State<SignupScreen> {
       case _Step.email:
         context.pop();
       case _Step.password:
-        setState(() { _goingForward = false; _step = _Step.email; });
+        setState(() {
+          _goingForward = false;
+          _step = _Step.email;
+        });
       case _Step.studentInfo:
-        setState(() { _goingForward = false; _step = _Step.password; });
+        setState(() {
+          _goingForward = false;
+          _step = _Step.password;
+        });
       case _Step.dormInfo:
-        setState(() { _goingForward = false; _step = _Step.studentInfo; });
+        setState(() {
+          _goingForward = false;
+          _step = _Step.studentInfo;
+        });
     }
   }
 
   void _showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), backgroundColor: _errorColor),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(msg), backgroundColor: _errorColor));
   }
 
-// ── Build ──────────────────────────────────────────────────────
+  // ── Build ──────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -346,60 +370,72 @@ class _SignupScreenState extends State<SignupScreen> {
         backgroundColor: _bgColor,
         resizeToAvoidBottomInset: false,
         body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 8, top: 4),
-              child: IconButton(
-                icon: const Icon(Icons.chevron_left, size: 28),
-                onPressed: _onBack,
-                color: Colors.white,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 8, top: 4),
+                child: IconButton(
+                  icon: const Icon(Icons.chevron_left, size: 28),
+                  onPressed: _onBack,
+                  color: Colors.white,
+                ),
               ),
-            ),
-            Expanded(
-              child: ClipRect(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 280),
-                    layoutBuilder: (currentChild, previousChildren) => Stack(
-                      alignment: Alignment.topLeft,
-                      children: [
-                        ...previousChildren,
-                        ?currentChild,
-                      ],
-                    ),
-                    transitionBuilder: (child, animation) {
-                      final entering = child.key == ValueKey(_step);
-                      final tween = _goingForward
-                          ? (entering
-                              ? Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero)
-                              : Tween<Offset>(begin: const Offset(-1, 0), end: Offset.zero))
-                          : (entering
-                              ? Tween<Offset>(begin: const Offset(-1, 0), end: Offset.zero)
-                              : Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero));
-                      return SlideTransition(
-                        position: tween.animate(
-                          CurvedAnimation(parent: animation, curve: Curves.easeInOut),
-                        ),
-                        child: child,
-                      );
-                    },
-                    child: SizedBox(
-                      key: ValueKey(_step),
-                      width: double.infinity,
-                      child: _buildCurrentStep(),
+              Expanded(
+                child: ClipRect(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 280),
+                      layoutBuilder: (currentChild, previousChildren) => Stack(
+                        alignment: Alignment.topLeft,
+                        children: [...previousChildren, ?currentChild],
+                      ),
+                      transitionBuilder: (child, animation) {
+                        final entering = child.key == ValueKey(_step);
+                        final tween = _goingForward
+                            ? (entering
+                                  ? Tween<Offset>(
+                                      begin: const Offset(1, 0),
+                                      end: Offset.zero,
+                                    )
+                                  : Tween<Offset>(
+                                      begin: const Offset(-1, 0),
+                                      end: Offset.zero,
+                                    ))
+                            : (entering
+                                  ? Tween<Offset>(
+                                      begin: const Offset(-1, 0),
+                                      end: Offset.zero,
+                                    )
+                                  : Tween<Offset>(
+                                      begin: const Offset(1, 0),
+                                      end: Offset.zero,
+                                    ));
+                        return SlideTransition(
+                          position: tween.animate(
+                            CurvedAnimation(
+                              parent: animation,
+                              curve: Curves.easeInOut,
+                            ),
+                          ),
+                          child: child,
+                        );
+                      },
+                      child: SizedBox(
+                        key: ValueKey(_step),
+                        width: double.infinity,
+                        child: _buildCurrentStep(),
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-            _buildFooter(),
-          ],
+              _buildFooter(),
+            ],
+          ),
         ),
       ),
-    ),
     );
   }
 
@@ -428,7 +464,9 @@ class _SignupScreenState extends State<SignupScreen> {
           hintText: 'example@e-mirim.hs.kr',
           keyboardType: TextInputType.emailAddress,
           enabled: !_emailVerified,
-          buttonLabel: _emailVerified ? '발송 완료' : (_codeSent ? '인증번호 다시 보내기' : '인증 번호 보내기'),
+          buttonLabel: _emailVerified
+              ? '발송 완료'
+              : (_codeSent ? '인증번호 다시 보내기' : '인증 번호 보내기'),
           buttonDisabled: _emailVerified || _sendingCode,
           buttonHighlighted: _codeSent && !_emailVerified,
           isLoading: _sendingCode,
@@ -478,7 +516,7 @@ class _SignupScreenState extends State<SignupScreen> {
           ),
         ] else if (_emailVerified) ...[
           const SizedBox(height: 10),
-          _buildHint('이메일 인증이 완료되었습니다.'),
+          _buildHint('이메일 인증이 완료되었습니다.', tcolor: true),
         ],
         const SizedBox(height: 40),
       ],
@@ -520,7 +558,8 @@ class _SignupScreenState extends State<SignupScreen> {
               r"'`~/]",
             ).hasMatch(v);
             setState(() {
-              _showPasswordHint = v.isNotEmpty && !(v.length >= 8 && hasSpecial);
+              _showPasswordHint =
+                  v.isNotEmpty && !(v.length >= 8 && hasSpecial);
             });
           },
         ),
@@ -573,44 +612,57 @@ class _SignupScreenState extends State<SignupScreen> {
           children: [
             _buildNumberInput(_gradeController),
             const SizedBox(width: 8),
-            const Text('학년', style: TextStyle(color: Colors.white, fontSize: 18)),
+            const Text(
+              '학년',
+              style: TextStyle(color: Colors.white, fontSize: 18),
+            ),
             const SizedBox(width: 16),
             _buildNumberInput(_classController),
             const SizedBox(width: 8),
-            const Text('반', style: TextStyle(color: Colors.white, fontSize: 18)),
+            const Text(
+              '반',
+              style: TextStyle(color: Colors.white, fontSize: 18),
+            ),
           ],
         ),
-        Builder(builder: (_) {
-          final grade = int.tryParse(_gradeController.text) ?? 0;
-          final classNo = int.tryParse(_classController.text) ?? 0;
-          final gradeInvalid = _gradeController.text.isNotEmpty && (grade < 1 || grade > 3);
-          final classInvalid = _classController.text.isNotEmpty && (classNo < 1 || classNo > 6);
-          if (!gradeInvalid && !classInvalid) return const SizedBox.shrink();
-          return Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (gradeInvalid) _buildInlineError('학년은 1~3 사이로 입력해주세요.'),
-                if (classInvalid) _buildInlineError('반은 1~6 사이로 입력해주세요.'),
-              ],
-            ),
-          );
-        }),
+        Builder(
+          builder: (_) {
+            final grade = int.tryParse(_gradeController.text) ?? 0;
+            final classNo = int.tryParse(_classController.text) ?? 0;
+            final gradeInvalid =
+                _gradeController.text.isNotEmpty && (grade < 1 || grade > 3);
+            final classInvalid =
+                _classController.text.isNotEmpty &&
+                (classNo < 1 || classNo > 6);
+            if (!gradeInvalid && !classInvalid) return const SizedBox.shrink();
+            return Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (gradeInvalid) _buildInlineError('학년은 1~3 사이로 입력해주세요.'),
+                  if (classInvalid) _buildInlineError('반은 1~6 사이로 입력해주세요.'),
+                ],
+              ),
+            );
+          },
+        ),
         const SizedBox(height: 28),
         _buildLabel('성별'),
         const SizedBox(height: 10),
         Row(
           children: [
             _buildRadio(
-                label: '남자',
-                selected: _gender == '남자',
-                onTap: () => setState(() => _gender = '남자')),
+              label: '남자',
+              selected: _gender == '남자',
+              onTap: () => setState(() => _gender = '남자'),
+            ),
             const SizedBox(width: 24),
             _buildRadio(
-                label: '여자',
-                selected: _gender == '여자',
-                onTap: () => setState(() => _gender = '여자')),
+              label: '여자',
+              selected: _gender == '여자',
+              onTap: () => setState(() => _gender = '여자'),
+            ),
           ],
         ),
         const SizedBox(height: 40),
@@ -659,14 +711,16 @@ class _SignupScreenState extends State<SignupScreen> {
         Row(
           children: [
             _buildRadio(
-                label: '서울•경기•인천',
-                selected: _dormRegion == '서울•경기•인천',
-                onTap: () => setState(() => _dormRegion = '서울•경기•인천')),
+              label: '서울•경기•인천',
+              selected: _dormRegion == '서울•경기•인천',
+              onTap: () => setState(() => _dormRegion = '서울•경기•인천'),
+            ),
             const SizedBox(width: 24),
             _buildRadio(
-                label: '그 외 지역',
-                selected: _dormRegion == '그 외 지역',
-                onTap: () => setState(() => _dormRegion = '그 외 지역')),
+              label: '그 외 지역',
+              selected: _dormRegion == '그 외 지역',
+              onTap: () => setState(() => _dormRegion = '그 외 지역'),
+            ),
           ],
         ),
         const SizedBox(height: 40),
@@ -693,7 +747,9 @@ class _SignupScreenState extends State<SignupScreen> {
             width: double.infinity,
             height: 54,
             child: ElevatedButton(
-              onPressed: (_footerLoading || !_isCurrentStepValid) ? null : _onNext,
+              onPressed: (_footerLoading || !_isCurrentStepValid)
+                  ? null
+                  : _onNext,
               style: ElevatedButton.styleFrom(
                 backgroundColor: _isCurrentStepValid ? _teal : _captainColor,
                 disabledBackgroundColor: _captainColor,
@@ -705,18 +761,13 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
               ),
               child: _footerLoading
-                  ? const SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    )
+                  ? const AppLoadingIndicator.onButton()
                   : Text(
                       _footerButtonLabel,
                       style: const TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.w600),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
             ),
           ),
@@ -750,12 +801,22 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
-  Widget _buildHint(String text) {
+  Widget _buildHint(String text, {bool tcolor = false}) {
     return Row(
       children: [
-        const Icon(Icons.info_outline, color: _teal, size: 14),
+        Icon(
+          Icons.info_outline,
+          color: tcolor ? _teal : _captainColor,
+          size: 14,
+        ),
         const SizedBox(width: 4),
-        Text(text, style: const TextStyle(color: _teal, fontSize: 12)),
+        Text(
+          text,
+          style: TextStyle(
+            color: tcolor ? _teal : _captainColor,
+            fontSize: 12,
+          ),
+        ),
       ],
     );
   }
@@ -799,8 +860,10 @@ class _SignupScreenState extends State<SignupScreen> {
           hintText: hintText,
           hintStyle: const TextStyle(color: _captainColor, fontSize: 13),
           border: InputBorder.none,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 20, vertical: 17),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 17,
+          ),
         ),
       ),
     );
@@ -827,8 +890,10 @@ class _SignupScreenState extends State<SignupScreen> {
           hintText: hintText,
           hintStyle: const TextStyle(color: _captainColor, fontSize: 13),
           border: InputBorder.none,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 20, vertical: 17),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 17,
+          ),
           suffixIcon: IconButton(
             icon: Icon(
               obscure
@@ -872,7 +937,10 @@ class _SignupScreenState extends State<SignupScreen> {
                 hintText: hintText,
                 hintStyle: const TextStyle(color: _captainColor, fontSize: 13),
                 border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 17),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 17,
+                ),
               ),
             ),
           ),
@@ -883,7 +951,7 @@ class _SignupScreenState extends State<SignupScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
                 color: _surfaceColor,
-                borderRadius: BorderRadius.circular(10)
+                borderRadius: BorderRadius.circular(10),
               ),
               child: isLoading
                   ? const _WaveDots()
@@ -894,8 +962,8 @@ class _SignupScreenState extends State<SignupScreen> {
                         color: buttonDisabled
                             ? Colors.grey
                             : buttonHighlighted
-                                ? _teal
-                                : _textColor,
+                            ? _teal
+                            : _textColor,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -944,13 +1012,11 @@ class _SignupScreenState extends State<SignupScreen> {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: selected ? _teal : _bodyColor,
-              border: Border.all(color: Colors.white)
+              border: Border.all(color: Colors.white),
             ),
           ),
           const SizedBox(width: 8),
-          Text(label,
-              style:
-                  const TextStyle(fontSize: 14, color: _textColor)),
+          Text(label, style: const TextStyle(fontSize: 14, color: _textColor)),
         ],
       ),
     );
@@ -963,13 +1029,17 @@ class _WaveDots extends StatefulWidget {
   State<_WaveDots> createState() => _WaveDotsState();
 }
 
-class _WaveDotsState extends State<_WaveDots> with SingleTickerProviderStateMixin {
+class _WaveDotsState extends State<_WaveDots>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 900))..repeat();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..repeat();
   }
 
   @override

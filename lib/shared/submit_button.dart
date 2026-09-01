@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../shared/app_colors.dart';
+import 'app_refresh.dart';
 
 class SubmitButton extends StatelessWidget {
   const SubmitButton({
@@ -42,14 +43,7 @@ class SubmitButton extends StatelessWidget {
             ),
           ),
           child: loadingButton
-              ? const SizedBox(
-                  width: 22,
-                  height: 22,
-                  child: CircularProgressIndicator(
-                    color: Colors.white,
-                    strokeWidth: 2,
-                  ),
-                )
+              ? const AppLoadingIndicator.onButton()
               : Text(
                   text,
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),

@@ -9,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import '../../core/services/auth_service.dart';
 import '../../shared/app_banner.dart';
 import '../../shared/app_colors.dart';
+import '../../shared/app_refresh.dart';
 
 class MyPageScreen extends StatefulWidget {
   const MyPageScreen({super.key});
@@ -150,7 +151,7 @@ class _MyPageScreenState extends State<MyPageScreen> with AppBannerMixin {
       body: Stack(
         children: [
           _loading
-          ? const Center(child: CircularProgressIndicator(color: _teal))
+          ? const AppLoadingIndicator()
           : SingleChildScrollView(
               child: Column(
                 children: [

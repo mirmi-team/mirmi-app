@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/services/auth_service.dart';
 import '../../shared/app_colors.dart';
+import '../../shared/app_refresh.dart';
 import '../../shared/app_banner.dart';
 
 class MeritLogScreen extends StatefulWidget {
@@ -130,7 +131,7 @@ class _MeritLogScreenState extends State<MeritLogScreen> with AppBannerMixin {
       body: Stack(
         children: [
           if (_loading)
-            const Center(child: CircularProgressIndicator(color: _teal))
+            const AppLoadingIndicator()
           else
             Column(
               children: [
@@ -349,7 +350,7 @@ class _MeritLogScreenState extends State<MeritLogScreen> with AppBannerMixin {
                                               )
                                             else
                                               Text(
-                                                '-$score점',
+                                                '$score점',
                                                 style: const TextStyle(
                                                   fontSize: 15,
                                                   fontWeight: FontWeight.w600,
