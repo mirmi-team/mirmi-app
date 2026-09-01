@@ -43,6 +43,7 @@ class Notice {
     required this.title,
     required this.description,
     required this.createdAt,
+    this.imageUrl,
   });
 
   final int id;
@@ -50,11 +51,15 @@ class Notice {
   final String description;
   final DateTime createdAt;
 
+  /// 첨부 이미지. 등록하지 않은 공지는 null.
+  final String? imageUrl;
+
   factory Notice.fromJson(Map<String, dynamic> json) => Notice(
     id: json['id'] as int,
     title: (json['title'] ?? '') as String,
     description: (json['description'] ?? '') as String,
     createdAt: DateTime.parse(json['created_at'] as String).toLocal(),
+    imageUrl: json['image_url'] as String?,
   );
 
   /// "방금 전" / "3분 전" / "2시간 전" — 당일 공지만 내려오므로 시간 단위면 충분

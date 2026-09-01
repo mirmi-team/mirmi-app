@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/services/notice_service.dart';
 import '../../shared/app_banner.dart';
 import '../../shared/app_colors.dart';
@@ -136,7 +137,10 @@ class _NoticeScreenState extends State<NoticeScreen>
                 const _EmptyNotice()
               else
                 for (final notice in _notices) ...[
-                  _NoticeCard(notice: notice),
+                  _NoticeCard(
+                    notice: notice,
+                    onTap: () => context.push('/notice-detail', extra: notice),
+                  ),
                   const SizedBox(height: 10),
                 ],
             ]),
@@ -204,8 +208,9 @@ class _SegmentedTabs extends StatelessWidget {
                           curve: Curves.easeOutCubic,
                           style: TextStyle(
                             fontSize: 14,
-                            fontWeight:
-                                selected ? FontWeight.w700 : FontWeight.w500,
+                            fontWeight: selected
+                                ? FontWeight.w700
+                                : FontWeight.w500,
                             color: selected
                                 ? AppColors.mainText
                                 : AppColors.caption,
@@ -227,54 +232,59 @@ class _SegmentedTabs extends StatelessWidget {
 
 // ── 공지 카드 ────────────────────────────────────────────────────
 class _NoticeCard extends StatelessWidget {
-  const _NoticeCard({required this.notice});
+  const _NoticeCard({required this.notice, required this.onTap});
   final Notice notice;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceHover,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  notice.title,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.mainText,
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceHover,
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    notice.title,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.mainText,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  notice.description,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    height: 1.35,
-                    color: AppColors.caption,
+                  const SizedBox(height: 4),
+                  Text(
+                    notice.description,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      height: 1.35,
+                      color: AppColors.caption,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 12),
-          Padding(
-            padding: const EdgeInsets.only(top: 2),
-            child: Text(
-              notice.timeAgo,
-              style: const TextStyle(fontSize: 10, color: AppColors.caption),
+            const SizedBox(width: 12),
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Text(
+                notice.timeAgo,
+                style: const TextStyle(fontSize: 10, color: AppColors.caption),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

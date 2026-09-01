@@ -11,6 +11,8 @@ import '../../features/my_page/logout_screen.dart';
 import '../../features/my_page/change_password_screen.dart';
 import '../../features/my_page/merit_log_screen.dart';
 import '../../features/my_page/inquiry_screen.dart';
+import '../../features/notice/notice_detail_screen.dart';
+import '../services/notice_service.dart';
 import '../services/auth_service.dart';
 
 const _protectedRoutes = {'/home', '/my'};
@@ -85,6 +87,13 @@ final router = GoRouter(
       path: '/merit-logs',
       pageBuilder: (context, state) => const MaterialPage(
         child: MeritLogScreen(),
+      ),
+    ),
+
+    GoRoute(
+      path: '/notice-detail',
+      pageBuilder: (context, state) => MaterialPage(
+        child: NoticeDetailScreen(notice: state.extra as Notice),
       ),
     ),
 
