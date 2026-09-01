@@ -7,29 +7,49 @@ import 'app_colors.dart';
 const double _indicatorSize = 22.0;
 const double _strokeWidth = 2.2;
 
-/// 앱 공통 로딩 스피너. 화면 가운데에 테마 색으로 표시한다.
+/// 앱 공통 로딩 스피너.
+///
+/// 기본 생성자는 화면 전체 로딩용으로, 가운데에 테마 색으로 표시한다.
+/// [AppLoadingIndicator.onButton]은 컬러 버튼 위에 얹는 작은 흰색 스피너다.
 ///
 /// ```dart
 /// if (_loading) return const AppLoadingIndicator();
+///
+/// ElevatedButton(
+///   child: _loading ? const AppLoadingIndicator.onButton() : const Text('로그인'),
+/// )
 /// ```
 class AppLoadingIndicator extends StatelessWidget {
-  const AppLoadingIndicator({super.key, this.size, this.strokeWidth});
+  const AppLoadingIndicator({super.key, this.size, this.strokeWidth})
+    : color = AppColors.mainColor,
+      _centered = true;
+
+  /// 컬러 버튼 위에 얹는 작은 흰색 스피너.
+  ///
+  /// 버튼이 이미 자식을 가운데 정렬하므로 [Center]로 감싸지 않는다.
+  /// (감싸면 버튼의 콘텐츠 크기 계산이 달라진다.)
+  const AppLoadingIndicator.onButton({super.key})
+    : size = _indicatorSize,
+      strokeWidth = 2,
+      color = Colors.white,
+      _centered = false;
 
   /// null이면 Material 기본 크기.
   final double? size;
   final double? strokeWidth;
+  final Color color;
+  final bool _centered;
 
   @override
   Widget build(BuildContext context) {
-    final indicator = CircularProgressIndicator(
+    Widget indicator = CircularProgressIndicator(
       strokeWidth: strokeWidth ?? 4.0,
-      color: AppColors.mainColor,
+      color: color,
     );
-    return Center(
-      child: size == null
-          ? indicator
-          : SizedBox(width: size, height: size, child: indicator),
-    );
+    if (size != null) {
+      indicator = SizedBox(width: size, height: size, child: indicator);
+    }
+    return _centered ? Center(child: indicator) : indicator;
   }
 }
 
