@@ -3,6 +3,7 @@ import '../../core/services/auth_service.dart';
 import '../../core/services/laundry_service.dart';
 import '../../shared/app_colors.dart';
 import 'laundry_reservation_screen.dart';
+import '../../core/utils/app_clock.dart';
 
 class LaundryScreen extends StatefulWidget {
   const LaundryScreen({super.key});
@@ -25,7 +26,7 @@ class _LaundryScreenState extends State<LaundryScreen> {
   List<Map<String, dynamic>> _reservations = [];
 
   //고정 시간표
-  DateTime _selectedDate = DateTime.now();
+  DateTime _selectedDate = AppClock.now();
   static const _weekdayNames = ['월', '화', '수', '목', '금', '토', '일'];
 
   final List<Map<String, dynamic>> _weeklySlots = const [
@@ -95,7 +96,7 @@ class _LaundryScreenState extends State<LaundryScreen> {
   }
 
   Map<String, dynamic>? _findRunningReservationFor(int laundryId) {
-    final now = DateTime.now();
+    final now = AppClock.now();
     final matches = _reservations.where((r) {
       if (r['laundry_id'] != laundryId) return false;
       final start = DateTime.parse(r['start_time']);
@@ -173,6 +174,7 @@ class _LaundryScreenState extends State<LaundryScreen> {
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: _loadData,
+          color: _teal,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
