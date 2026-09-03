@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/laundry_service.dart';
 import '../../shared/app_colors.dart';
+import '../../core/utils/app_clock.dart';
 
 class LaundryReservationScreen extends StatefulWidget {
   const LaundryReservationScreen({super.key, required this.machine});
@@ -28,7 +29,7 @@ class _LaundryReservationScreenState extends State<LaundryReservationScreen> {
   @override
   void initState() {
     super.initState();
-    final today = DateTime.now();
+    final today = AppClock.now();
     _timeSlots = [
       {
         'label': '14:30~16:40',
