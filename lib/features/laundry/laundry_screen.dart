@@ -4,6 +4,7 @@ import '../../core/services/laundry_service.dart';
 import '../../shared/app_colors.dart';
 import 'laundry_reservation_screen.dart';
 import '../../core/utils/app_clock.dart';
+import '../../core/constants/laundry_time_slots.dart';
 
 class LaundryScreen extends StatefulWidget {
   const LaundryScreen({super.key});
@@ -26,15 +27,10 @@ class _LaundryScreenState extends State<LaundryScreen> {
   List<Map<String, dynamic>> _reservations = [];
 
   //고정 시간표
-  DateTime _selectedDate = AppClock.now();
+  late DateTime _selectedDate;
+  late final DateTime _weekStart; // 이번 주 일요일
+  late final DateTime _weekEnd; // 이번 주 토요일
   static const _weekdayNames = ['월', '화', '수', '목', '금', '토', '일'];
-
-  final List<Map<String, dynamic>> _weeklySlots = const [
-    {'startH': 16, 'startM': 30, 'endH': 18, 'endM': 40},
-    {'startH': 19, 'startM': 10, 'endH': 20, 'endM': 20},
-    {'startH': 20, 'startM': 20, 'endH': 21, 'endM': 10},
-    {'startH': 21, 'startM': 10, 'endH': 22, 'endM': 30},
-  ];
 
   // 고정 시간표 데이터 --하준띠
   List<Map<String, dynamic>> _fixedSchedule = [];
@@ -45,8 +41,13 @@ class _LaundryScreenState extends State<LaundryScreen> {
     return '$month월 $day일($weekday)';
   }
 
+  bool get _canGoPrev => _selectedDate.isAfter(_weekStart);
+  bool get _canGoNext => _selectedDate.isBefore(_weekEnd);
+
   void _changeDay(int delta) {
-    setState(() => _selectedDate = _selectedDate.add(Duration(days: delta)));
+    final newDate = _selectedDate.add(Duration(days: delta));
+    if (newDate.isBefore(_weekStart) || newDate.isAfter(_weekEnd)) return;
+    setState(() => _selectedDate = newDate);
   }
 
   String _twoDigit(int n) => n.toString().padLeft(2, '0');
@@ -54,6 +55,15 @@ class _LaundryScreenState extends State<LaundryScreen> {
   @override
   void initState() {
     super.initState();
+    final now = AppClock.now();
+    final daysSinceSunday = now.weekday % 7; // 일요일=0, 월요일=1, ...
+    _weekStart = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).subtract(Duration(days: daysSinceSunday));
+    _weekEnd = _weekStart.add(const Duration(days: 6));
+    _selectedDate = DateTime(now.year, now.month, now.day);
     _loadData();
   }
 
@@ -108,22 +118,10 @@ class _LaundryScreenState extends State<LaundryScreen> {
 
   Map<String, dynamic>? _findReservationForSlot(
     int laundryId,
-    Map<String, dynamic> slot,
+    LaundryTimeSlot slot,
   ) {
-    final slotStart = DateTime(
-      _selectedDate.year,
-      _selectedDate.month,
-      _selectedDate.day,
-      slot['startH'] as int,
-      slot['startM'] as int,
-    );
-    final slotEnd = DateTime(
-      _selectedDate.year,
-      _selectedDate.month,
-      _selectedDate.day,
-      slot['endH'] as int,
-      slot['endM'] as int,
-    );
+    final slotStart = slot.startOn(_selectedDate);
+    final slotEnd = slot.endOn(_selectedDate);
 
     final matches = _reservations.where((r) {
       if (r['laundry_id'] != laundryId) return false;
@@ -137,7 +135,7 @@ class _LaundryScreenState extends State<LaundryScreen> {
 
   Map<String, dynamic>? _findFixedScheduleFor(
     int laundryId,
-    Map<String, dynamic> slot,
+    LaundryTimeSlot slot,
   ) {
     final weekday = _selectedDate.weekday;
     final matches = _fixedSchedule.where(
@@ -145,7 +143,7 @@ class _LaundryScreenState extends State<LaundryScreen> {
           f['laundry_id'] == laundryId &&
           f['weekday'] == weekday &&
           f['start_time'] ==
-              '${_twoDigit(slot['startH'] as int)}:${_twoDigit(slot['startM'] as int)}:00',
+              '${_twoDigit(slot.startH)}:${_twoDigit(slot.startM)}:00',
     );
     return matches.isEmpty ? null : matches.first;
   }
@@ -325,7 +323,7 @@ class _LaundryScreenState extends State<LaundryScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             GestureDetector(
-              onTap: () => _changeDay(-1),
+              onTap: _canGoPrev ? () => _changeDay(-1) : null,
               child: Container(
                 width: 40,
                 height: 40,
@@ -333,7 +331,10 @@ class _LaundryScreenState extends State<LaundryScreen> {
                   color: Color(0xFF2A2A2E),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.chevron_left, color: _textColor),
+                child: Icon(
+                  Icons.chevron_left,
+                  color: _canGoPrev ? _textColor : const Color(0xFF52525B),
+                ),
               ),
             ),
             Text(
@@ -345,7 +346,7 @@ class _LaundryScreenState extends State<LaundryScreen> {
               ),
             ),
             GestureDetector(
-              onTap: () => _changeDay(1),
+              onTap: _canGoNext ? () => _changeDay(1) : null,
               child: Container(
                 width: 40,
                 height: 40,
@@ -353,7 +354,10 @@ class _LaundryScreenState extends State<LaundryScreen> {
                   color: Color(0xFF2A2A2E),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.chevron_right, color: _textColor),
+                child: Icon(
+                  Icons.chevron_right,
+                  color: _canGoNext ? _textColor : const Color(0xFF52525B),
+                ),
               ),
             ),
           ],
@@ -402,7 +406,7 @@ class _LaundryScreenState extends State<LaundryScreen> {
               const SizedBox(height: 20),
               Container(height: 1, color: const Color(0xFF27272A)),
               const SizedBox(height: 18),
-              ..._weeklySlots.map((slot) => _buildScheduleRow(slot)),
+              ...laundryTimeSlots.map((slot) => _buildScheduleRow(slot)),
             ],
           ),
         ),
@@ -410,11 +414,9 @@ class _LaundryScreenState extends State<LaundryScreen> {
     );
   }
 
-  Widget _buildScheduleRow(Map<String, dynamic> slot) {
-    final startLabel =
-        '${_twoDigit(slot['startH'] as int)}:${_twoDigit(slot['startM'] as int)}';
-    final endLabel =
-        '~${_twoDigit(slot['endH'] as int)}:${_twoDigit(slot['endM'] as int)}';
+  Widget _buildScheduleRow(LaundryTimeSlot slot) {
+    final startLabel = '${_twoDigit(slot.startH)}:${_twoDigit(slot.startM)}';
+    final endLabel = '~${_twoDigit(slot.endH)}:${_twoDigit(slot.endM)}';
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 14),
