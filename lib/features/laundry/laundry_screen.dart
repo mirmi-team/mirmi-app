@@ -4,6 +4,7 @@ import '../../core/services/laundry_service.dart';
 import '../../shared/app_colors.dart';
 import 'laundry_reservation_screen.dart';
 import '../../core/utils/app_clock.dart';
+import '../../shared/app_refresh.dart';
 
 class LaundryScreen extends StatefulWidget {
   const LaundryScreen({super.key});
@@ -57,11 +58,13 @@ class _LaundryScreenState extends State<LaundryScreen> {
     _loadData();
   }
 
-  Future<void> _loadData() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+  Future<void> _loadData({bool silent = false}) async {
+    if (!silent && mounted) {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+    }
     try {
       final me = await AuthService.getMe();
       final roomNumber = me['room_number'] as int;
@@ -74,6 +77,7 @@ class _LaundryScreenState extends State<LaundryScreen> {
       //다른 사람 데이터도 불러와야됨--하준띠
       final reservations = await LaundryService.getMyReservations();
 
+      if (!mounted) return;
       setState(() {
         _floor = floor;
         _machines = myFloorMachines;
@@ -83,11 +87,13 @@ class _LaundryScreenState extends State<LaundryScreen> {
     } on SessionExpiredException {
       // TODO: context.go('/login')
     } on ApiException catch (e) {
+      if (!mounted) return;
       setState(() {
         _errorMessage = e.message;
         _isLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _errorMessage = '데이터를 불러오지 못했습니다: $e';
         _isLoading = false;
@@ -165,88 +171,87 @@ class _LaundryScreenState extends State<LaundryScreen> {
     if (_isLoading) {
       return Scaffold(
         backgroundColor: _bgColor,
-        body: const Center(child: CircularProgressIndicator(color: _teal)),
+        body: const AppLoadingIndicator(),
       );
     }
 
     return Scaffold(
       backgroundColor: _bgColor,
       body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: _loadData,
-          color: _teal,
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  '남은 세탁기를 확인하고\n빠르게 예약해 보세요.',
-                  style: TextStyle(
-                    color: _textColor,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 36),
-
-                if (_errorMessage != null) ...[
-                  Text(
-                    _errorMessage!,
-                    style: const TextStyle(color: _errorColor),
-                  ),
-                  const SizedBox(height: 12),
-                ],
-
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      '세탁기 사용 현황',
-                      style: TextStyle(
-                        color: _textColor,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                      ),
+        child: AppRefreshScrollView(
+          onRefresh: () => _loadData(silent: true),
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  const Text(
+                    '남은 세탁기를 확인하고\n빠르게 예약해 보세요.',
+                    style: TextStyle(
+                      color: _textColor,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1E2A2E),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        '${_floor ?? '-'}F 세탁실',
-                        style: const TextStyle(
-                          color: _teal,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w400,
+                  ),
+                  const SizedBox(height: 36),
+
+                  if (_errorMessage != null) ...[
+                    Text(
+                      _errorMessage!,
+                      style: const TextStyle(color: _errorColor),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        '세탁기 사용 현황',
+                        style: TextStyle(
+                          color: _textColor,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-
-                Row(
-                  children: [
-                    for (int i = 0; i < _machines.length; i++) ...[
-                      Expanded(child: _buildMachineCard(i, _machines[i])),
-                      if (i != _machines.length - 1) const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1E2A2E),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          '${_floor ?? '-'}F 세탁실',
+                          style: const TextStyle(
+                            color: _teal,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ),
                     ],
-                  ],
-                ),
-                const SizedBox(height: 68),
+                  ),
+                  const SizedBox(height: 14),
 
-                _buildWeeklyScheduleTable(),
-                const SizedBox(height: 149),
-              ],
+                  Row(
+                    children: [
+                      for (int i = 0; i < _machines.length; i++) ...[
+                        Expanded(child: _buildMachineCard(i, _machines[i])),
+                        if (i != _machines.length - 1) const SizedBox(width: 8),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 68),
+
+                  _buildWeeklyScheduleTable(),
+                  const SizedBox(height: 149),
+                ]),
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );
