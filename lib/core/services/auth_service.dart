@@ -202,6 +202,27 @@ class AuthService {
     return body['total_merit_score'] as int;
   }
 
+  /// 건의사항 등록. [category] 는 서버 enum 값('FACILITY' 등).
+  static Future<void> createSuggestion({
+    required String title,
+    required String description,
+    required String category,
+  }) async {
+    final res = await _send((token) => http.post(
+      Uri.parse('$kBaseUrl/suggestions'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({
+        'title': title,
+        'description': description,
+        'category': category,
+      }),
+    ));
+    _checkStatus(res);
+  }
+
   /// 내 잔류/외박 신청 내역 (최신 주 순).
   static Future<List<dynamic>> getMyStayStatus() async {
     final res = await _send((token) => http.get(

@@ -4,6 +4,7 @@ import '../../core/services/notice_service.dart';
 import '../../shared/app_banner.dart';
 import '../../shared/app_colors.dart';
 import '../../shared/app_refresh.dart';
+import 'suggestion_form.dart';
 
 class NoticeScreen extends StatefulWidget {
   const NoticeScreen({super.key});
@@ -101,7 +102,10 @@ class _NoticeScreenState extends State<NoticeScreen>
                 duration: const Duration(milliseconds: 220),
                 child: _tabIndex == 0
                     ? _buildNoticeTab()
-                    : const _SuggestionPlaceholder(),
+                    : SuggestionForm(
+                        onSuccess: showSuccessBanner,
+                        onError: showErrorBanner,
+                      ),
               ),
             ),
           ],
@@ -322,21 +326,6 @@ class _EmptyNotice extends StatelessWidget {
             style: TextStyle(fontSize: 11, color: AppColors.caption),
           ),
         ],
-      ),
-    );
-  }
-}
-
-// ── 건의사항 (추후 개발) ─────────────────────────────────────────
-class _SuggestionPlaceholder extends StatelessWidget {
-  const _SuggestionPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        '건의사항은 준비 중입니다.',
-        style: TextStyle(fontSize: 15, color: AppColors.placeholder),
       ),
     );
   }
