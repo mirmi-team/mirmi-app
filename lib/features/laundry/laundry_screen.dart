@@ -282,13 +282,15 @@ class _LaundryScreenState extends State<LaundryScreen> {
           );
 
     final card = Container(
-      padding: const EdgeInsets.symmetric(vertical: 16),
+      height: 172,
+      padding: EdgeInsets.only(top: 16, bottom: isOccupied ? 7 : 16),
       decoration: BoxDecoration(
         color: _cardColor,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: const Color(0xff3F3F46), width: 1),
       ),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
             '${index + 1}호',
@@ -304,7 +306,7 @@ class _LaundryScreenState extends State<LaundryScreen> {
             size: 54,
             color: isOccupied ? _teal : Colors.white,
           ),
-          const SizedBox(height: 21),
+          SizedBox(height: isOccupied ? 11 : 21),
           detailWidget,
         ],
       ),
