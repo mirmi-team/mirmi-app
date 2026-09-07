@@ -50,7 +50,7 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_secure_storage/ios"
 
 SPEC CHECKSUMS:
-  Flutter: 71a624a5bc0c04062bf19101d501e466baf2fb47
+  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   flutter_image_compress_common: 1697a328fd72bfb335507c6bca1a65fa5ad87df1
   flutter_secure_storage: 1ed9476fba7e7a782b22888f956cce43e2c62f13
   libwebp: af5937a13536ef73f3784d69cc342b98961acf33
@@ -60,4 +60,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 3ba3a73b1b12adcf321a227a745625fe0888cc82
 
-COCOAPODS: 1.17.0
+COCOAPODS: 1.16.2

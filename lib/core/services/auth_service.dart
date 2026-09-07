@@ -202,6 +202,35 @@ class AuthService {
     return body['total_merit_score'] as int;
   }
 
+  /// 내 잔류/외박 신청 내역 (최신 주 순).
+  static Future<List<dynamic>> getMyStayStatus() async {
+    final res = await _send((token) => http.get(
+      Uri.parse('$kBaseUrl/stay-status/me'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    ));
+    _checkStatus(res);
+    return jsonDecode(res.body) as List<dynamic>;
+  }
+
+  /// 이번 주 잔류/외박 신청. [status] 는 'STAY' 또는 'OUTING'.
+  ///
+  /// 대상 주(week_start)는 서버가 KST 기준 이번 주 월요일로 정한다.
+  /// 잔류 대상자가 아니면 403, 이번 주에 이미 신청했으면 409 가 온다.
+  static Future<void> createStayStatus(String status) async {
+    final res = await _send((token) => http.post(
+      Uri.parse('$kBaseUrl/stay-status'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({'status': status}),
+    ));
+    _checkStatus(res);
+  }
+
   static Future<void> changePassword({
     required String oldPassword,
     required String newPassword,
