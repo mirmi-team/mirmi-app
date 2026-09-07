@@ -182,16 +182,26 @@ class _NavBarState extends State<_NavBar> with SingleTickerProviderStateMixin {
     );
   }
 
-  /// 네비게이션 바를 직접 끌 때도 페이지가 같이 따라오게 한다.
-  /// 바에서 한 칸 이동 = 페이지 한 장.
-  void _dragBy(double dx, double itemWidth) {
-    final position = widget.controller.position;
-    if (!position.haveDimensions) return;
-    final pixels =
-        position.pixels + dx / itemWidth * position.viewportDimension;
-    widget.controller.jumpTo(
-      pixels.clamp(position.minScrollExtent, position.maxScrollExtent),
+  /// 네비게이션 바를 끄는 동안에는 알약만 움직인다. 화면은 그대로 두고,
+  /// 손을 놓은 칸으로 그때 한 번에 이동한다.
+  void _dragPill(double dx, double itemWidth) {
+    _pill.stop();
+    _pill.value = (_pill.value + dx / itemWidth).clamp(
+      0.0,
+      _maxIndex.toDouble(),
     );
+  }
+
+  /// 놓은 자리가 현재 페이지면 알약만 제자리로 돌리고 화면은 건드리지 않는다.
+  void _endPillDrag(int target) {
+    final current = _pagePosition.round();
+    if (target == current) {
+      _pill.animateWith(
+        SpringSimulation(_spring, _pill.value, current.toDouble(), 0.0),
+      );
+      return;
+    }
+    _select(target);
   }
 
   @override
@@ -228,7 +238,8 @@ class _NavBarState extends State<_NavBar> with SingleTickerProviderStateMixin {
                 onPointerCancel: (_) => setState(() => _pressed = false),
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
-                  onHorizontalDragUpdate: (d) => _dragBy(d.delta.dx, itemW),
+                  onHorizontalDragStart: (_) => _pill.stop(),
+                  onHorizontalDragUpdate: (d) => _dragPill(d.delta.dx, itemW),
                   onHorizontalDragEnd: (d) {
                     final v = (d.primaryVelocity ?? 0.0) / itemW;
                     final int target;
@@ -239,7 +250,7 @@ class _NavBarState extends State<_NavBar> with SingleTickerProviderStateMixin {
                     } else {
                       target = pos.round().clamp(0, _maxIndex);
                     }
-                    _select(target);
+                    _endPillDrag(target);
                   },
                   child: Container(
                     height: navH,
