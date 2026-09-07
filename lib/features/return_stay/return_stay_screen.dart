@@ -63,7 +63,8 @@ class _ReturnStayScreenState extends State<ReturnStayScreen>
     return '${monday.year}-$mm-$dd';
   }
 
-  Future<void> _load() async {
+  Future<void> _load({bool silent = false}) async {
+    if (!silent && mounted) setState(() => _loading = true);
     try {
       final results = await Future.wait([
         AuthService.getMe(),
@@ -83,7 +84,8 @@ class _ReturnStayScreenState extends State<ReturnStayScreen>
         _submittedStatus = thisWeek.isEmpty
             ? null
             : thisWeek.first['status'] as String?;
-        _selected = _submittedStatus;
+        // 서버에 신청 기록이 있으면 그 값이 정답. 없으면 고르던 선택을 유지한다.
+        _selected = _submittedStatus ?? _selected;
         _loading = false;
       });
     } on SessionExpiredException {
@@ -132,111 +134,119 @@ class _ReturnStayScreenState extends State<ReturnStayScreen>
         if (_loading)
           const AppLoadingIndicator()
         else
-          ListView(
-            padding: const EdgeInsets.only(bottom: 100),
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // ── 인사말 ──────────────────────────────────
-                    Text(
-                      '${_username ?? ''}님,\n입실체크를 해주세요',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        height: 1.35,
-                        fontWeight: FontWeight.w700,
-                        color: _textColor,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    const Text(
-                      '복귀 체크',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: _textColor,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // ── 복귀 체크 (백엔드 준비 전, 화면만) ────────
-                    for (final label in _returnOptions) ...[
-                      _ReturnCard(
-                        label: label,
-                        onTap: () => showInfoBanner('복귀 체크 기능은 준비 중입니다.'),
-                      ),
-                      const SizedBox(height: 12),
-                    ],
-
-                    if (_canStay) ...[
-                      const SizedBox(height: 28),
-
-                      // ── 외박/잔류 신청 (잔류 대상자에게만) ──────
-                      const Text(
-                        '이번 주 외박/잔류 신청',
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
-                          color: _textColor,
-                        ),
-                      ),
-                      const SizedBox(height: 18),
-                      const _FieldLabel('1. 외박/잔류 여부를 선택해 주세요.'),
-                      const SizedBox(height: 10),
-                      Row(
+          AppRefreshScrollView(
+            onRefresh: () => _load(silent: true),
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.only(bottom: 100),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child: _ChoiceButton(
-                              label: '기숙사 잔류',
-                              selected: _selected == 'STAY',
-                              enabled: _submittedStatus == null,
-                              onTap: () => _toggle('STAY'),
+                          // ── 인사말 ──────────────────────────────────
+                          Text(
+                            '${_username ?? ''}님,\n입실체크를 해주세요',
+                            style: const TextStyle(
+                              fontSize: 20,
+                              height: 1.35,
+                              fontWeight: FontWeight.w700,
+                              color: _textColor,
                             ),
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _ChoiceButton(
-                              label: '금토외박',
-                              selected: _selected == 'OUTING',
-                              enabled: _submittedStatus == null,
-                              onTap: () => _toggle('OUTING'),
+                          const SizedBox(height: 10),
+                          const Text(
+                            '복귀 체크',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: _textColor,
                             ),
                           ),
+                          const SizedBox(height: 12),
+
+                          // ── 복귀 체크 (백엔드 준비 전, 화면만) ────────
+                          for (final label in _returnOptions) ...[
+                            _ReturnCard(
+                              label: label,
+                              onTap: () => showInfoBanner('복귀 체크 기능은 준비 중입니다.'),
+                            ),
+                            const SizedBox(height: 12),
+                          ],
+
+                          if (_canStay) ...[
+                            const SizedBox(height: 28),
+
+                            // ── 외박/잔류 신청 (잔류 대상자에게만) ──────
+                            const Text(
+                              '이번 주 외박/잔류 신청',
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w700,
+                                color: _textColor,
+                              ),
+                            ),
+                            const SizedBox(height: 18),
+                            const _FieldLabel('1. 외박/잔류 여부를 선택해 주세요.'),
+                            const SizedBox(height: 10),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _ChoiceButton(
+                                    label: '기숙사 잔류',
+                                    selected: _selected == 'STAY',
+                                    enabled: _submittedStatus == null,
+                                    onTap: () => _toggle('STAY'),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: _ChoiceButton(
+                                    label: '금토외박',
+                                    selected: _selected == 'OUTING',
+                                    enabled: _submittedStatus == null,
+                                    onTap: () => _toggle('OUTING'),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 22),
+                            const _FieldLabel('2. 부모님 연락처'),
+                            const SizedBox(height: 10),
+                            _PhoneField(
+                              controller: _phoneController,
+                              enabled: _submittedStatus == null,
+                            ),
+                            if (_submittedStatus != null) ...[
+                              const SizedBox(height: 14),
+                              const Text(
+                                '이번 주는 이미 신청했습니다. 변경이 필요하면 사감실로 문의해 주세요.',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  height: 1.4,
+                                  color: AppColors.caption,
+                                ),
+                              ),
+                            ],
+                            const SizedBox(height: 28),
+                          ],
                         ],
                       ),
-                      const SizedBox(height: 22),
-                      const _FieldLabel('2. 부모님 연락처'),
-                      const SizedBox(height: 10),
-                      _PhoneField(
-                        controller: _phoneController,
-                        enabled: _submittedStatus == null,
+                    ),
+                    if (_canStay)
+                      SubmitButton(
+                        text: _submittedStatus != null ? '이번 주 신청 완료' : '전송',
+                        loadingButton: _submitting,
+                        onPressed:
+                            (_submittedStatus != null || _selected == null)
+                            ? null
+                            : _submit,
                       ),
-                      if (_submittedStatus != null) ...[
-                        const SizedBox(height: 14),
-                        const Text(
-                          '이번 주는 이미 신청했습니다. 변경이 필요하면 사감실로 문의해 주세요.',
-                          style: TextStyle(
-                            fontSize: 12,
-                            height: 1.4,
-                            color: AppColors.caption,
-                          ),
-                        ),
-                      ],
-                      const SizedBox(height: 28),
-                    ],
-                  ],
+                  ]),
                 ),
               ),
-              if (_canStay)
-                SubmitButton(
-                  text: _submittedStatus != null ? '이번 주 신청 완료' : '전송',
-                  loadingButton: _submitting,
-                  onPressed: (_submittedStatus != null || _selected == null)
-                      ? null
-                      : _submit,
-                ),
             ],
           ),
         buildBanner(),
