@@ -366,9 +366,7 @@ class _LaundryScreenState extends State<LaundryScreen> {
       ),
     );
 
-    return isOccupied
-        ? card
-        : GestureDetector(onTap: () => _goToReservation(machine), child: card);
+    return GestureDetector(onTap: () => _goToReservation(machine), child: card);
   }
 
   //시간표
