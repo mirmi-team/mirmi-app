@@ -10,6 +10,7 @@ import '../../core/utils/app_clock.dart';
 import '../../shared/app_banner.dart';
 import '../../shared/app_colors.dart';
 import '../../shared/app_refresh.dart';
+import '../../shared/app_skeleton.dart';
 import '../laundry/laundry_status_section.dart';
 
 /// 복귀 체크 종류. 지금 시각에 해당하는 하나만 홈에 보여준다.
@@ -120,18 +121,25 @@ class _HomeTabState extends State<HomeTab> with AppBannerMixin {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        if (_loading)
-          const AppLoadingIndicator()
-        else
-          AppRefreshScrollView(
-            onRefresh: () => _load(silent: true),
-            slivers: [
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 50, 20, 120),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    // ── 인사말 ────────────────────────────────
-                    Text(
+        AppRefreshScrollView(
+          onRefresh: () => _load(silent: true),
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(20, 50, 20, 120),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  // ── 인사말 ────────────────────────────────
+                  AppSkeletonSwitcher(
+                    loading: _loading,
+                    skeleton: const Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        AppSkeleton(width: 120, height: 26),
+                        SizedBox(height: 8),
+                        AppSkeleton(width: 200, height: 26),
+                      ],
+                    ),
+                    child: Text(
                       '안녕하세요.\n'
                       '${_roomNumber ?? '-'}호 ${_username ?? ''}님',
                       style: const TextStyle(
@@ -141,40 +149,45 @@ class _HomeTabState extends State<HomeTab> with AppBannerMixin {
                         color: _textColor,
                       ),
                     ),
-                    const SizedBox(height: 24),
+                  ),
+                  const SizedBox(height: 24),
 
-                    // ── 최근 공지 (없으면 아예 안 보임) ────────
-                    if (_latestNotice != null) ...[
-                      _NoticeStrip(notice: _latestNotice!),
-                      const SizedBox(height: 34),
-                    ],
-
-                    // ── 복귀 체크 ─────────────────────────────
-                    const _SectionTitle('복귀 체크'),
-                    const SizedBox(height: 12),
-                    _ReturnCheckCard(
-                      type: _returnType,
-                      onTap: () => showInfoBanner('복귀 체크 기능은 준비 중입니다.'),
-                    ),
+                  // ── 최근 공지 (없으면 아예 안 보임) ────────
+                  if (_loading) ...[
+                    const AppSkeleton(height: 46, radius: 10),
                     const SizedBox(height: 34),
-
-                    // ── 세탁기 (세탁기 페이지와 같은 위젯) ──────
-                    LaundryStatusSection(
-                      floor: _floor,
-                      machines: _machines,
-                      reservations: _reservations,
-                    ),
+                  ] else if (_latestNotice != null) ...[
+                    _NoticeStrip(notice: _latestNotice!),
                     const SizedBox(height: 34),
+                  ],
 
-                    // ── 주요 기숙사 일정 ───────────────────────
-                    const _SectionTitle('주요 기숙사 일정'),
-                    const SizedBox(height: 12),
-                    const _EmptySchedule(),
-                  ]),
-                ),
+                  // ── 복귀 체크 ─────────────────────────────
+                  const _SectionTitle('복귀 체크'),
+                  const SizedBox(height: 12),
+                  _ReturnCheckCard(
+                    type: _returnType,
+                    onTap: () => showInfoBanner('복귀 체크 기능은 준비 중입니다.'),
+                  ),
+                  const SizedBox(height: 34),
+
+                  // ── 세탁기 (세탁기 페이지와 같은 위젯) ──────
+                  LaundryStatusSection(
+                    floor: _floor,
+                    machines: _machines,
+                    reservations: _reservations,
+                    loading: _loading,
+                  ),
+                  const SizedBox(height: 34),
+
+                  // ── 주요 기숙사 일정 ───────────────────────
+                  const _SectionTitle('주요 기숙사 일정'),
+                  const SizedBox(height: 12),
+                  const _EmptySchedule(),
+                ]),
               ),
-            ],
-          ),
+            ),
+          ],
+        ),
         buildBanner(),
       ],
     );

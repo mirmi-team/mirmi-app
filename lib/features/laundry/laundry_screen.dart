@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/laundry_service.dart';
 import '../../shared/app_colors.dart';
+import '../../shared/app_skeleton.dart';
 import 'laundry_reservation_screen.dart';
 import '../../core/utils/app_clock.dart';
 import '../../shared/app_refresh.dart';
@@ -311,15 +312,12 @@ class _LaundryScreenState extends State<LaundryScreen> {
     final occupant = _findCurrentOccupantFor(index + 1);
     final bool isOccupied = occupant != null;
 
-    final Widget detailWidget = isOccupied
-        ? Column(
-            children: [
-              Text(
-                '${occupant['room_number']}호',
-                style: const TextStyle(
-                  color: _textColor,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
+                LaundryStatusSection(
+                  floor: _floor,
+                  machines: _machines,
+                  reservations: _reservations,
+                  onTapEmpty: _goToReservation,
+                  loading: _isLoading,
                 ),
               ),
               const SizedBox(height: 2),
@@ -338,23 +336,13 @@ class _LaundryScreenState extends State<LaundryScreen> {
             ),
           );
 
-    final card = Container(
-      height: 172,
-      padding: EdgeInsets.only(top: 16, bottom: isOccupied ? 5 : 16),
-      decoration: BoxDecoration(
-        color: _cardColor,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xff3F3F46), width: 1),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            '${index + 1}호',
-            style: const TextStyle(
-              color: _textColor,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
+                AppSkeletonSwitcher(
+                  loading: _isLoading,
+                  skeleton: const AppSkeleton(height: 320, radius: 10),
+                  child: _buildWeeklyScheduleTable(),
+                ),
+                const SizedBox(height: 149),
+              ],
             ),
           ),
           SizedBox(height: 10),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/utils/app_clock.dart';
 import '../../shared/app_colors.dart';
+import '../../shared/app_skeleton.dart';
 
 /// 세탁기 사용 현황 (제목 + 층 뱃지 + 기기 카드들).
 ///
@@ -14,6 +15,7 @@ class LaundryStatusSection extends StatelessWidget {
     required this.machines,
     required this.reservations,
     this.onTapEmpty,
+    this.loading = false,
   });
 
   final int? floor;
@@ -21,10 +23,17 @@ class LaundryStatusSection extends StatelessWidget {
   final List<Map<String, dynamic>> reservations;
   final void Function(Map<String, dynamic> machine)? onTapEmpty;
 
+  /// true 면 기기 자리에 스켈레톤을 놓는다. 제목과 층 뱃지는 그대로 보인다.
+  final bool loading;
+
   static const _teal = AppColors.mainColor;
   static const _textColor = AppColors.mainText;
   static const _captionColor = AppColors.caption;
   static const _cardColor = AppColors.card;
+
+  /// 한 층에 놓인 세탁기 수. 로딩 중 자리를 잡아둘 때 쓴다.
+  static const _skeletonCount = 3;
+  static const _cardHeight = 172.0;
 
   /// 지금 이 기기를 쓰고 있는 예약.
   Map<String, dynamic>? _runningOn(int laundryId) {
@@ -72,13 +81,26 @@ class LaundryStatusSection extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 14),
-        Row(
-          children: [
-            for (int i = 0; i < machines.length; i++) ...[
-              Expanded(child: _buildMachineCard(i, machines[i])),
-              if (i != machines.length - 1) const SizedBox(width: 8),
+        AppSkeletonSwitcher(
+          loading: loading,
+          skeleton: Row(
+            children: [
+              for (int i = 0; i < _skeletonCount; i++) ...[
+                const Expanded(
+                  child: AppSkeleton(height: _cardHeight, radius: 10),
+                ),
+                if (i != _skeletonCount - 1) const SizedBox(width: 8),
+              ],
             ],
-          ],
+          ),
+          child: Row(
+            children: [
+              for (int i = 0; i < machines.length; i++) ...[
+                Expanded(child: _buildMachineCard(i, machines[i])),
+                if (i != machines.length - 1) const SizedBox(width: 8),
+              ],
+            ],
+          ),
         ),
       ],
     );
@@ -116,7 +138,7 @@ class LaundryStatusSection extends StatelessWidget {
           );
 
     final card = Container(
-      height: 172,
+      height: _cardHeight,
       padding: EdgeInsets.only(top: 16, bottom: isOccupied ? 7 : 16),
       decoration: BoxDecoration(
         color: _cardColor,
