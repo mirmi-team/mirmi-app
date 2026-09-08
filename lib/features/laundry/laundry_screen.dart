@@ -3,6 +3,7 @@ import '../../core/services/auth_service.dart';
 import '../../core/services/laundry_service.dart';
 import '../../shared/app_colors.dart';
 import 'laundry_reservation_screen.dart';
+import 'laundry_status_section.dart';
 import '../../core/utils/app_clock.dart';
 import '../../core/constants/laundry_time_slots.dart';
 
@@ -105,17 +106,6 @@ class _LaundryScreenState extends State<LaundryScreen> {
     }
   }
 
-  Map<String, dynamic>? _findRunningReservationFor(int laundryId) {
-    final now = AppClock.now();
-    final matches = _reservations.where((r) {
-      if (r['laundry_id'] != laundryId) return false;
-      final start = DateTime.parse(r['start_time']);
-      final end = DateTime.parse(r['end_time']);
-      return now.isAfter(start) && now.isBefore(end);
-    });
-    return matches.isEmpty ? null : matches.first;
-  }
-
   Map<String, dynamic>? _findReservationForSlot(
     int laundryId,
     LaundryTimeSlot slot,
@@ -197,46 +187,11 @@ class _LaundryScreenState extends State<LaundryScreen> {
                   const SizedBox(height: 12),
                 ],
 
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      '세탁기 사용 현황',
-                      style: TextStyle(
-                        color: _textColor,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1E2A2E),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        '${_floor ?? '-'}F 세탁실',
-                        style: const TextStyle(
-                          color: _teal,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-
-                Row(
-                  children: [
-                    for (int i = 0; i < _machines.length; i++) ...[
-                      Expanded(child: _buildMachineCard(i, _machines[i])),
-                      if (i != _machines.length - 1) const SizedBox(width: 8),
-                    ],
-                  ],
+                LaundryStatusSection(
+                  floor: _floor,
+                  machines: _machines,
+                  reservations: _reservations,
+                  onTapEmpty: _goToReservation,
                 ),
                 const SizedBox(height: 68),
 
@@ -248,73 +203,6 @@ class _LaundryScreenState extends State<LaundryScreen> {
         ),
       ),
     );
-  }
-
-  Widget _buildMachineCard(int index, Map<String, dynamic> machine) {
-    final running = _findRunningReservationFor(machine['id'] as int);
-    final bool isOccupied = running != null;
-
-    final Widget detailWidget = isOccupied
-        ? Column(
-            children: [
-              Text(
-                '${running['room_number']}호',
-                style: const TextStyle(
-                  color: _textColor,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 2),
-              const Text(
-                '사용중',
-                style: TextStyle(color: _captionColor, fontSize: 12),
-              ),
-            ],
-          )
-        : const Text(
-            '비어 있음',
-            style: TextStyle(
-              color: _teal,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
-          );
-
-    final card = Container(
-      height: 172,
-      padding: EdgeInsets.only(top: 16, bottom: isOccupied ? 7 : 16),
-      decoration: BoxDecoration(
-        color: _cardColor,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xff3F3F46), width: 1),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            '${index + 1}호',
-            style: const TextStyle(
-              color: _textColor,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 10),
-          Icon(
-            Icons.local_laundry_service,
-            size: 54,
-            color: isOccupied ? _teal : Colors.white,
-          ),
-          SizedBox(height: isOccupied ? 11 : 21),
-          detailWidget,
-        ],
-      ),
-    );
-
-    return isOccupied
-        ? card
-        : GestureDetector(onTap: () => _goToReservation(machine), child: card);
   }
 
   //시간표
