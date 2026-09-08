@@ -54,7 +54,7 @@ class _HomeTabState extends State<HomeTab> with AppBannerMixin {
 
   int? _floor;
   List<Map<String, dynamic>> _machines = const [];
-  List<Map<String, dynamic>> _reservations = const [];
+  List<Map<String, dynamic>> _todaySchedule = const [];
 
   ReturnCheckType _returnType = ReturnCheckType.immediate;
   Timer? _clockTimer;
@@ -91,9 +91,13 @@ class _HomeTabState extends State<HomeTab> with AppBannerMixin {
       final machines = await LaundryService.getMachines().catchError(
         (_) => <Map<String, dynamic>>[],
       );
-      final reservations = await LaundryService.getMyReservations().catchError(
-        (_) => <Map<String, dynamic>>[],
-      );
+      // 세탁기 페이지와 같은 소스. 내 예약뿐 아니라 다른 학생 사용 현황도 들어있다.
+      final todaySchedule = floor == null
+          ? <Map<String, dynamic>>[]
+          : await LaundryService.getSchedule(
+              date: AppClock.now(),
+              floor: floor,
+            ).catchError((_) => <Map<String, dynamic>>[]);
 
       if (!mounted) return;
       setState(() {
@@ -105,7 +109,7 @@ class _HomeTabState extends State<HomeTab> with AppBannerMixin {
             ? machines
             : (machines.where((m) => (m['id'] as int) ~/ 10 == floor).toList()
                 ..sort((a, b) => (a['id'] as int).compareTo(b['id'] as int)));
-        _reservations = reservations;
+        _todaySchedule = todaySchedule;
         _loading = false;
       });
     } on SessionExpiredException {
@@ -174,7 +178,7 @@ class _HomeTabState extends State<HomeTab> with AppBannerMixin {
                   LaundryStatusSection(
                     floor: _floor,
                     machines: _machines,
-                    reservations: _reservations,
+                    todaySchedule: _todaySchedule,
                     loading: _loading,
                   ),
                   const SizedBox(height: 34),
