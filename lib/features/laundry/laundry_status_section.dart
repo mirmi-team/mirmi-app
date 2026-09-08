@@ -6,22 +6,26 @@ import '../../shared/app_skeleton.dart';
 
 /// 세탁기 사용 현황 (제목 + 층 뱃지 + 기기 카드들).
 ///
-/// 세탁기 페이지와 홈에서 같이 쓴다. 비어있는 기기를 눌렀을 때의 동작은
-/// 화면마다 다르므로 [onTapEmpty] 로 받는다. (null 이면 표시 전용)
+/// 세탁기 페이지와 홈에서 같이 쓴다. 사용 여부는 오늘 시간표
+/// (`LaundryService.getSchedule`)에서 지금 시각에 걸치는 칸으로 판단한다.
 class LaundryStatusSection extends StatelessWidget {
   const LaundryStatusSection({
     super.key,
     required this.floor,
     required this.machines,
-    required this.reservations,
-    this.onTapEmpty,
+    required this.todaySchedule,
+    this.onTapMachine,
     this.loading = false,
   });
 
   final int? floor;
   final List<Map<String, dynamic>> machines;
-  final List<Map<String, dynamic>> reservations;
-  final void Function(Map<String, dynamic> machine)? onTapEmpty;
+
+  /// 오늘 시간표. `machine_no`, `room_number`, `start_time`, `end_time`('HH:MM:SS').
+  final List<Map<String, dynamic>> todaySchedule;
+
+  /// 카드를 눌렀을 때. null 이면 표시 전용. (홈에서는 넘기지 않는다)
+  final void Function(Map<String, dynamic> machine)? onTapMachine;
 
   /// true 면 기기 자리에 스켈레톤을 놓는다. 제목과 층 뱃지는 그대로 보인다.
   final bool loading;
@@ -35,13 +39,26 @@ class LaundryStatusSection extends StatelessWidget {
   static const _skeletonCount = 3;
   static const _cardHeight = 172.0;
 
-  /// 지금 이 기기를 쓰고 있는 예약.
-  Map<String, dynamic>? _runningOn(int laundryId) {
+  DateTime _timeOn(DateTime day, String hhmmss) {
+    final parts = hhmmss.split(':');
+    return DateTime(
+      day.year,
+      day.month,
+      day.day,
+      int.parse(parts[0]),
+      int.parse(parts[1]),
+    );
+  }
+
+  /// 지금 이 기기를 쓰고 있는 사람. 없으면 null.
+  Map<String, dynamic>? _occupantOf(int machineNo) {
     final now = AppClock.now();
-    final matches = reservations.where((r) {
-      if (r['laundry_id'] != laundryId) return false;
-      final start = DateTime.parse(r['start_time'] as String);
-      final end = DateTime.parse(r['end_time'] as String);
+    final matches = todaySchedule.where((s) {
+      if (s['machine_no'] != machineNo || s['room_number'] == null) {
+        return false;
+      }
+      final start = _timeOn(now, s['start_time'] as String);
+      final end = _timeOn(now, s['end_time'] as String);
       return now.isAfter(start) && now.isBefore(end);
     });
     return matches.isEmpty ? null : matches.first;
@@ -107,14 +124,14 @@ class LaundryStatusSection extends StatelessWidget {
   }
 
   Widget _buildMachineCard(int index, Map<String, dynamic> machine) {
-    final running = _runningOn(machine['id'] as int);
-    final bool isOccupied = running != null;
+    final occupant = _occupantOf(index + 1);
+    final bool isOccupied = occupant != null;
 
     final Widget detailWidget = isOccupied
         ? Column(
             children: [
               Text(
-                '${running['room_number']}호',
+                '${occupant['room_number']}호',
                 style: const TextStyle(
                   color: _textColor,
                   fontSize: 16,
@@ -139,7 +156,7 @@ class LaundryStatusSection extends StatelessWidget {
 
     final card = Container(
       height: _cardHeight,
-      padding: EdgeInsets.only(top: 16, bottom: isOccupied ? 7 : 16),
+      padding: EdgeInsets.only(top: 16, bottom: isOccupied ? 5 : 16),
       decoration: BoxDecoration(
         color: _cardColor,
         borderRadius: BorderRadius.circular(10),
@@ -162,13 +179,13 @@ class LaundryStatusSection extends StatelessWidget {
             size: 54,
             color: isOccupied ? _teal : Colors.white,
           ),
-          SizedBox(height: isOccupied ? 11 : 21),
+          SizedBox(height: isOccupied ? 10 : 14),
           detailWidget,
         ],
       ),
     );
 
-    if (isOccupied || onTapEmpty == null) return card;
-    return GestureDetector(onTap: () => onTapEmpty!(machine), child: card);
+    if (onTapMachine == null) return card;
+    return GestureDetector(onTap: () => onTapMachine!(machine), child: card);
   }
 }
