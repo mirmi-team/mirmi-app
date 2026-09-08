@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/laundry_service.dart';
 import '../../shared/app_colors.dart';
+import '../../shared/app_skeleton.dart';
 import 'laundry_reservation_screen.dart';
 import 'laundry_status_section.dart';
 import '../../core/utils/app_clock.dart';
@@ -150,13 +151,6 @@ class _LaundryScreenState extends State<LaundryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return Scaffold(
-        backgroundColor: _bgColor,
-        body: const Center(child: CircularProgressIndicator(color: _teal)),
-      );
-    }
-
     return Scaffold(
       backgroundColor: _bgColor,
       body: SafeArea(
@@ -192,10 +186,15 @@ class _LaundryScreenState extends State<LaundryScreen> {
                   machines: _machines,
                   reservations: _reservations,
                   onTapEmpty: _goToReservation,
+                  loading: _isLoading,
                 ),
                 const SizedBox(height: 68),
 
-                _buildWeeklyScheduleTable(),
+                AppSkeletonSwitcher(
+                  loading: _isLoading,
+                  skeleton: const AppSkeleton(height: 320, radius: 10),
+                  child: _buildWeeklyScheduleTable(),
+                ),
                 const SizedBox(height: 149),
               ],
             ),

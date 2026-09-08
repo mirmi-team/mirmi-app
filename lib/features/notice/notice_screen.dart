@@ -4,6 +4,7 @@ import '../../core/services/notice_service.dart';
 import '../../shared/app_banner.dart';
 import '../../shared/app_colors.dart';
 import '../../shared/app_refresh.dart';
+import '../../shared/app_skeleton.dart';
 import 'suggestion_form.dart';
 
 class NoticeScreen extends StatefulWidget {
@@ -116,10 +117,6 @@ class _NoticeScreenState extends State<NoticeScreen>
   }
 
   Widget _buildNoticeTab() {
-    if (_loading) {
-      return const AppLoadingIndicator();
-    }
-
     return AppRefreshScrollView(
       onRefresh: () => _load(silent: true),
       slivers: [
@@ -137,7 +134,13 @@ class _NoticeScreenState extends State<NoticeScreen>
                 ),
               ),
               const SizedBox(height: 12),
-              if (_notices.isEmpty)
+              if (_loading)
+                // 제목·탭 같은 정적인 요소는 그대로 두고 목록 자리만 비워둔다.
+                for (int i = 0; i < 2; i++) ...[
+                  const AppSkeleton(height: 74, radius: 8),
+                  const SizedBox(height: 10),
+                ]
+              else if (_notices.isEmpty)
                 const _EmptyNotice()
               else
                 for (final notice in _notices) ...[
