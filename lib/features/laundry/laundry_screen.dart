@@ -42,6 +42,9 @@ class _LaundryScreenState extends State<LaundryScreen> {
     return '$month월 $day일($weekday)';
   }
 
+  bool get _canGoPrev => _selectedDate.isAfter(_weekStart);
+  bool get _canGoNext => _selectedDate.isBefore(_weekEnd);
+
   void _changeDay(int delta) {
     final newDate = _selectedDate.add(Duration(days: delta));
     if (newDate.isBefore(_weekStart) || newDate.isAfter(_weekEnd)) return;
@@ -377,7 +380,7 @@ class _LaundryScreenState extends State<LaundryScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             GestureDetector(
-              onTap: () => _changeDay(-1),
+              onTap: _canGoPrev ? () => _changeDay(-1) : null,
               child: Container(
                 width: 40,
                 height: 40,
@@ -385,7 +388,10 @@ class _LaundryScreenState extends State<LaundryScreen> {
                   color: Color(0xFF2A2A2E),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.chevron_left, color: _textColor),
+                child: Icon(
+                  Icons.chevron_left,
+                  color: _canGoPrev ? _textColor : const Color(0xFF52525B),
+                ),
               ),
             ),
             Text(
@@ -397,7 +403,7 @@ class _LaundryScreenState extends State<LaundryScreen> {
               ),
             ),
             GestureDetector(
-              onTap: () => _changeDay(1),
+              onTap: _canGoNext ? () => _changeDay(1) : null,
               child: Container(
                 width: 40,
                 height: 40,
@@ -405,7 +411,10 @@ class _LaundryScreenState extends State<LaundryScreen> {
                   color: Color(0xFF2A2A2E),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.chevron_right, color: _textColor),
+                child: Icon(
+                  Icons.chevron_right,
+                  color: _canGoNext ? _textColor : const Color(0xFF52525B),
+                ),
               ),
             ),
           ],

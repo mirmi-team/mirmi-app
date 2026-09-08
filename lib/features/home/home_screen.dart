@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
+import 'home_tab.dart';
 import '../laundry/laundry_screen.dart';
 import '../return_stay/return_stay_screen.dart';
 import '../notice/notice_screen.dart';
@@ -21,8 +22,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final PageController _pageController = PageController();
 
-  final List<Widget> _pages = const [
-    _HomeTab(),
+  late final List<Widget> _pages = [
+    const HomeTab(),
     LaundryScreen(),
     ReturnStayScreen(),
     NoticeScreen(),
@@ -41,19 +42,35 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // AppBar 뒤까지 그라데이션이 깔리도록 body 를 위로 확장하고,
+    // 페이지들은 원래 위치(상태바 + AppBar 아래)에 오도록 그만큼 내려준다.
+    final topInset = MediaQuery.of(context).padding.top + kToolbarHeight;
+
     return Scaffold(
       backgroundColor: _bgColor,
+      extendBodyBehindAppBar: true,
       appBar: const AppTopBar(),
       body: Stack(
         children: [
+          _HomeGradient(pageController: _pageController),
           // PageView 는 손가락을 따라 페이지가 같이 밀리고, 놓으면 이어서 넘어간다.
-          PageView(
-            controller: _pageController,
-            children: [
-              // PageView 는 화면 밖 페이지를 버리므로 그대로 두면 스와이프할 때마다
-              // 각 탭이 initState 부터 다시 돈다. (공지 탭이 매번 재요청)
-              for (final page in _pages) _KeepAlivePage(child: page),
-            ],
+          Padding(
+            padding: EdgeInsets.only(top: topInset),
+            // extendBodyBehindAppBar 를 켜면 상태바 패딩이 소비되지 않고 그대로
+            // 내려가서, 각 페이지의 SafeArea(중첩 Scaffold, 배너)가 그만큼 또
+            // 밀어낸다. 여기서 걷어내야 AppBar 아래 원래 위치에 붙는다.
+            child: MediaQuery.removePadding(
+              context: context,
+              removeTop: true,
+              child: PageView(
+                controller: _pageController,
+                children: [
+                  // PageView 는 화면 밖 페이지를 버리므로 그대로 두면 스와이프할 때마다
+                  // 각 탭이 initState 부터 다시 돈다. (공지 탭이 매번 재요청)
+                  for (final page in _pages) _KeepAlivePage(child: page),
+                ],
+              ),
+            ),
           ),
           Positioned(
             left: 0,
@@ -62,6 +79,67 @@ class _HomeScreenState extends State<HomeScreen> {
             child: _NavBar(controller: _pageController, onSelect: _goToPage),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// 홈 상단 배경 그라데이션.
+///
+/// 세로로는 화면 맨 위에 고정되어 스크롤해도 움직이지 않는다.
+/// 가로로는 페이지와 같은 속도로 밀려나가 화면 밖으로 사라지므로,
+/// 세탁기·복귀 같은 다른 탭에는 보이지 않는다.
+class _HomeGradient extends StatelessWidget {
+  const _HomeGradient({required this.pageController});
+
+  final PageController pageController;
+
+  /// 상태바/AppBar 아래로 그라데이션이 이어지는 길이. 공지 줄 근처에서 사라진다.
+  static const _contentExtent = 150.0;
+
+  double get _page {
+    if (!pageController.hasClients) return 0;
+    if (!pageController.position.haveDimensions) return 0;
+    return pageController.page ?? 0;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final media = MediaQuery.of(context);
+    final height = media.padding.top + kToolbarHeight + _contentExtent;
+
+    return Positioned(
+      top: 0,
+      left: 0,
+      right: 0,
+      height: height,
+      child: ClipRect(
+        child: AnimatedBuilder(
+          animation: pageController,
+          builder: (context, child) {
+            final page = _page;
+            if (page >= 1) return const SizedBox.shrink();
+
+            // 페이지와 같이 옆으로만 밀려나간다. 세로는 고정.
+            return Transform.translate(
+              offset: Offset(-page * media.size.width, 0),
+              child: child,
+            );
+          },
+          child: Container(
+            height: height,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0xFF003A49), // 0% - 불투명
+                  Color(0x00008DAF), // 100% - 투명
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -182,16 +260,26 @@ class _NavBarState extends State<_NavBar> with SingleTickerProviderStateMixin {
     );
   }
 
-  /// 네비게이션 바를 직접 끌 때도 페이지가 같이 따라오게 한다.
-  /// 바에서 한 칸 이동 = 페이지 한 장.
-  void _dragBy(double dx, double itemWidth) {
-    final position = widget.controller.position;
-    if (!position.haveDimensions) return;
-    final pixels =
-        position.pixels + dx / itemWidth * position.viewportDimension;
-    widget.controller.jumpTo(
-      pixels.clamp(position.minScrollExtent, position.maxScrollExtent),
+  /// 네비게이션 바를 끄는 동안에는 알약만 움직인다. 화면은 그대로 두고,
+  /// 손을 놓은 칸으로 그때 한 번에 이동한다.
+  void _dragPill(double dx, double itemWidth) {
+    _pill.stop();
+    _pill.value = (_pill.value + dx / itemWidth).clamp(
+      0.0,
+      _maxIndex.toDouble(),
     );
+  }
+
+  /// 놓은 자리가 현재 페이지면 알약만 제자리로 돌리고 화면은 건드리지 않는다.
+  void _endPillDrag(int target) {
+    final current = _pagePosition.round();
+    if (target == current) {
+      _pill.animateWith(
+        SpringSimulation(_spring, _pill.value, current.toDouble(), 0.0),
+      );
+      return;
+    }
+    _select(target);
   }
 
   @override
@@ -228,7 +316,8 @@ class _NavBarState extends State<_NavBar> with SingleTickerProviderStateMixin {
                 onPointerCancel: (_) => setState(() => _pressed = false),
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
-                  onHorizontalDragUpdate: (d) => _dragBy(d.delta.dx, itemW),
+                  onHorizontalDragStart: (_) => _pill.stop(),
+                  onHorizontalDragUpdate: (d) => _dragPill(d.delta.dx, itemW),
                   onHorizontalDragEnd: (d) {
                     final v = (d.primaryVelocity ?? 0.0) / itemW;
                     final int target;
@@ -239,7 +328,7 @@ class _NavBarState extends State<_NavBar> with SingleTickerProviderStateMixin {
                     } else {
                       target = pos.round().clamp(0, _maxIndex);
                     }
-                    _select(target);
+                    _endPillDrag(target);
                   },
                   child: Container(
                     height: navH,
@@ -317,20 +406,6 @@ class _NavBarState extends State<_NavBar> with SingleTickerProviderStateMixin {
             },
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _HomeTab extends StatelessWidget {
-  const _HomeTab();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        '홈',
-        style: TextStyle(fontSize: 18, color: AppColors.placeholder),
       ),
     );
   }

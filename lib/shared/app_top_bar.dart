@@ -56,14 +56,15 @@ class _AppTopBarState extends State<AppTopBar> {
         : null;
 
     return AppBar(
-      backgroundColor: AppColors.backB,
+      // 뒤에 그라데이션 같은 배경을 깔 수 있도록 투명. Scaffold 배경이 비쳐 보인다.
+      backgroundColor: Colors.transparent,
       elevation: 0,
       scrolledUnderElevation: 0,
       centerTitle: false,
       titleSpacing: 20,
       // 푸시된 화면에서도 왼쪽에 기본 뒤로가기 화살표가 생기지 않게 한다.
       automaticallyImplyLeading: false,
-      title: Image.asset('assets/img/MIRMI.png', height: 18),
+      title: Image.asset('assets/img/MIRMI.png', height: 21),
       actions: [
         Padding(
           padding: const EdgeInsets.only(right: 20),

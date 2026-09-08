@@ -23,6 +23,21 @@ class NoticeService {
         .toList();
   }
 
+  /// 오늘 공지 중 가장 최근 1개. 오늘 올라온 공지가 없으면 null.
+  ///
+  /// 백엔드는 공지가 없을 때 리스트가 아니라 { message: ... } 를 돌려준다.
+  static Future<Notice?> getLatestNotice() async {
+    final res = await http.get(
+      Uri.parse('$kBaseUrl/notices/findOne'),
+      headers: {'Content-Type': 'application/json'},
+    );
+    _checkStatus(res);
+
+    final body = jsonDecode(res.body);
+    if (body is! Map<String, dynamic> || body['id'] == null) return null;
+    return Notice.fromJson(body);
+  }
+
   static void _checkStatus(http.Response res) {
     if (res.statusCode >= 200 && res.statusCode < 300) return;
     try {
