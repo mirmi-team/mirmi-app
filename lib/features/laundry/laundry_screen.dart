@@ -24,21 +24,17 @@ class _LaundryScreenState extends State<LaundryScreen> {
   String? _errorMessage;
   int? _floor;
   List<Map<String, dynamic>> _machines = [];
-  List<Map<String, dynamic>> _reservations = [];
 
   //고정 시간표
   DateTime _selectedDate = AppClock.now();
+  late DateTime _weekStart;
+  late DateTime _weekEnd;
   static const _weekdayNames = ['월', '화', '수', '목', '금', '토', '일'];
 
-  final List<Map<String, dynamic>> _weeklySlots = const [
-    {'startH': 16, 'startM': 30, 'endH': 18, 'endM': 40},
-    {'startH': 19, 'startM': 10, 'endH': 20, 'endM': 20},
-    {'startH': 20, 'startM': 20, 'endH': 21, 'endM': 10},
-    {'startH': 21, 'startM': 10, 'endH': 22, 'endM': 30},
-  ];
+  // 요일별 세탁기 사용 시간표
+  List<Map<String, dynamic>> _schedule = []; // 주간표에서 선택된 날짜 기준
+  List<Map<String, dynamic>> _todaySchedule = []; // 실시간 사용 기준(오늘)
 
-  // 고정 시간표 데이터 --하준띠
-  List<Map<String, dynamic>> _fixedSchedule = [];
   String get _selectedDateLabel {
     final month = _selectedDate.month;
     final day = _selectedDate.day;
@@ -47,7 +43,32 @@ class _LaundryScreenState extends State<LaundryScreen> {
   }
 
   void _changeDay(int delta) {
-    setState(() => _selectedDate = _selectedDate.add(Duration(days: delta)));
+    final newDate = _selectedDate.add(Duration(days: delta));
+    if (newDate.isBefore(_weekStart) || newDate.isAfter(_weekEnd)) return;
+    setState(() => _selectedDate = newDate);
+    _loadSchedule(newDate);
+  }
+
+  bool _isSameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
+  Future<void> _loadSchedule(DateTime date) async {
+    if (_floor == null) return;
+    if (_isSameDay(date, AppClock.now())) {
+      setState(() => _schedule = _todaySchedule);
+      return;
+    }
+    try {
+      final schedule = await LaundryService.getSchedule(
+        date: date,
+        floor: _floor!,
+      );
+      if (!mounted) return;
+      setState(() => _schedule = schedule);
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() => _errorMessage = e.message);
+    }
   }
 
   String _twoDigit(int n) => n.toString().padLeft(2, '0');
@@ -55,6 +76,15 @@ class _LaundryScreenState extends State<LaundryScreen> {
   @override
   void initState() {
     super.initState();
+    final now = AppClock.now();
+    final daysSinceSunday = now.weekday % 7;
+    _weekStart = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).subtract(Duration(days: daysSinceSunday));
+    _weekEnd = _weekStart.add(const Duration(days: 6));
+    _selectedDate = DateTime(now.year, now.month, now.day);
     _loadData();
   }
 
@@ -74,16 +104,15 @@ class _LaundryScreenState extends State<LaundryScreen> {
       final myFloorMachines =
           allMachines.where((m) => (m['id'] as int) ~/ 10 == floor).toList()
             ..sort((a, b) => (a['id'] as int).compareTo(b['id'] as int));
-      //다른 사람 데이터도 불러와야됨--하준띠
-      final reservations = await LaundryService.getMyReservations();
 
       if (!mounted) return;
       setState(() {
         _floor = floor;
         _machines = myFloorMachines;
-        _reservations = reservations;
         _isLoading = false;
       });
+
+      await _loadTodaySchedule(floor);
     } on SessionExpiredException {
       // TODO: context.go('/login')
     } on ApiException catch (e) {
@@ -101,57 +130,75 @@ class _LaundryScreenState extends State<LaundryScreen> {
     }
   }
 
-  Map<String, dynamic>? _findRunningReservationFor(int laundryId) {
+  Future<void> _loadTodaySchedule(int floor) async {
+    try {
+      final schedule = await LaundryService.getSchedule(
+        date: AppClock.now(),
+        floor: floor,
+      );
+      if (!mounted) return;
+      setState(() {
+        _todaySchedule = schedule;
+        if (_isSameDay(_selectedDate, AppClock.now())) {
+          _schedule = schedule;
+        }
+      });
+      if (!_isSameDay(_selectedDate, AppClock.now())) {
+        await _loadSchedule(_selectedDate);
+      }
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() => _errorMessage = e.message);
+    }
+  }
+
+  DateTime _timeOn(DateTime day, String hhmmss) {
+    final parts = hhmmss.split(':');
+    return DateTime(
+      day.year,
+      day.month,
+      day.day,
+      int.parse(parts[0]),
+      int.parse(parts[1]),
+    );
+  }
+
+  Map<String, dynamic>? _findCurrentOccupantFor(int machineNo) {
     final now = AppClock.now();
-    final matches = _reservations.where((r) {
-      if (r['laundry_id'] != laundryId) return false;
-      final start = DateTime.parse(r['start_time']);
-      final end = DateTime.parse(r['end_time']);
+    final matches = _todaySchedule.where((s) {
+      if (s['machine_no'] != machineNo || s['room_number'] == null) {
+        return false;
+      }
+      final start = _timeOn(now, s['start_time'] as String);
+      final end = _timeOn(now, s['end_time'] as String);
       return now.isAfter(start) && now.isBefore(end);
     });
     return matches.isEmpty ? null : matches.first;
   }
 
-  Map<String, dynamic>? _findReservationForSlot(
-    int laundryId,
-    Map<String, dynamic> slot,
-  ) {
-    final slotStart = DateTime(
-      _selectedDate.year,
-      _selectedDate.month,
-      _selectedDate.day,
-      slot['startH'] as int,
-      slot['startM'] as int,
-    );
-    final slotEnd = DateTime(
-      _selectedDate.year,
-      _selectedDate.month,
-      _selectedDate.day,
-      slot['endH'] as int,
-      slot['endM'] as int,
-    );
-
-    final matches = _reservations.where((r) {
-      if (r['laundry_id'] != laundryId) return false;
-      if (r['status'] == 'CANCELED') return false;
-      final start = DateTime.parse(r['start_time']);
-      final end = DateTime.parse(r['end_time']);
-      return start.isBefore(slotEnd) && end.isAfter(slotStart);
-    });
-    return matches.isEmpty ? null : matches.first;
+  List<Map<String, String>> _scheduleSlotTimes() {
+    final seen = <String>{};
+    final result = <Map<String, String>>[];
+    for (final s in _schedule) {
+      final start = s['start_time'] as String;
+      final end = s['end_time'] as String;
+      if (seen.add('$start-$end')) {
+        result.add({'start_time': start, 'end_time': end});
+      }
+    }
+    result.sort((a, b) => a['start_time']!.compareTo(b['start_time']!));
+    return result;
   }
 
-  Map<String, dynamic>? _findFixedScheduleFor(
-    int laundryId,
-    Map<String, dynamic> slot,
+  Map<String, dynamic>? _findScheduleSlot(
+    int machineNo,
+    Map<String, String> slotTime,
   ) {
-    final weekday = _selectedDate.weekday;
-    final matches = _fixedSchedule.where(
-      (f) =>
-          f['laundry_id'] == laundryId &&
-          f['weekday'] == weekday &&
-          f['start_time'] ==
-              '${_twoDigit(slot['startH'] as int)}:${_twoDigit(slot['startM'] as int)}:00',
+    final matches = _schedule.where(
+      (s) =>
+          s['machine_no'] == machineNo &&
+          s['start_time'] == slotTime['start_time'] &&
+          s['end_time'] == slotTime['end_time'],
     );
     return matches.isEmpty ? null : matches.first;
   }
@@ -258,14 +305,14 @@ class _LaundryScreenState extends State<LaundryScreen> {
   }
 
   Widget _buildMachineCard(int index, Map<String, dynamic> machine) {
-    final running = _findRunningReservationFor(machine['id'] as int);
-    final bool isOccupied = running != null;
+    final occupant = _findCurrentOccupantFor(index + 1);
+    final bool isOccupied = occupant != null;
 
     final Widget detailWidget = isOccupied
         ? Column(
             children: [
               Text(
-                '${running['room_number']}호',
+                '${occupant['room_number']}호',
                 style: const TextStyle(
                   color: _textColor,
                   fontSize: 16,
@@ -289,13 +336,15 @@ class _LaundryScreenState extends State<LaundryScreen> {
           );
 
     final card = Container(
-      padding: const EdgeInsets.symmetric(vertical: 16),
+      height: 172,
+      padding: EdgeInsets.only(top: 16, bottom: isOccupied ? 5 : 16),
       decoration: BoxDecoration(
         color: _cardColor,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: const Color(0xff3F3F46), width: 1),
       ),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
             '${index + 1}호',
@@ -305,13 +354,13 @@ class _LaundryScreenState extends State<LaundryScreen> {
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: 10),
           Icon(
             Icons.local_laundry_service,
             size: 54,
             color: isOccupied ? _teal : Colors.white,
           ),
-          const SizedBox(height: 21),
+          SizedBox(height: isOccupied ? 10 : 14),
           detailWidget,
         ],
       ),
@@ -407,7 +456,9 @@ class _LaundryScreenState extends State<LaundryScreen> {
               const SizedBox(height: 20),
               Container(height: 1, color: const Color(0xFF27272A)),
               const SizedBox(height: 18),
-              ..._weeklySlots.map((slot) => _buildScheduleRow(slot)),
+              ..._scheduleSlotTimes().map(
+                (slotTime) => _buildScheduleRow(slotTime),
+              ),
             ],
           ),
         ),
@@ -415,11 +466,9 @@ class _LaundryScreenState extends State<LaundryScreen> {
     );
   }
 
-  Widget _buildScheduleRow(Map<String, dynamic> slot) {
-    final startLabel =
-        '${_twoDigit(slot['startH'] as int)}:${_twoDigit(slot['startM'] as int)}';
-    final endLabel =
-        '~${_twoDigit(slot['endH'] as int)}:${_twoDigit(slot['endM'] as int)}';
+  Widget _buildScheduleRow(Map<String, String> slotTime) {
+    final startLabel = slotTime['start_time']!.substring(0, 5);
+    final endLabel = '~${slotTime['end_time']!.substring(0, 5)}';
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 14),
@@ -450,29 +499,27 @@ class _LaundryScreenState extends State<LaundryScreen> {
             ),
           ),
 
-          ..._machines.map((machine) {
-            final laundryId = machine['id'] as int;
-            final fixed = _findFixedScheduleFor(laundryId, slot);
-            final reservation = fixed == null
-                ? _findReservationForSlot(laundryId, slot)
-                : null;
-            final String label = fixed != null
-                ? '${fixed['room_number']}호'
-                : (reservation != null
-                      ? '${reservation['room_number']}호'
-                      : '비어있음');
-            final bool isFixed = fixed != null;
-            final bool isFilled = fixed != null || reservation != null;
+          ..._machines.asMap().entries.map((entry) {
+            final machineNo = entry.key + 1;
+            final matched = _findScheduleSlot(machineNo, slotTime);
+            final bool isFixed = matched != null && matched['type'] == 'FIXED';
+            final bool isFilled =
+                matched != null && matched['room_number'] != null;
+            final String label = isFilled
+                ? '${matched['room_number']}호'
+                : '비어있음';
 
             return Expanded(
               child: Text(
                 label,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: isFilled ? _textColor : _captionColor,
+                  color: isFixed
+                      ? _teal
+                      : (isFilled ? _textColor : _captionColor),
                   fontSize: 14,
                   fontWeight: isFilled ? FontWeight.w600 : FontWeight.w400,
-                  fontStyle: isFixed ? FontStyle.italic : FontStyle.normal,
+                  // fontStyle: FontStyle.normal,
                 ),
               ),
             );
