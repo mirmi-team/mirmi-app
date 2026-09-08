@@ -43,6 +43,24 @@ class LaundryService {
     return List<Map<String, dynamic>>.from(jsonDecode(res.body) as List);
   }
 
+  static Future<List<Map<String, dynamic>>> getSchedule({
+    required DateTime date,
+    required int floor,
+  }) async {
+    final dateStr =
+        '${date.year.toString().padLeft(4, '0')}-'
+        '${date.month.toString().padLeft(2, '0')}-'
+        '${date.day.toString().padLeft(2, '0')}';
+    final res = await _send(
+      (token) => http.get(
+        Uri.parse('$kBaseUrl/laundry/schedule?date=$dateStr&floor=$floor'),
+        headers: {'Authorization': 'Bearer $token'},
+      ),
+    );
+    _checkStatus(res);
+    return List<Map<String, dynamic>>.from(jsonDecode(res.body) as List);
+  }
+
   static Future<int> createReservation({
     required int laundryId,
     required int roomNumber,
