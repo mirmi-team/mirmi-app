@@ -76,8 +76,6 @@ class _LaundryScreenState extends State<LaundryScreen> {
     }
   }
 
-  String _twoDigit(int n) => n.toString().padLeft(2, '0');
-
   @override
   void initState() {
     super.initState();
