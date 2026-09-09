@@ -34,7 +34,8 @@ class _MeritLogScreenState extends State<MeritLogScreen> with AppBannerMixin {
     _load();
   }
 
-  Future<void> _load() async {
+  Future<void> _load({bool silent = false}) async {
+    if (!silent && mounted) setState(() => _loading = true);
     try {
       final results = await Future.wait([
         AuthService.getMeritLogs(),
@@ -267,110 +268,127 @@ class _MeritLogScreenState extends State<MeritLogScreen> with AppBannerMixin {
 
                 // ── 내역 리스트 ───────────────────────────────────
                 Expanded(
-                  child: _filteredLogs.isEmpty
-                      ? Center(
-                          child: Text(
-                            '내역이 없습니다.',
-                            style: TextStyle(color: _bodyColor, fontSize: 14),
-                          ),
-                        )
-                      : ListView.builder(
-                          padding: const EdgeInsets.fromLTRB(26, 8, 26, 24),
-                          itemCount: _buildItems().length,
-                          itemBuilder: (context, i) {
-                            final item = _buildItems()[i];
-                            if (item is String) {
-                              return Padding(
-                                padding: const EdgeInsets.only(
-                                  top: 34,
-                                  bottom: 4,
-                                ),
-                                child: Text(
-                                  item,
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    color: _bodyColor,
+                  child: AppRefreshScrollView(
+                    onRefresh: () => _load(silent: true),
+                    slivers: [
+                      SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(26, 8, 26, 24),
+                        sliver: _filteredLogs.isEmpty
+                            ? SliverFillRemaining(
+                                hasScrollBody: false,
+                                child: Center(
+                                  child: Text(
+                                    '내역이 없습니다.',
+                                    style: TextStyle(
+                                      color: _bodyColor,
+                                      fontSize: 14,
+                                    ),
                                   ),
                                 ),
-                              );
-                            }
-                            final log = item as Map<String, dynamic>;
-                            final score = log['score'] as int;
-                            final isReward = log['type'] == 'REWARD';
-                            return Column(
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 14,
-                                  ),
-                                  child: Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
+                              )
+                            : SliverList.builder(
+                                itemCount: _buildItems().length,
+                                itemBuilder: (context, i) {
+                                  final item = _buildItems()[i];
+                                  if (item is String) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(
+                                        top: 34,
+                                        bottom: 4,
+                                      ),
+                                      child: Text(
+                                        item,
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          color: _bodyColor,
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                  final log = item as Map<String, dynamic>;
+                                  final score = log['score'] as int;
+                                  final isReward = log['type'] == 'REWARD';
+                                  return Column(
                                     children: [
-                                      Expanded(
-                                        child: Column(
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 14,
+                                        ),
+                                        child: Row(
                                           crossAxisAlignment:
-                                              CrossAxisAlignment.start,
+                                              CrossAxisAlignment.center,
                                           children: [
-                                            Text(
-                                              log['reason'] as String,
-                                              style: const TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.w800,
-                                                color: _textColor,
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    log['reason'] as String,
+                                                    style: const TextStyle(
+                                                      fontSize: 18,
+                                                      fontWeight:
+                                                          FontWeight.w800,
+                                                      color: _textColor,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 4),
+                                                  Text(
+                                                    _dateLabel(
+                                                      log['created_at']
+                                                          as String,
+                                                    ),
+                                                    style: const TextStyle(
+                                                      fontSize: 12,
+                                                      color: _bodyColor,
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
                                             ),
-                                            const SizedBox(height: 4),
-                                            Text(
-                                              _dateLabel(
-                                                log['created_at'] as String,
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                right: 12,
                                               ),
-                                              style: const TextStyle(
-                                                fontSize: 12,
-                                                color: _bodyColor,
+                                              child: Column(
+                                                children: [
+                                                  if (isReward)
+                                                    Text(
+                                                      '+$score점',
+                                                      style: const TextStyle(
+                                                        fontSize: 15,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        color: _teal,
+                                                      ),
+                                                    )
+                                                  else
+                                                    Text(
+                                                      '$score점',
+                                                      style: const TextStyle(
+                                                        fontSize: 15,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        color: AppColors.error,
+                                                      ),
+                                                    ),
+                                                ],
                                               ),
                                             ),
                                           ],
                                         ),
                                       ),
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                          right: 12,
-                                        ),
-                                        child: Column(
-                                          children: [
-                                            if (isReward)
-                                              Text(
-                                                '+$score점',
-                                                style: const TextStyle(
-                                                  fontSize: 15,
-                                                  fontWeight: FontWeight.w600,
-                                                  color: _teal,
-                                                ),
-                                              )
-                                            else
-                                              Text(
-                                                '$score점',
-                                                style: const TextStyle(
-                                                  fontSize: 15,
-                                                  fontWeight: FontWeight.w600,
-                                                  color: AppColors.error,
-                                                ),
-                                              ),
-                                          ],
-                                        ),
+                                      const Divider(
+                                        color: AppColors.border,
+                                        height: 1,
                                       ),
                                     ],
-                                  ),
-                                ),
-                                const Divider(
-                                  color: AppColors.border,
-                                  height: 1,
-                                ),
-                              ],
-                            );
-                          },
-                        ),
+                                  );
+                                },
+                              ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
