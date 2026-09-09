@@ -23,6 +23,7 @@ class AuthService {
   static Future<String?> getRefreshToken() => _storage.read(key: _refreshKey);
 
   static Future<void> clearTokens() async {
+    _cachedMe = null;
     await _storage.delete(key: _accessKey);
     await _storage.delete(key: _refreshKey);
   }
@@ -42,7 +43,10 @@ class AuthService {
       if (res.statusCode < 200 || res.statusCode >= 300) return false;
 
       final body = jsonDecode(res.body) as Map<String, dynamic>;
-      await _storage.write(key: _accessKey, value: body['accessToken'] as String);
+      await _storage.write(
+        key: _accessKey,
+        value: body['accessToken'] as String,
+      );
       return true;
     } catch (_) {
       return false;
@@ -127,6 +131,7 @@ class AuthService {
     );
     _checkStatus(res);
     final body = jsonDecode(res.body) as Map<String, dynamic>;
+    _cachedMe = null; // 다른 계정으로 로그인했을 수 있다
     await saveTokens(
       accessToken: body['accessToken'] as String,
       refreshToken: body['refreshToken'] as String,
@@ -134,69 +139,109 @@ class AuthService {
     return body;
   }
 
-  static Future<Map<String, dynamic>> getMe() async {
-    final res = await _send((token) => http.get(
-      Uri.parse('$kBaseUrl/users/me'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-    ));
-    _checkStatus(res);
-    return jsonDecode(res.body) as Map<String, dynamic>;
+  /// 마지막으로 받아온 내 정보. 이름·방 번호·can_staying 처럼 거의 바뀌지 않는
+  /// 값이라 화면마다 다시 부르지 않고 재사용한다.
+  static Map<String, dynamic>? _cachedMe;
+
+  /// 진행 중인 요청. 앱 시작 시 여러 화면이 동시에 부르므로 하나로 합친다.
+  static Future<Map<String, dynamic>>? _meInFlight;
+
+  /// 내 정보 조회.
+  ///
+  /// 기본은 캐시를 쓴다. 서버에서 다시 받아야 할 때만 [refresh] 를 켠다.
+  /// (프로필 사진 변경 후, 토큰 유효성 확인 등)
+  static Future<Map<String, dynamic>> getMe({bool refresh = false}) {
+    if (!refresh) {
+      final cached = _cachedMe;
+      if (cached != null) return Future.value(cached);
+      final inFlight = _meInFlight;
+      if (inFlight != null) return inFlight;
+    }
+    final future = _fetchMe();
+    _meInFlight = future;
+    return future;
+  }
+
+  static Future<Map<String, dynamic>> _fetchMe() async {
+    try {
+      final res = await _send(
+        (token) => http.get(
+          Uri.parse('$kBaseUrl/users/me'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+        ),
+      );
+      _checkStatus(res);
+      final me = jsonDecode(res.body) as Map<String, dynamic>;
+      _cachedMe = me;
+      return me;
+    } finally {
+      _meInFlight = null;
+    }
   }
 
   static Future<String> uploadProfileImage(String filePath) async {
     final res = await _send((token) async {
-      final request = http.MultipartRequest(
-        'PATCH',
-        Uri.parse('$kBaseUrl/users/me/profile-image'),
-      )
-        ..headers['Authorization'] = 'Bearer $token'
-        ..files.add(await http.MultipartFile.fromPath('image', filePath));
+      final request =
+          http.MultipartRequest(
+              'PATCH',
+              Uri.parse('$kBaseUrl/users/me/profile-image'),
+            )
+            ..headers['Authorization'] = 'Bearer $token'
+            ..files.add(await http.MultipartFile.fromPath('image', filePath));
       final streamed = await request.send();
       return http.Response.fromStream(streamed);
     });
     _checkStatus(res);
     final body = jsonDecode(res.body) as Map<String, dynamic>;
-    return body['profile_image'] as String;
+    final imageUrl = body['profile_image'] as String;
+    _cachedMe?['profile_image'] = imageUrl;
+    return imageUrl;
   }
 
   static Future<void> sendContact({
     required String subject,
     required String message,
   }) async {
-    final res = await _send((token) => http.post(
-      Uri.parse('$kBaseUrl/contact'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-      body: jsonEncode({'subject': subject, 'message': message}),
-    ));
+    final res = await _send(
+      (token) => http.post(
+        Uri.parse('$kBaseUrl/contact'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'subject': subject, 'message': message}),
+      ),
+    );
     _checkStatus(res);
   }
 
   static Future<List<dynamic>> getMeritLogs() async {
-    final res = await _send((token) => http.get(
-      Uri.parse('$kBaseUrl/merit-logs/me'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-    ));
+    final res = await _send(
+      (token) => http.get(
+        Uri.parse('$kBaseUrl/merit-logs/me'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ),
+    );
     _checkStatus(res);
     return jsonDecode(res.body) as List<dynamic>;
   }
 
   static Future<int> getMeritSummary() async {
-    final res = await _send((token) => http.get(
-      Uri.parse('$kBaseUrl/merit-logs/me/summary'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-    ));
+    final res = await _send(
+      (token) => http.get(
+        Uri.parse('$kBaseUrl/merit-logs/me/summary'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ),
+    );
     _checkStatus(res);
     final body = jsonDecode(res.body) as Map<String, dynamic>;
     return body['total_merit_score'] as int;
@@ -208,30 +253,34 @@ class AuthService {
     required String description,
     required String category,
   }) async {
-    final res = await _send((token) => http.post(
-      Uri.parse('$kBaseUrl/suggestions'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-      body: jsonEncode({
-        'title': title,
-        'description': description,
-        'category': category,
-      }),
-    ));
+    final res = await _send(
+      (token) => http.post(
+        Uri.parse('$kBaseUrl/suggestions'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'title': title,
+          'description': description,
+          'category': category,
+        }),
+      ),
+    );
     _checkStatus(res);
   }
 
   /// 내 잔류/외박 신청 내역 (최신 주 순).
   static Future<List<dynamic>> getMyStayStatus() async {
-    final res = await _send((token) => http.get(
-      Uri.parse('$kBaseUrl/stay-status/me'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-    ));
+    final res = await _send(
+      (token) => http.get(
+        Uri.parse('$kBaseUrl/stay-status/me'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ),
+    );
     _checkStatus(res);
     return jsonDecode(res.body) as List<dynamic>;
   }
@@ -241,14 +290,16 @@ class AuthService {
   /// 대상 주(week_start)는 서버가 KST 기준 이번 주 월요일로 정한다.
   /// 잔류 대상자가 아니면 403, 이번 주에 이미 신청했으면 409 가 온다.
   static Future<void> createStayStatus(String status) async {
-    final res = await _send((token) => http.post(
-      Uri.parse('$kBaseUrl/stay-status'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-      body: jsonEncode({'status': status}),
-    ));
+    final res = await _send(
+      (token) => http.post(
+        Uri.parse('$kBaseUrl/stay-status'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'status': status}),
+      ),
+    );
     _checkStatus(res);
   }
 
@@ -256,38 +307,47 @@ class AuthService {
     required String oldPassword,
     required String newPassword,
   }) async {
-    final res = await _send((token) => http.patch(
-      Uri.parse('$kBaseUrl/users/me/password'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-      body: jsonEncode({'oldPassword': oldPassword, 'newPassword': newPassword}),
-    ));
+    final res = await _send(
+      (token) => http.patch(
+        Uri.parse('$kBaseUrl/users/me/password'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'oldPassword': oldPassword,
+          'newPassword': newPassword,
+        }),
+      ),
+    );
     _checkStatus(res);
   }
 
   static Future<void> deleteAccount() async {
-    final res = await _send((token) => http.post(
-      Uri.parse('$kBaseUrl/auth/quit'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-    ));
+    final res = await _send(
+      (token) => http.post(
+        Uri.parse('$kBaseUrl/auth/quit'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ),
+    );
     _checkStatus(res);
     await clearTokens();
   }
 
   static Future<void> logout() async {
     try {
-      await _send((token) => http.post(
-        Uri.parse('$kBaseUrl/auth/logout'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      ));
+      await _send(
+        (token) => http.post(
+          Uri.parse('$kBaseUrl/auth/logout'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+        ),
+      );
     } catch (_) {
       // 백엔드 실패해도 로컬 토큰은 반드시 삭제
     } finally {

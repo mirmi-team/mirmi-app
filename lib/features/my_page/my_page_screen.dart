@@ -38,7 +38,7 @@ class _MyPageScreenState extends State<MyPageScreen> with AppBannerMixin {
 
   Future<void> _loadUser() async {
     try {
-      final user = await AuthService.getMe();
+      final user = await AuthService.getMe(refresh: true);
       if (mounted) setState(() { _user = user; _loading = false; });
     } on SessionExpiredException {
       if (mounted) context.go('/login');

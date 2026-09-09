@@ -101,11 +101,15 @@ class _LaundryScreenState extends State<LaundryScreen> {
       });
     }
     try {
-      final me = await AuthService.getMe();
+      // 기기 목록은 내 정보와 무관하므로 같이 보낸다.
+      final meFuture = AuthService.getMe();
+      final machinesFuture = LaundryService.getMachines();
+
+      final me = await meFuture;
       final roomNumber = me['room_number'] as int;
       final floor = roomNumber ~/ 100;
 
-      final allMachines = await LaundryService.getMachines();
+      final allMachines = await machinesFuture;
       final myFloorMachines =
           allMachines.where((m) => (m['id'] as int) ~/ 10 == floor).toList()
             ..sort((a, b) => (a['id'] as int).compareTo(b['id'] as int));
