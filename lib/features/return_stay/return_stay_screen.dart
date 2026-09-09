@@ -136,7 +136,7 @@ class _ReturnStayScreenState extends State<ReturnStayScreen>
           onRefresh: () => _load(silent: true),
           slivers: [
             SliverPadding(
-              padding: const EdgeInsets.only(bottom: 100),
+              padding: const EdgeInsets.only(top: 16, bottom: 100),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
                   Padding(
@@ -150,9 +150,9 @@ class _ReturnStayScreenState extends State<ReturnStayScreen>
                           skeleton: const Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              AppSkeleton(width: 130, height: 22),
+                              AppSkeleton(width: 130, height: 24),
                               SizedBox(height: 8),
-                              AppSkeleton(width: 190, height: 22),
+                              AppSkeleton(width: 190, height: 24),
                             ],
                           ),
                           child: Text(
@@ -160,16 +160,16 @@ class _ReturnStayScreenState extends State<ReturnStayScreen>
                             style: const TextStyle(
                               fontSize: 20,
                               height: 1.35,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w800,
                               color: _textColor,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 32),
                         const Text(
                           '복귀 체크',
                           style: TextStyle(
-                            fontSize: 15,
+                            fontSize: 18,
                             fontWeight: FontWeight.w600,
                             color: _textColor,
                           ),
@@ -192,8 +192,8 @@ class _ReturnStayScreenState extends State<ReturnStayScreen>
                           const Text(
                             '이번 주 외박/잔류 신청',
                             style: TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w700,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
                               color: _textColor,
                             ),
                           ),
