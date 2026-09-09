@@ -183,8 +183,8 @@ class _SuggestionFormState extends State<SuggestionForm> {
                 const Text(
                   '건의하기',
                   style: TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
                     color: _textColor,
                   ),
                 ),

@@ -211,10 +211,10 @@ class _LaundryScreenState extends State<LaundryScreen> {
                     style: TextStyle(
                       color: _textColor,
                       fontSize: 20,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
-                  const SizedBox(height: 36),
+                  const SizedBox(height: 32),
 
                   if (_errorMessage != null) ...[
                     Text(

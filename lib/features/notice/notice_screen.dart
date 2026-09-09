@@ -75,12 +75,12 @@ class _NoticeScreenState extends State<NoticeScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Padding(
-              padding: EdgeInsets.fromLTRB(20, 4, 20, 0),
+              padding: EdgeInsets.fromLTRB(20, 16, 20, 0),
               child: Text(
                 '생활 게시판',
                 style: TextStyle(
                   fontSize: 20,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w800,
                   color: _textColor,
                 ),
               ),
@@ -128,8 +128,8 @@ class _NoticeScreenState extends State<NoticeScreen>
               const Text(
                 '공지 사항',
                 style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
                   color: _textColor,
                 ),
               ),
