@@ -80,17 +80,22 @@ class _HomeTabState extends State<HomeTab> with AppBannerMixin {
   Future<void> _load({bool silent = false}) async {
     if (!silent && mounted) setState(() => _loading = true);
     try {
-      final user = await AuthService.getMe();
+      // 서로 의존하지 않는 요청은 동시에 보낸다. 순서대로 기다리면
+      // 요청 하나당 0.4초씩 그대로 더해진다.
+      // 공지와 세탁기는 독립이라 하나가 실패해도 나머지는 보여준다.
+      final userFuture = AuthService.getMe();
+      final noticeFuture = NoticeService.getLatestNotice().catchError(
+        (_) => null,
+      );
+      final machinesFuture = LaundryService.getMachines().catchError(
+        (_) => <Map<String, dynamic>>[],
+      );
+
+      final user = await userFuture;
       final roomNumber = user['room_number'] as int?;
       final floor = roomNumber == null ? null : roomNumber ~/ 100;
 
-      // 공지와 세탁기는 서로 독립이라 하나가 실패해도 나머지는 보여준다.
-      final notice = await NoticeService.getLatestNotice().catchError(
-        (_) => null,
-      );
-      final machines = await LaundryService.getMachines().catchError(
-        (_) => <Map<String, dynamic>>[],
-      );
+      // 층을 알아야 부를 수 있어서 이것만 뒤에 온다.
       // 세탁기 페이지와 같은 소스. 내 예약뿐 아니라 다른 학생 사용 현황도 들어있다.
       final todaySchedule = floor == null
           ? <Map<String, dynamic>>[]
@@ -98,6 +103,9 @@ class _HomeTabState extends State<HomeTab> with AppBannerMixin {
               date: AppClock.now(),
               floor: floor,
             ).catchError((_) => <Map<String, dynamic>>[]);
+
+      final notice = await noticeFuture;
+      final machines = await machinesFuture;
 
       if (!mounted) return;
       setState(() {

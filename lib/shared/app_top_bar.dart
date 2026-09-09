@@ -31,9 +31,9 @@ class _AppTopBarState extends State<AppTopBar> {
     _loadProfileImage();
   }
 
-  Future<void> _loadProfileImage() async {
+  Future<void> _loadProfileImage({bool refresh = false}) async {
     try {
-      final user = await AuthService.getMe();
+      final user = await AuthService.getMe(refresh: refresh);
       if (mounted) {
         setState(() => _profileImage = user['profile_image'] as String?);
       }
@@ -46,7 +46,7 @@ class _AppTopBarState extends State<AppTopBar> {
 
   Future<void> _goToMyPage() async {
     await context.push('/my');
-    _loadProfileImage();
+    _loadProfileImage(refresh: true);
   }
 
   @override

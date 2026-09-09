@@ -11,7 +11,7 @@ class LaundryService {
     var res = await request(token);
     if (res.statusCode == 401) {
       try {
-        await AuthService.getMe();
+        await AuthService.getMe(refresh: true);
       } on SessionExpiredException {
         rethrow;
       }

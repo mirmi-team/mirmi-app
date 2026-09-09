@@ -34,7 +34,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<bool> _checkToken() async {
     try {
-      await AuthService.getMe();
+      await AuthService.getMe(refresh: true);
       return true;
     } catch (_) {
       return false;
