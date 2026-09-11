@@ -28,9 +28,8 @@ final router = GoRouter(
   routes: [
     GoRoute(
       path: '/',
-      pageBuilder: (context, state) => const NoTransitionPage(
-        child: SplashScreen(),
-      ),
+      pageBuilder: (context, state) =>
+          const NoTransitionPage(child: SplashScreen()),
     ),
 
     GoRoute(
@@ -43,51 +42,44 @@ final router = GoRouter(
 
     GoRoute(
       path: '/home',
-      pageBuilder: (context, state) => const NoTransitionPage(
-        child: HomeScreen(),
-      ),
+      pageBuilder: (context, state) =>
+          const NoTransitionPage(child: HomeScreen()),
     ),
 
     GoRoute(
       path: '/signup',
-      pageBuilder: (context, state) => const NoTransitionPage(
-        child: SignupScreen(),
-      ),
+      pageBuilder: (context, state) =>
+          const NoTransitionPage(child: SignupScreen()),
     ),
 
     GoRoute(
       path: '/my',
-      pageBuilder: (context, state) => const NoTransitionPage(
-        child: MyPageScreen(),
-      ),
+      pageBuilder: (context, state) =>
+          const NoTransitionPage(child: MyPageScreen()),
     ),
 
     GoRoute(
       path: '/delete-account',
-      pageBuilder: (context, state) => const MaterialPage(
-        child: DeleteAccountScreen(),
-      ),
+      pageBuilder: (context, state) =>
+          const MaterialPage(child: DeleteAccountScreen()),
     ),
 
     GoRoute(
       path: '/logout',
-      pageBuilder: (context, state) => const MaterialPage(
-        child: LogoutScreen(),
-      ),
+      pageBuilder: (context, state) =>
+          const MaterialPage(child: LogoutScreen()),
     ),
 
     GoRoute(
       path: '/change-password',
-      pageBuilder: (context, state) => const MaterialPage(
-        child: ChangePasswordScreen(),
-      ),
+      pageBuilder: (context, state) =>
+          const MaterialPage(child: ChangePasswordScreen()),
     ),
 
     GoRoute(
       path: '/merit-logs',
-      pageBuilder: (context, state) => const MaterialPage(
-        child: MeritLogScreen(),
-      ),
+      pageBuilder: (context, state) =>
+          const MaterialPage(child: MeritLogScreen()),
     ),
 
     GoRoute(
@@ -99,9 +91,8 @@ final router = GoRouter(
 
     GoRoute(
       path: '/inquiry',
-      pageBuilder: (context, state) => const MaterialPage(
-        child: InquiryScreen(),
-      ),
-    )
+      pageBuilder: (context, state) =>
+          const MaterialPage(child: InquiryScreen()),
+    ),
   ],
 );

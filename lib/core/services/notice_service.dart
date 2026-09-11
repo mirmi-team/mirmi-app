@@ -18,9 +18,7 @@ class NoticeService {
     final body = jsonDecode(res.body);
     // 공지가 없을 때 백엔드가 { message: ... } 를 반환할 수도 있으므로 방어
     if (body is! List) return const [];
-    return body
-        .map((e) => Notice.fromJson(e as Map<String, dynamic>))
-        .toList();
+    return body.map((e) => Notice.fromJson(e as Map<String, dynamic>)).toList();
   }
 
   /// 오늘 공지 중 가장 최근 1개. 오늘 올라온 공지가 없으면 null.
