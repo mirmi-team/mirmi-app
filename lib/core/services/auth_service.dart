@@ -73,6 +73,12 @@ class AuthService {
     return res;
   }
 
+  /// 토큰을 붙여 보내고 401이면 자동 갱신 후 재시도한다.
+  /// 다른 서비스 파일에서도 같은 인증 흐름을 쓰도록 열어둔다.
+  static Future<http.Response> authorized(
+    Future<http.Response> Function(String token) request,
+  ) => _send(request);
+
   // ── Public API calls ───────────────────────────────────────────
 
   static Future<void> sendVerificationCode(String email) async {
