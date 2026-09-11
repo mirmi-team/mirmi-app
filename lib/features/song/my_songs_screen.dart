@@ -8,6 +8,7 @@ import '../../shared/app_colors.dart';
 import '../../shared/app_dialog.dart';
 import '../../shared/app_refresh.dart';
 import '../../shared/app_skeleton.dart';
+import 'song_player_sheet.dart';
 import 'song_row.dart';
 
 /// 내 신청 목록을 아래에서 위로 올린다. (건의사항 카테고리 선택과 같은 방식)
@@ -216,6 +217,11 @@ class _MySongsScreenState extends State<MySongsScreen> with AppBannerMixin {
                           destructive: true,
                           busy: _busy.contains(song.id),
                           onAction: () => _cancel(song),
+                          onTapThumbnail: () => showSongPlayerSheet(
+                            context,
+                            youtubeUrl: song.youtubeUrl,
+                            title: song.songName,
+                          ),
                         ),
                         const SizedBox(height: 18),
                       ],

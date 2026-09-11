@@ -7,6 +7,7 @@ import '../../shared/app_banner.dart';
 import '../../shared/app_colors.dart';
 import '../../shared/app_refresh.dart';
 import 'my_songs_screen.dart';
+import 'song_player_sheet.dart';
 import 'song_row.dart';
 
 /// 기상송 화면. 검색해서 신청한다.
@@ -217,6 +218,11 @@ class _SongScreenState extends State<SongScreen> with AppBannerMixin {
           actionLabel: '신청',
           busy: _busy.contains(song.youtubeUrl),
           onAction: () => _request(song),
+          onTapThumbnail: () => showSongPlayerSheet(
+            context,
+            youtubeUrl: song.youtubeUrl,
+            title: song.title,
+          ),
         );
       },
     );

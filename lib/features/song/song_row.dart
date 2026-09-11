@@ -13,6 +13,7 @@ class SongRow extends StatelessWidget {
     required this.actionLabel,
     required this.busy,
     required this.onAction,
+    this.onTapThumbnail,
     this.destructive = false,
   });
 
@@ -26,23 +27,30 @@ class SongRow extends StatelessWidget {
   final bool busy;
   final VoidCallback onAction;
 
+  /// 썸네일을 눌렀을 때. null 이면 눌리지 않는다.
+  final VoidCallback? onTapThumbnail;
+
   @override
   Widget build(BuildContext context) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(6),
-          child: SizedBox(
-            width: 48,
-            height: 48,
-            child: (thumbnail != null && thumbnail!.isNotEmpty)
-                ? Image.network(
-                    thumbnail!,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => const _ThumbFallback(),
-                  )
-                : const _ThumbFallback(),
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: onTapThumbnail,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: SizedBox(
+              width: 48,
+              height: 48,
+              child: (thumbnail != null && thumbnail!.isNotEmpty)
+                  ? Image.network(
+                      thumbnail!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => const _ThumbFallback(),
+                    )
+                  : const _ThumbFallback(),
+            ),
           ),
         ),
         const SizedBox(width: 12),
@@ -99,7 +107,7 @@ class SongRow extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.card,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.border)
+                border: Border.all(color: AppColors.border),
               ),
               child: busy
                   ? const AppLoadingIndicator(size: 14, strokeWidth: 2)
