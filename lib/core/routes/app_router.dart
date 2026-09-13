@@ -17,8 +17,22 @@ import '../services/auth_service.dart';
 
 const _protectedRoutes = {'/home', '/my'};
 
+/// 시트나 다이얼로그가 닫히면 Flutter 가 이전 화면의 포커스를 되살린다.
+/// 텍스트 필드에 포커스가 남아 있었다면 키보드가 저절로 올라오므로 여기서 해제한다.
+/// (닫힘 애니메이션이 끝난 뒤 복원되므로 다음 프레임에 처리한다)
+class _UnfocusOnPop extends NavigatorObserver {
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    super.didPop(route, previousRoute);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FocusManager.instance.primaryFocus?.unfocus();
+    });
+  }
+}
+
 final router = GoRouter(
   initialLocation: '/',
+  observers: [_UnfocusOnPop()],
   redirect: (context, state) async {
     if (!_protectedRoutes.contains(state.matchedLocation)) return null;
     final token = await AuthService.getAccessToken();
