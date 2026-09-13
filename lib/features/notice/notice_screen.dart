@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/services/notice_service.dart';
+import '../../core/services/schedule_service.dart';
 import '../../shared/app_banner.dart';
 import '../../shared/app_colors.dart';
 import '../../shared/app_refresh.dart';
 import '../../shared/app_segmented_tabs.dart';
 import '../../shared/app_skeleton.dart';
+import 'schedule_calendar.dart';
+import 'schedule_sheet.dart';
 import 'suggestion_form.dart';
 
 class NoticeScreen extends StatefulWidget {
@@ -24,6 +27,7 @@ class _NoticeScreenState extends State<NoticeScreen>
 
   bool _loading = true;
   List<Notice> _notices = const [];
+  List<DormSchedule> _schedules = const [];
 
   /// 마지막으로 공지를 불러온 날짜. 날짜가 바뀌면 그날 공지로 다시 불러온다.
   DateTime? _loadedDay;
@@ -53,11 +57,18 @@ class _NoticeScreenState extends State<NoticeScreen>
   Future<void> _load({bool silent = false}) async {
     if (!silent && mounted) setState(() => _loading = true);
     try {
-      final notices = await NoticeService.getTodayNotices();
+      // 공지와 일정은 독립이라 동시에 보내고, 일정이 실패해도 공지는 보여준다.
+      final noticesFuture = NoticeService.getTodayNotices();
+      final schedulesFuture = ScheduleService.getAll().catchError(
+        (_) => <DormSchedule>[],
+      );
+      final notices = await noticesFuture;
+      final schedules = await schedulesFuture;
       if (!mounted) return;
       final now = DateTime.now();
       setState(() {
         _notices = notices;
+        _schedules = schedules;
         _loadedDay = DateTime(now.year, now.month, now.day);
         _loading = false;
       });
@@ -66,6 +77,19 @@ class _NoticeScreenState extends State<NoticeScreen>
       setState(() => _loading = false);
       showErrorBanner('공지사항을 불러오지 못했습니다.');
     }
+  }
+
+  /// 오늘 날짜에 해당하는 일정.
+  List<DormSchedule> get _todaySchedules {
+    final now = DateTime.now();
+    return _schedules
+        .where(
+          (s) =>
+              s.date.year == now.year &&
+              s.date.month == now.month &&
+              s.date.day == now.day,
+        )
+        .toList();
   }
 
   @override
@@ -151,6 +175,45 @@ class _NoticeScreenState extends State<NoticeScreen>
                   ),
                   const SizedBox(height: 10),
                 ],
+
+              // ── 기숙사 일정 ─────────────────────────────
+              const SizedBox(height: 28),
+              const Divider(color: AppColors.border, height: 1),
+              const SizedBox(height: 28),
+              if (_loading)
+                const AppSkeleton(height: 320, radius: 10)
+              else ...[
+                ScheduleCalendar(
+                  schedules: _schedules,
+                  onSelectDate: (date, schedules) => showScheduleSheet(
+                    context,
+                    date: date,
+                    schedules: schedules,
+                  ),
+                ),
+                const SizedBox(height: 28),
+                const Divider(color: AppColors.border, height: 1),
+                const SizedBox(height: 24),
+                const Text(
+                  '오늘 일정',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: _textColor,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                if (_todaySchedules.isEmpty)
+                  const Text(
+                    '오늘 예정된 일정이 없습니다.',
+                    style: TextStyle(fontSize: 13, color: AppColors.caption),
+                  )
+                else
+                  for (final schedule in _todaySchedules) ...[
+                    ScheduleTile(schedule: schedule),
+                    const SizedBox(height: 20),
+                  ],
+              ],
             ]),
           ),
         ),
