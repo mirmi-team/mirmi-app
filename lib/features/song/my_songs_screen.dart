@@ -51,6 +51,9 @@ class _MySongsScreenState extends State<MySongsScreen> with AppBannerMixin {
   bool _loading = true;
   List<MorningSong> _songs = const [];
 
+  /// 내일 나갈 전체 목록. 내 곡이 몇 번째인지 세는 데만 쓴다.
+  List<MorningSong> _tomorrowAll = const [];
+
   /// 취소 처리 중인 항목. 버튼을 잠가 중복 요청을 막는다.
   final Set<int> _busy = {};
 
@@ -63,10 +66,15 @@ class _MySongsScreenState extends State<MySongsScreen> with AppBannerMixin {
   Future<void> _load({bool silent = false}) async {
     if (!silent && mounted) setState(() => _loading = true);
     try {
-      final songs = await SongService.getMine();
+      // 내 내역과 내일 전체 목록을 동시에. 전체 목록이 없어도 내역은 보여준다.
+      final results = await Future.wait([
+        SongService.getMine(),
+        SongService.getTomorrow().catchError((_) => <MorningSong>[]),
+      ]);
       if (!mounted) return;
       setState(() {
-        _songs = songs;
+        _songs = results[0];
+        _tomorrowAll = results[1];
         _loading = false;
       });
     } on SessionExpiredException {
@@ -104,6 +112,21 @@ class _MySongsScreenState extends State<MySongsScreen> with AppBannerMixin {
     } finally {
       if (mounted) setState(() => _busy.remove(song.id));
     }
+  }
+
+  /// '2번째 재생'. 전체 목록을 못 받았으면 순번을 감춘다.
+  String _orderLabel(MorningSong song) {
+    final order = _displayOrder(song);
+    return order == null ? '' : '$order번째 재생';
+  }
+
+  /// 화면에 보여줄 순번.
+  ///
+  /// DB 의 play_order 는 취소가 생기면 구멍이 남는다(1, 3, 4 …).
+  /// 내일 전체 목록에서의 위치로 세면 1, 2, 3 으로 이어진다.
+  int? _displayOrder(MorningSong song) {
+    final index = _tomorrowAll.indexWhere((s) => s.id == song.id);
+    return index < 0 ? null : index + 1;
   }
 
   /// 재생 날짜별로 묶는다. 최근 날짜가 위로.
@@ -208,9 +231,7 @@ class _MySongsScreenState extends State<MySongsScreen> with AppBannerMixin {
                           title: song.songName,
                           // 이미 나간 곡은 순번 대신 상태를 보여준다.
                           subtitle: song.isUpcoming
-                              ? (song.playOrder == null
-                                    ? ''
-                                    : '${song.playOrder}번째 재생')
+                              ? _orderLabel(song)
                               : '재생 완료',
                           // 지나간 곡은 버튼 없이 상태만 보여준다.
                           actionLabel: song.isUpcoming ? '취소' : null,

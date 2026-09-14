@@ -59,6 +59,21 @@ class SongService {
     return _parseList(res.body);
   }
 
+  /// 내일 나갈 기상송 전체 목록 (KST). 서버가 play_order 오름차순으로 준다.
+  ///
+  /// 내 곡이 몇 번째인지는 이 목록에서의 위치로 센다. 취소로 play_order 에
+  /// 구멍이 생겨도(1, 3, 4 …) 화면에는 1, 2, 3 으로 이어져 보인다.
+  static Future<List<MorningSong>> getTomorrow() async {
+    final res = await AuthService.authorized(
+      (token) => http.get(
+        Uri.parse('$kBaseUrl/morning-songs/tomorrow'),
+        headers: _headers(token),
+      ),
+    );
+    _checkStatus(res);
+    return _parseList(res.body);
+  }
+
   /// 내 신청 내역. 서버가 날짜로 거르지 않아 전체가 내려온다.
   static Future<List<MorningSong>> getMine() async {
     final res = await AuthService.authorized(
