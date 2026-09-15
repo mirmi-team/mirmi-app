@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/services/auth_service.dart';
+import '../../core/services/suggestion_service.dart';
 import '../../shared/app_colors.dart';
 import '../../shared/submit_button.dart';
 
@@ -25,17 +26,6 @@ class SuggestionForm extends StatefulWidget {
 
 class _SuggestionFormState extends State<SuggestionForm> {
   static const _textColor = AppColors.mainText;
-
-  /// 서버 enum 값 → 화면 라벨. 백엔드 SuggestionCategory 와 1:1.
-  static const _categories = <String, String>{
-    'FACILITY': '시설',
-    'OPERATION': '운영',
-    'MEAL': '급식',
-    'CLEANING': '청소',
-    'SAFETY': '안전',
-    'NOISE': '소음',
-    'ETC': '기타',
-  };
 
   final _titleController = TextEditingController();
   final _contentController = TextEditingController();
@@ -102,7 +92,7 @@ class _SuggestionFormState extends State<SuggestionForm> {
                 ),
               ),
               const SizedBox(height: 8),
-              for (final entry in _categories.entries)
+              for (final entry in suggestionCategoryLabels.entries)
                 ListTile(
                   title: Text(
                     entry.value,
@@ -141,7 +131,7 @@ class _SuggestionFormState extends State<SuggestionForm> {
     setState(() => _submitting = true);
 
     try {
-      await AuthService.createSuggestion(
+      await SuggestionService.create(
         title: _titleController.text.trim(),
         description: _contentController.text.trim(),
         category: _category!,
@@ -209,7 +199,7 @@ class _SuggestionFormState extends State<SuggestionForm> {
                           child: Text(
                             _category == null
                                 ? '카테고리 선택'
-                                : _categories[_category]!,
+                                : suggestionCategoryLabels[_category]!,
                             style: TextStyle(
                               fontSize: 13,
                               color: _category == null
