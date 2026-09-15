@@ -58,7 +58,6 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Stack(
         children: [
           _HomeGradient(pageController: _pageController),
-          // PageView 는 손가락을 따라 페이지가 같이 밀리고, 놓으면 이어서 넘어간다.
           Padding(
             padding: EdgeInsets.only(top: topInset),
             // extendBodyBehindAppBar 를 켜면 상태바 패딩이 소비되지 않고 그대로
@@ -69,6 +68,8 @@ class _HomeScreenState extends State<HomeScreen> {
               removeTop: true,
               child: PageView(
                 controller: _pageController,
+                // 화면 전환은 하단 네비게이션 바로만. 좌우 스와이프는 막는다.
+                physics: const NeverScrollableScrollPhysics(),
                 children: [
                   // PageView 는 화면 밖 페이지를 버리므로 그대로 두면 스와이프할 때마다
                   // 각 탭이 initState 부터 다시 돈다. (공지 탭이 매번 재요청)

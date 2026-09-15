@@ -5,6 +5,7 @@ import 'package:mirmi_app/shared/submit_button.dart';
 import '../../core/services/auth_service.dart';
 import '../../shared/app_banner.dart';
 import '../../shared/app_colors.dart';
+import '../../shared/keyboard_inset.dart';
 import '../../shared/app_dialog.dart';
 
 class InquiryScreen extends StatefulWidget {
@@ -69,6 +70,9 @@ class _InquiryScreenState extends State<InquiryScreen> with AppBannerMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _bgColor,
+      // 키보드가 올라와도 '문의 보내기' 버튼은 제자리에 둔다.
+      // 입력창은 아래 KeyboardInset 안에서 스크롤로 올라온다.
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         backgroundColor: _bgColor,
         elevation: 0,
@@ -108,68 +112,76 @@ class _InquiryScreenState extends State<InquiryScreen> with AppBannerMixin {
         child: Stack(
           children: [
             SafeArea(
+              // 키보드가 올라오면 padding.bottom 이 0 이 되어 SafeArea 가 잡아주던
+              // 하단 여백이 통째로 사라졌다가, 닫히면 다시 생긴다.
+              // 여기서는 끄고 아래에서 viewPadding 으로 직접 고정한다.
+              bottom: false,
               child: Column(
                 children: [
                   Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 40,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            '문의하기',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                              color: _textColor,
+                    child: KeyboardInset(
+                      // 아래에 문의 보내기 버튼(82)과 안전영역이 이미 있다.
+                      below: 82 + MediaQuery.viewPaddingOf(context).bottom,
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 40,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              '문의하기',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                color: _textColor,
+                              ),
                             ),
-                          ),
 
-                          const SizedBox(height: 12),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              GuideText(text: '1. 제목을 작성하여 주세요.'),
-                              const SizedBox(height: 8),
-                              TextInput(
-                                hintText: '제목을 입력해 주세요.',
-                                maxLines: 1,
-                                controller: _subjectCtrl,
-                                onChanged: (_) => setState(() {}),
-                              ),
-                              const SizedBox(height: 16),
-                              GuideText(text: '2. 문의 내용을 자세히 작성해 주세요.'),
-                              const SizedBox(height: 8),
-                              TextInput(
-                                hintText: '이곳에 작성하여 주세요',
-                                maxLines: 5,
-                                controller: _messageCtrl,
-                                onChanged: (_) => setState(() {}),
-                              ),
-                              const SizedBox(height: 16),
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.info_outline_rounded,
-                                    color: _captionColor,
-                                    size: 16,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    '이 메일은 mirmi.dev@gmail.com으로 발송됩니다.',
-                                    style: TextStyle(
+                            const SizedBox(height: 12),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                GuideText(text: '1. 제목을 작성하여 주세요.'),
+                                const SizedBox(height: 8),
+                                TextInput(
+                                  hintText: '제목을 입력해 주세요.',
+                                  maxLines: 1,
+                                  controller: _subjectCtrl,
+                                  onChanged: (_) => setState(() {}),
+                                ),
+                                const SizedBox(height: 16),
+                                GuideText(text: '2. 문의 내용을 자세히 작성해 주세요.'),
+                                const SizedBox(height: 8),
+                                TextInput(
+                                  hintText: '이곳에 작성하여 주세요',
+                                  maxLines: 5,
+                                  controller: _messageCtrl,
+                                  onChanged: (_) => setState(() {}),
+                                ),
+                                const SizedBox(height: 16),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.info_outline_rounded,
                                       color: _captionColor,
-                                      fontSize: 13,
+                                      size: 16,
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ],
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      '이 메일은 mirmi.dev@gmail.com으로 발송됩니다.',
+                                      style: TextStyle(
+                                        color: _captionColor,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -179,6 +191,7 @@ class _InquiryScreenState extends State<InquiryScreen> with AppBannerMixin {
                     text: '문의 보내기',
                     loadingButton: _loading,
                   ),
+                  SizedBox(height: MediaQuery.viewPaddingOf(context).bottom),
                 ],
               ),
             ),
