@@ -190,75 +190,8 @@ class _SuggestionFormState extends State<SuggestionForm> {
                 ),
                 const SizedBox(height: 18),
 
-                // ── 1. 제목 ──────────────────────────────────
-                const _FieldLabel('1. 제목을 작성해 주세요.'),
-                const SizedBox(height: 10),
-                Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.card,
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: TextField(
-                    controller: _titleController,
-                    textInputAction: TextInputAction.next,
-                    // DB 컬럼이 varchar(255)
-                    inputFormatters: [LengthLimitingTextInputFormatter(255)],
-                    style: const TextStyle(color: _textColor, fontSize: 13),
-                    decoration: const InputDecoration(
-                      hintText: '예) 3층 샤워실 온수가 자주 끊겨요',
-                      hintStyle: TextStyle(
-                        color: AppColors.caption,
-                        fontSize: 13,
-                      ),
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 17,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 22),
-
-                // ── 2. 건의 내용 ─────────────────────────────
-                const _FieldLabel('2. 건의할 내용을 작성해주세요.'),
-                const SizedBox(height: 10),
-                Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.card,
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: TextField(
-                    controller: _contentController,
-                    maxLines: 5,
-                    textInputAction: TextInputAction.newline,
-                    style: const TextStyle(
-                      color: _textColor,
-                      fontSize: 13,
-                      height: 1.5,
-                    ),
-                    decoration: const InputDecoration(
-                      hintText:
-                          '언제, 어디서 있었던 일인지 적어주세요.\n'
-                          '예) 저녁 8시 이후 3층 샤워실 온수가 끊겨서\n'
-                          '    씻기 불편해요. 점검 부탁드립니다.',
-                      hintStyle: TextStyle(
-                        color: AppColors.caption,
-                        fontSize: 13,
-                        height: 1.5,
-                      ),
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 17,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 22),
-
-                // ── 3. 카테고리 ──────────────────────────────
-                const _FieldLabel('3. 카테고리를 선택해 주세요.'),
+                // ── 1. 카테고리 ──────────────────────────────
+                const _FieldLabel('1. 카테고리를 선택해 주세요.'),
                 const SizedBox(height: 10),
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
@@ -295,6 +228,73 @@ class _SuggestionFormState extends State<SuggestionForm> {
                   ),
                 ),
                 const SizedBox(height: 15),
+
+                // ── 2. 제목 ──────────────────────────────────
+                const _FieldLabel('2. 제목을 작성해 주세요.'),
+                const SizedBox(height: 10),
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.card,
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: TextField(
+                    controller: _titleController,
+                    textInputAction: TextInputAction.next,
+                    // DB 컬럼이 varchar(255)
+                    inputFormatters: [LengthLimitingTextInputFormatter(255)],
+                    style: const TextStyle(color: _textColor, fontSize: 13),
+                    decoration: const InputDecoration(
+                      hintText: '예) 3층 샤워실 온수가 자주 끊겨요',
+                      hintStyle: TextStyle(
+                        color: AppColors.caption,
+                        fontSize: 13,
+                      ),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 17,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 22),
+
+                // ── 3. 건의 내용 ─────────────────────────────
+                const _FieldLabel('3. 건의할 내용을 작성해주세요.'),
+                const SizedBox(height: 10),
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.card,
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: TextField(
+                    controller: _contentController,
+                    maxLines: 5,
+                    textInputAction: TextInputAction.newline,
+                    style: const TextStyle(
+                      color: _textColor,
+                      fontSize: 13,
+                      height: 1.5,
+                    ),
+                    decoration: const InputDecoration(
+                      hintText:
+                          '언제, 어디서 있었던 일인지 적어주세요.\n'
+                          '예) 저녁 8시 이후 3층 샤워실 온수가 끊겨서\n'
+                          '    씻기 불편해요. 점검 부탁드립니다.',
+                      hintStyle: TextStyle(
+                        color: AppColors.caption,
+                        fontSize: 13,
+                        height: 1.5,
+                      ),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 17,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 22),
 
                 const Center(
                   child: Text(
