@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/services/auth_service.dart';
 import '../../shared/app_colors.dart';
+import '../../shared/keyboard_inset.dart';
 import '../../shared/app_banner.dart';
 import '../../shared/submit_button.dart';
 
@@ -14,22 +15,22 @@ class ChangePasswordScreen extends StatefulWidget {
 
 class _ChangePasswordScreenState extends State<ChangePasswordScreen>
     with AppBannerMixin {
-  final _oldCtrl  = TextEditingController();
-  final _newCtrl  = TextEditingController();
+  final _oldCtrl = TextEditingController();
+  final _newCtrl = TextEditingController();
   final _confCtrl = TextEditingController();
 
   bool _oldObscure = true;
   bool _newObscure = true;
-  bool _loading    = false;
+  bool _loading = false;
 
   String? _newError;
 
-  static const _bgColor      = AppColors.backB;
-  static const _textColor    = AppColors.mainText;
+  static const _bgColor = AppColors.backB;
+  static const _textColor = AppColors.mainText;
   static const _captionColor = AppColors.caption;
   static const _surfaceColor = AppColors.surfaceHover;
-  static const _bodyColor    = AppColors.body;
-  static const _errorColor   = AppColors.error;
+  static const _bodyColor = AppColors.body;
+  static const _errorColor = AppColors.error;
 
   static final _pwRegex = RegExp(r'^(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$');
 
@@ -61,7 +62,11 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
   }
 
   Future<void> _submit() async {
-    if (_oldCtrl.text.isEmpty || _newCtrl.text.isEmpty || _confCtrl.text.isEmpty) return;
+    if (_oldCtrl.text.isEmpty ||
+        _newCtrl.text.isEmpty ||
+        _confCtrl.text.isEmpty) {
+      return;
+    }
     if (!_validate()) return;
 
     setState(() => _loading = true);
@@ -85,6 +90,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _bgColor,
+      // 키보드가 올라와도 하단 버튼은 제자리에 둔다.
+      // 입력창은 아래 KeyboardInset 안에서 스크롤로 올라온다.
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         backgroundColor: _bgColor,
         elevation: 0,
@@ -95,15 +103,27 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
           child: GestureDetector(
             onTap: () => context.pop(),
             child: Container(
-              width: 36, height: 36,
-              decoration: BoxDecoration(color: _surfaceColor, shape: BoxShape.circle),
-              child: const Icon(Icons.chevron_left, color: _textColor, size: 22),
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: _surfaceColor,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.chevron_left,
+                color: _textColor,
+                size: 22,
+              ),
             ),
           ),
         ),
         title: const Text(
           '비밀번호 변경',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: _textColor),
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: _textColor,
+          ),
         ),
       ),
       body: GestureDetector(
@@ -112,90 +132,140 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
         child: Stack(
           children: [
             SafeArea(
+              // 키보드가 올라오면 padding.bottom 이 0 이 되어 SafeArea 가 잡아주던
+              // 하단 여백이 통째로 사라졌다가, 닫히면 다시 생긴다.
+              // 여기서는 끄고 아래에서 viewPadding 으로 직접 고정한다.
+              bottom: false,
               child: Column(
                 children: [
                   Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 20),
+                    child: KeyboardInset(
+                      // 아래에 변경하기 버튼(82)과 안전영역이 이미 있다.
+                      below: 82 + MediaQuery.viewPaddingOf(context).bottom,
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 20),
 
-                          Center(
-                            child: Container(
-                              width: 100, height: 100,
-                              decoration: BoxDecoration(color: _surfaceColor, shape: BoxShape.circle),
-                              child: Center(
-                                child: Image.asset('assets/img/lock.png', width: 50, height: 50),
+                            Center(
+                              child: Container(
+                                width: 100,
+                                height: 100,
+                                decoration: BoxDecoration(
+                                  color: _surfaceColor,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Center(
+                                  child: Image.asset(
+                                    'assets/img/lock.png',
+                                    width: 50,
+                                    height: 50,
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
 
-                          const SizedBox(height: 20),
+                            const SizedBox(height: 20),
 
-                          const Center(
-                            child: Text(
-                              '안전한 계정 관리를 위해\n주기적으로 비밀번호를 변경해주세요.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 13, color: _bodyColor, height: 1.6),
-                            ),
-                          ),
-
-                          const SizedBox(height: 32),
-
-                          const Text('현재 비밀번호',
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: _textColor)),
-                          const SizedBox(height: 10),
-                          _PasswordField(
-                            controller: _oldCtrl,
-                            obscure: _oldObscure,
-                            onToggle: () => setState(() => _oldObscure = !_oldObscure),
-                            hint: 'mirim123!',
-                            onChanged: (_) => setState(() {}),
-                          ),
-
-                          const SizedBox(height: 24),
-
-                          const Text('새 비밀번호',
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: _textColor)),
-                          const SizedBox(height: 10),
-                          _PasswordField(
-                            controller: _newCtrl,
-                            obscure: _newObscure,
-                            onToggle: () => setState(() => _newObscure = !_newObscure),
-                            hint: 'mirim123!',
-                            onChanged: (_) => setState(() => _newError = null),
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Icon(Icons.info_outline, size: 13,
-                                  color: _newError != null ? _errorColor : _captionColor),
-                              const SizedBox(width: 4),
-                              Text(
-                                _newError ?? '특수문자를 포함해 8자리 이상 입력해주세요.',
-                                style: TextStyle(fontSize: 12,
-                                    color: _newError != null ? _errorColor : _captionColor),
+                            const Center(
+                              child: Text(
+                                '안전한 계정 관리를 위해\n주기적으로 비밀번호를 변경해주세요.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: _bodyColor,
+                                  height: 1.6,
+                                ),
                               ),
-                            ],
-                          ),
+                            ),
 
-                          const SizedBox(height: 24),
+                            const SizedBox(height: 32),
 
-                          const Text('새 비밀번호 확인',
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: _textColor)),
-                          const SizedBox(height: 10),
-                          _PasswordField(
-                            controller: _confCtrl,
-                            obscure: true,
-                            showToggle: false,
-                            hint: '비밀번호를 다시 한 번 입력해주세요.',
-                            onChanged: (_) => setState(() {}),
-                          ),
+                            const Text(
+                              '현재 비밀번호',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: _textColor,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            _PasswordField(
+                              controller: _oldCtrl,
+                              obscure: _oldObscure,
+                              onToggle: () =>
+                                  setState(() => _oldObscure = !_oldObscure),
+                              hint: 'mirim123!',
+                              onChanged: (_) => setState(() {}),
+                            ),
 
-                          const SizedBox(height: 32),
-                        ],
+                            const SizedBox(height: 24),
+
+                            const Text(
+                              '새 비밀번호',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: _textColor,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            _PasswordField(
+                              controller: _newCtrl,
+                              obscure: _newObscure,
+                              onToggle: () =>
+                                  setState(() => _newObscure = !_newObscure),
+                              hint: 'mirim123!',
+                              onChanged: (_) =>
+                                  setState(() => _newError = null),
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.info_outline,
+                                  size: 13,
+                                  color: _newError != null
+                                      ? _errorColor
+                                      : _captionColor,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  _newError ?? '특수문자를 포함해 8자리 이상 입력해주세요.',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: _newError != null
+                                        ? _errorColor
+                                        : _captionColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 24),
+
+                            const Text(
+                              '새 비밀번호 확인',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: _textColor,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            _PasswordField(
+                              controller: _confCtrl,
+                              obscure: true,
+                              showToggle: false,
+                              hint: '비밀번호를 다시 한 번 입력해주세요.',
+                              onChanged: (_) => setState(() {}),
+                            ),
+
+                            const SizedBox(height: 32),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -205,7 +275,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
                     text: '변경하기',
                     loadingButton: _loading,
                   ),
-                  
+                  SizedBox(height: MediaQuery.viewPaddingOf(context).bottom),
                 ],
               ),
             ),
@@ -250,11 +320,16 @@ class _PasswordField extends StatelessWidget {
           hintText: hint,
           hintStyle: const TextStyle(fontSize: 13, color: AppColors.caption),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 16,
+          ),
           suffixIcon: showToggle
               ? IconButton(
                   icon: Icon(
-                    obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                    obscure
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
                     color: AppColors.caption,
                     size: 20,
                   ),
