@@ -6,6 +6,7 @@ import '../../core/services/song_service.dart';
 import '../../shared/app_banner.dart';
 import '../../shared/app_colors.dart';
 import '../../shared/app_refresh.dart';
+import '../../shared/keyboard_inset.dart';
 import 'my_songs_screen.dart';
 import 'song_player_sheet.dart';
 import 'song_row.dart';
@@ -205,26 +206,28 @@ class _SongScreenState extends State<SongScreen> with AppBannerMixin {
     if (_results.isEmpty) {
       return const _CenterMessage(text: '검색 결과가 없습니다.');
     }
-    return ListView.separated(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      itemCount: _results.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 18),
-      itemBuilder: (context, i) {
-        final song = _results[i];
-        return SongRow(
-          thumbnail: song.thumbnail,
-          title: song.title,
-          subtitle: song.channel,
-          actionLabel: '신청',
-          busy: _busy.contains(song.youtubeUrl),
-          onAction: () => _request(song),
-          onTapThumbnail: () => showSongPlayerSheet(
-            context,
-            youtubeUrl: song.youtubeUrl,
+    return KeyboardInset(
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        itemCount: _results.length,
+        separatorBuilder: (_, _) => const SizedBox(height: 18),
+        itemBuilder: (context, i) {
+          final song = _results[i];
+          return SongRow(
+            thumbnail: song.thumbnail,
             title: song.title,
-          ),
-        );
-      },
+            subtitle: song.channel,
+            actionLabel: '신청',
+            busy: _busy.contains(song.youtubeUrl),
+            onAction: () => _request(song),
+            onTapThumbnail: () => showSongPlayerSheet(
+              context,
+              youtubeUrl: song.youtubeUrl,
+              title: song.title,
+            ),
+          );
+        },
+      ),
     );
   }
 }

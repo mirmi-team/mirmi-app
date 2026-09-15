@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
@@ -49,6 +50,10 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: _bgColor,
       extendBodyBehindAppBar: true,
+      // 키보드가 올라와도 하단 네비게이션 바는 제자리에 둔다.
+      // 대신 각 탭의 스크롤뷰가 키보드 높이만큼 하단 여백을 줘서
+      // 입력창이 가려지지 않게 한다.
+      resizeToAvoidBottomInset: false,
       appBar: const AppTopBar(),
       body: Stack(
         children: [
@@ -284,10 +289,14 @@ class _NavBarState extends State<_NavBar> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final sysBottom = MediaQuery.of(context).padding.bottom;
+    // padding 이 아니라 viewPadding 을 쓴다. padding.bottom 은 키보드가 올라오는
+    // 동안 0 으로 줄어드는데, iOS 분기의 (sysBottom - 8) 이 음수가 되어
+    // Padding 이 assertion 으로 터진다. viewPadding 은 키보드와 무관하게 고정이라
+    // 네비바 높이도 흔들리지 않는다.
+    final sysBottom = MediaQuery.viewPaddingOf(context).bottom;
     final bottomPad = Platform.isAndroid
         ? (sysBottom > 0 ? sysBottom + 8.0 : 24.0)
-        : (sysBottom > 0 ? sysBottom - 8.0 : 16.0);
+        : (sysBottom > 0 ? math.max(sysBottom - 8.0, 0.0) : 16.0);
 
     return AnimatedBuilder(
       // 알약이 움직일 때마다 다시 그린다. (스와이프 중에는 페이지를 따라가고,

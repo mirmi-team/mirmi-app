@@ -30,14 +30,11 @@ class MyApp extends StatelessWidget {
           Widget result = child!;
           final mq = MediaQuery.of(context);
 
-          // 키보드가 올라와도 하단 버튼이 밀리지 않도록 전역 처리.
-          // - viewInsets를 0으로 → Scaffold가 키보드만큼 리사이즈되지 않음
-          // - padding.bottom을 viewPadding.bottom으로 고정 → 키보드가 홈 인디케이터를
-          //   가려도 SafeArea가 소비하는 하단 여백이 그대로 유지됨
-          var data = mq.copyWith(
-            viewInsets: mq.viewInsets.copyWith(bottom: 0),
-            padding: mq.padding.copyWith(bottom: mq.viewPadding.bottom),
-          );
+          // 키보드 높이(viewInsets)는 건드리지 않는다. 0으로 덮으면 Scaffold가
+          // 리사이즈되지 않아 입력창이 키보드에 가려진다.
+          // 하단 버튼을 고정해야 하는 화면은 그 Scaffold 에서
+          // resizeToAvoidBottomInset: false 로 개별 처리한다.
+          var data = mq;
 
           if (Platform.isAndroid) {
             data = data.copyWith(
@@ -46,15 +43,20 @@ class MyApp extends StatelessWidget {
           }
 
           result = MediaQuery(data: data, child: result);
-          final isDark = MediaQuery.platformBrightnessOf(context) == Brightness.dark;
+          final isDark =
+              MediaQuery.platformBrightnessOf(context) == Brightness.dark;
           result = AnnotatedRegion<SystemUiOverlayStyle>(
             value: SystemUiOverlayStyle(
               statusBarColor: Colors.transparent,
-              statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+              statusBarIconBrightness: isDark
+                  ? Brightness.light
+                  : Brightness.dark,
               statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
               systemNavigationBarColor: Colors.transparent,
               systemNavigationBarContrastEnforced: false,
-              systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+              systemNavigationBarIconBrightness: isDark
+                  ? Brightness.light
+                  : Brightness.dark,
             ),
             child: result,
           );
