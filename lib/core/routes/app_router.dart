@@ -10,6 +10,9 @@ import '../../features/my_page/delete_account_screen.dart';
 import '../../features/my_page/logout_screen.dart';
 import '../../features/my_page/change_password_screen.dart';
 import '../../features/my_page/merit_log_screen.dart';
+import '../../features/my_page/my_suggestions_screen.dart';
+import '../../features/my_page/suggestion_detail_screen.dart';
+import '../services/suggestion_service.dart';
 import '../../features/my_page/inquiry_screen.dart';
 import '../../features/notice/notice_detail_screen.dart';
 import '../services/notice_service.dart';
@@ -94,6 +97,19 @@ final router = GoRouter(
       path: '/merit-logs',
       pageBuilder: (context, state) =>
           const MaterialPage(child: MeritLogScreen()),
+    ),
+
+    GoRoute(
+      path: '/my-suggestions',
+      pageBuilder: (context, state) =>
+          const MaterialPage(child: MySuggestionsScreen()),
+    ),
+
+    GoRoute(
+      path: '/suggestion-detail',
+      pageBuilder: (context, state) => MaterialPage(
+        child: SuggestionDetailScreen(suggestion: state.extra as Suggestion),
+      ),
     ),
 
     GoRoute(
