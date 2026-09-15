@@ -272,7 +272,11 @@ class AuthService {
   ///
   /// 대상 주(week_start)는 서버가 KST 기준 이번 주 월요일로 정한다.
   /// 잔류 대상자가 아니면 403, 이번 주에 이미 신청했으면 409 가 온다.
-  static Future<void> createStayStatus(String status) async {
+  /// 서버에서 parent_phone 이 필수(NOT NULL)라 빈 값은 보내지 않는다.
+  static Future<void> createStayStatus(
+    String status, {
+    required String parentPhone,
+  }) async {
     final res = await _send(
       (token) => http.post(
         Uri.parse('$kBaseUrl/stay-status'),
@@ -280,7 +284,10 @@ class AuthService {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
-        body: jsonEncode({'status': status}),
+        body: jsonEncode({
+          'status': status,
+          'parent_phone': parentPhone,
+        }),
       ),
     );
     _checkStatus(res);
