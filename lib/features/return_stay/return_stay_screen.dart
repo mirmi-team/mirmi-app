@@ -10,6 +10,9 @@ import '../../shared/keyboard_inset.dart';
 import '../../shared/app_skeleton.dart';
 import '../../shared/submit_button.dart';
 
+/// 부모님 연락처 자릿수. 하이픈 없이 숫자만 받는다.
+const _phoneDigits = 11;
+
 /// 복귀 체크 + 이번 주 외박/잔류 신청.
 ///
 /// 복귀 체크는 백엔드(`return-requests`)가 아직 빈 스캐폴드라 화면만 있다.
@@ -47,11 +50,14 @@ class _ReturnStayScreenState extends State<ReturnStayScreen>
   @override
   void initState() {
     super.initState();
+    // 연락처가 채워져야 전송 버튼이 열리므로 입력마다 다시 그린다.
+    _phoneController.addListener(_onPhoneChanged);
     _load();
   }
 
   @override
   void dispose() {
+    _phoneController.removeListener(_onPhoneChanged);
     _phoneController.dispose();
     super.dispose();
   }
@@ -80,16 +86,22 @@ class _ReturnStayScreenState extends State<ReturnStayScreen>
         (record) => record['week_start'] == _weekStart,
       );
 
+      final record = thisWeek.isEmpty ? null : thisWeek.first;
+
       setState(() {
         _username = user['username'] as String?;
         _canStay = user['can_staying'] == true;
-        _submittedStatus = thisWeek.isEmpty
-            ? null
-            : thisWeek.first['status'] as String?;
+        _submittedStatus = record?['status'] as String?;
         // 서버에 신청 기록이 있으면 그 값이 정답. 없으면 고르던 선택을 유지한다.
         _selected = _submittedStatus ?? _selected;
         _loading = false;
       });
+
+      // 신청을 마친 주에는 그때 낸 연락처를 그대로 보여준다.
+      final submittedPhone = record?['parent_phone'] as String?;
+      if (submittedPhone != null && submittedPhone.isNotEmpty) {
+        _phoneController.text = submittedPhone;
+      }
     } on SessionExpiredException {
       if (mounted) context.go('/login');
     } catch (_) {
@@ -104,12 +116,23 @@ class _ReturnStayScreenState extends State<ReturnStayScreen>
     setState(() => _selected = _selected == status ? null : status);
   }
 
+  void _onPhoneChanged() => setState(() {});
+
+  /// 잔류/외박 선택과 부모님 연락처가 모두 채워져야 전송할 수 있다.
+  /// (서버에서 parent_phone 이 필수다)
+  bool get _canSubmit =>
+      _submittedStatus == null &&
+      _selected != null &&
+      _phoneController.text.length == _phoneDigits;
+
   Future<void> _submit() async {
-    if (_selected == null || _submitting) return;
+    if (!_canSubmit || _submitting) return;
     setState(() => _submitting = true);
     try {
-      // 부모님 연락처는 백엔드에 저장할 곳이 없어 아직 보내지 않는다.
-      await AuthService.createStayStatus(_selected!);
+      await AuthService.createStayStatus(
+        _selected!,
+        parentPhone: _phoneController.text.trim(),
+      );
       if (!mounted) return;
       setState(() {
         _submittedStatus = _selected;
@@ -253,10 +276,7 @@ class _ReturnStayScreenState extends State<ReturnStayScreen>
                       SubmitButton(
                         text: _submittedStatus != null ? '이번 주 신청 완료' : '전송',
                         loadingButton: _submitting,
-                        onPressed:
-                            (_submittedStatus != null || _selected == null)
-                            ? null
-                            : _submit,
+                        onPressed: _canSubmit ? _submit : null,
                       ),
                   ]),
                 ),
@@ -395,14 +415,15 @@ class _PhoneField extends StatelessWidget {
       child: TextField(
         controller: controller,
         readOnly: !enabled,
-        keyboardType: TextInputType.phone,
+        keyboardType: TextInputType.number,
         inputFormatters: [
-          FilteringTextInputFormatter.allow(RegExp(r'[0-9-]')),
-          LengthLimitingTextInputFormatter(13),
+          // 하이픈 없이 숫자 11자리만
+          FilteringTextInputFormatter.digitsOnly,
+          LengthLimitingTextInputFormatter(_phoneDigits),
         ],
         style: const TextStyle(color: AppColors.mainText, fontSize: 13),
         decoration: const InputDecoration(
-          hintText: '010-xxxx-xxxx',
+          hintText: '숫자만 입력',
           hintStyle: TextStyle(color: AppColors.caption, fontSize: 13),
           border: InputBorder.none,
           contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 17),
