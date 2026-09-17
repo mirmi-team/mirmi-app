@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/laundry_service.dart';
 import '../../core/services/notice_service.dart';
+import '../../core/services/schedule_service.dart';
 import '../../core/utils/app_clock.dart';
 import '../../shared/app_banner.dart';
 import '../../shared/app_colors.dart';
@@ -55,6 +56,7 @@ class _HomeTabState extends State<HomeTab> with AppBannerMixin {
   int? _floor;
   List<Map<String, dynamic>> _machines = const [];
   List<Map<String, dynamic>> _todaySchedule = const [];
+  List<DormSchedule> _schedules = const [];
 
   ReturnCheckType _returnType = ReturnCheckType.immediate;
   Timer? _clockTimer;
@@ -90,6 +92,9 @@ class _HomeTabState extends State<HomeTab> with AppBannerMixin {
       final machinesFuture = LaundryService.getMachines().catchError(
         (_) => <Map<String, dynamic>>[],
       );
+      final schedulesFuture = ScheduleService.getAll().catchError(
+        (_) => <DormSchedule>[],
+      );
 
       final user = await userFuture;
       final roomNumber = user['room_number'] as int?;
@@ -106,6 +111,7 @@ class _HomeTabState extends State<HomeTab> with AppBannerMixin {
 
       final notice = await noticeFuture;
       final machines = await machinesFuture;
+      final schedules = await schedulesFuture;
 
       if (!mounted) return;
       setState(() {
@@ -118,6 +124,7 @@ class _HomeTabState extends State<HomeTab> with AppBannerMixin {
             : (machines.where((m) => (m['id'] as int) ~/ 10 == floor).toList()
                 ..sort((a, b) => (a['id'] as int).compareTo(b['id'] as int)));
         _todaySchedule = todaySchedule;
+        _schedules = schedules;
         _loading = false;
       });
     } on SessionExpiredException {
@@ -127,6 +134,17 @@ class _HomeTabState extends State<HomeTab> with AppBannerMixin {
       setState(() => _loading = false);
       showErrorBanner('정보를 불러오지 못했습니다.');
     }
+  }
+
+  /// 이번 달에 있는 일정만, 날짜 순으로.
+  List<DormSchedule> get _thisMonthSchedules {
+    final now = DateTime.now();
+    final list =
+        _schedules
+            .where((s) => s.date.year == now.year && s.date.month == now.month)
+            .toList()
+          ..sort((a, b) => a.date.compareTo(b.date));
+    return list;
   }
 
   @override
@@ -191,10 +209,15 @@ class _HomeTabState extends State<HomeTab> with AppBannerMixin {
                   ),
                   const SizedBox(height: 34),
 
-                  // ── 주요 기숙사 일정 ───────────────────────
-                  const _SectionTitle('주요 기숙사 일정'),
+                  // ── 이번달 기숙사 일정 ───────────────────────
+                  const _SectionTitle('이번달 기숙사 일정'),
                   const SizedBox(height: 12),
-                  const _EmptySchedule(),
+                  if (_loading)
+                    const AppSkeleton(height: 120, radius: 10)
+                  else if (_thisMonthSchedules.isEmpty)
+                    const _EmptySchedule()
+                  else
+                    _ScheduleList(schedules: _thisMonthSchedules),
                 ]),
               ),
             ),
@@ -202,6 +225,68 @@ class _HomeTabState extends State<HomeTab> with AppBannerMixin {
         ),
         buildBanner(),
       ],
+    );
+  }
+}
+
+// ── 이번달 일정 목록 ────────────────────────────────────────────
+class _ScheduleList extends StatelessWidget {
+  const _ScheduleList({required this.schedules});
+
+  final List<DormSchedule> schedules;
+
+  static const _weekdayNames = ['월', '화', '수', '목', '금', '토', '일'];
+
+  /// '06.20 (금)'
+  String _dateLabel(DateTime date) {
+    final mm = date.month.toString().padLeft(2, '0');
+    final dd = date.day.toString().padLeft(2, '0');
+    return '$mm.$dd (${_weekdayNames[date.weekday - 1]})';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
+      decoration: BoxDecoration(
+        color: AppDark.bgSurface,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        children: [
+          for (final (i, schedule) in schedules.indexed) ...[
+            if (i != 0) const SizedBox(height: 18),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 92,
+                  child: Text(
+                    _dateLabel(schedule.date),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: AppBrand.primary,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    schedule.title,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      height: 1.35,
+                      color: AppDark.textPrimary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
     );
   }
 }
@@ -332,7 +417,11 @@ class _EmptySchedule extends StatelessWidget {
       ),
       child: const Column(
         children: [
-          Icon(Icons.event_note_outlined, color: AppDark.textTertiary, size: 26),
+          Icon(
+            Icons.event_note_outlined,
+            color: AppDark.textTertiary,
+            size: 26,
+          ),
           SizedBox(height: 10),
           Text(
             '등록된 일정이 없습니다.',
