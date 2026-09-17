@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/services/auth_service.dart';
-import '../../shared/app_colors.dart';
+import '../../shared/app_palette.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -23,10 +23,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _startAnimation() async {
     // 애니메이션과 토큰 검증 병렬 실행
-    final results = await Future.wait([
-      _checkToken(),
-      _playAnimation(),
-    ]);
+    final results = await Future.wait([_checkToken(), _playAnimation()]);
 
     if (!mounted) return;
     context.go(results[0] as bool ? '/home' : '/login');
@@ -57,7 +54,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppDark.bgCanvas,
+      backgroundColor: AppPalette.of(context).bgCanvas,
       body: AnimatedOpacity(
         opacity: screenOpacity,
         duration: const Duration(milliseconds: 300),
@@ -69,10 +66,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 offset: Offset(0, logoOffset / 180),
                 duration: const Duration(milliseconds: 600),
                 curve: Curves.easeInOut,
-                child: Image.asset(
-                  'assets/img/logo.png',
-                  width: 170,
-                ),
+                child: Image.asset('assets/img/logo.png', width: 170),
               ),
 
               AnimatedOpacity(

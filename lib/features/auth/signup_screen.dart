@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/services/auth_service.dart';
 import '../../shared/app_colors.dart';
+import '../../shared/app_palette.dart';
 import '../../shared/app_refresh.dart';
 
 enum _Step { email, password, studentInfo, dormInfo }
@@ -57,13 +58,27 @@ class _SignupScreenState extends State<SignupScreen> {
   String? _nameFieldError;
 
   static const _teal = AppBrand.primary;
-  static const _errorColor = AppDark.statusError;
-  static const _bgColor = AppDark.bgCanvas;
-  static const _captainColor = AppDark.textTertiary;
-  static const _cardColor = AppDark.bgSurface;
-  static const _textColor = AppDark.textPrimary;
-  static const _surfaceColor = AppDark.bgSurfaceHover;
-  static const _bodyColor = AppDark.textSecondary;
+
+  // 테마에 따라 바뀌는 색. build 에서 현재 팔레트를 받아 쓴다.
+  late AppPalette _palette;
+  Color get _errorColor => _palette.statusError;
+  Color get _bgColor => _palette.bgCanvas;
+
+  /// 힌트·안내 문구, 눈 아이콘
+  Color get _captainColor => _palette.textTertiary;
+
+  /// 입력 필드 배경
+  Color get _cardColor => _palette.bgSurfaceSubtle;
+  Color get _textColor => _palette.textPrimary;
+
+  /// 인증번호 보내기 버튼
+  Color get _surfaceColor => _palette.borderDefault;
+
+  /// 성별·지역 라디오 라벨
+  Color get _radioLabelColor => _palette.textDisabled;
+
+  /// 라디오 테두리 (선택 여부와 무관)
+  Color get _radioBorderColor => _palette.borderDefault;
 
   @override
   void initState() {
@@ -364,6 +379,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    _palette = AppPalette.of(context);
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
@@ -793,7 +809,7 @@ class _SignupScreenState extends State<SignupScreen> {
   Widget _buildLabel(String text) {
     return Text(
       text,
-      style: const TextStyle(
+      style: TextStyle(
         color: _textColor,
         fontSize: 18,
         fontWeight: FontWeight.w600,
@@ -812,10 +828,7 @@ class _SignupScreenState extends State<SignupScreen> {
         const SizedBox(width: 4),
         Text(
           text,
-          style: TextStyle(
-            color: tcolor ? _teal : _captainColor,
-            fontSize: 12,
-          ),
+          style: TextStyle(color: tcolor ? _teal : _captainColor, fontSize: 12),
         ),
       ],
     );
@@ -824,13 +837,10 @@ class _SignupScreenState extends State<SignupScreen> {
   Widget _buildInlineError(String text) {
     return Row(
       children: [
-        const Icon(Icons.info_outline, color: _errorColor, size: 14),
+        Icon(Icons.info_outline, color: _errorColor, size: 14),
         const SizedBox(width: 4),
         Flexible(
-          child: Text(
-            text,
-            style: const TextStyle(color: _errorColor, fontSize: 12),
-          ),
+          child: Text(text, style: TextStyle(color: _errorColor, fontSize: 12)),
         ),
       ],
     );
@@ -855,10 +865,10 @@ class _SignupScreenState extends State<SignupScreen> {
         inputFormatters: inputFormatters,
         readOnly: !enabled,
         textAlign: textAlign,
-        style: const TextStyle(color: _textColor, fontSize: 13),
+        style: TextStyle(color: _textColor, fontSize: 13),
         decoration: InputDecoration(
           hintText: hintText,
-          hintStyle: const TextStyle(color: _captainColor, fontSize: 13),
+          hintStyle: TextStyle(color: _captainColor, fontSize: 13),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 20,
@@ -885,10 +895,10 @@ class _SignupScreenState extends State<SignupScreen> {
         controller: controller,
         obscureText: obscure,
         onChanged: onChanged,
-        style: const TextStyle(color: _textColor, fontSize: 13),
+        style: TextStyle(color: _textColor, fontSize: 13),
         decoration: InputDecoration(
           hintText: hintText,
-          hintStyle: const TextStyle(color: _captainColor, fontSize: 13),
+          hintStyle: TextStyle(color: _captainColor, fontSize: 13),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 20,
@@ -932,10 +942,10 @@ class _SignupScreenState extends State<SignupScreen> {
               controller: controller,
               keyboardType: keyboardType,
               readOnly: !enabled,
-              style: const TextStyle(color: _textColor, fontSize: 13),
+              style: TextStyle(color: _textColor, fontSize: 13),
               decoration: InputDecoration(
                 hintText: hintText,
-                hintStyle: const TextStyle(color: _captainColor, fontSize: 13),
+                hintStyle: TextStyle(color: _captainColor, fontSize: 13),
                 border: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 20,
@@ -987,7 +997,7 @@ class _SignupScreenState extends State<SignupScreen> {
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           textAlign: TextAlign.center,
-          style: const TextStyle(color: _textColor, fontSize: 14),
+          style: TextStyle(color: _textColor, fontSize: 14),
           decoration: const InputDecoration(
             border: InputBorder.none,
             contentPadding: EdgeInsets.symmetric(vertical: 17),
@@ -1011,12 +1021,13 @@ class _SignupScreenState extends State<SignupScreen> {
             height: 22,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: selected ? _teal : _bodyColor,
-              border: Border.all(color: Colors.white),
+              // 채움만 선택 여부를 나타내고, 테두리는 둘 다 같은 색.
+              color: selected ? _teal : Colors.transparent,
+              border: Border.all(color: _radioBorderColor),
             ),
           ),
           const SizedBox(width: 8),
-          Text(label, style: const TextStyle(fontSize: 14, color: _textColor)),
+          Text(label, style: TextStyle(fontSize: 14, color: _radioLabelColor)),
         ],
       ),
     );

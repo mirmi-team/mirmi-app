@@ -58,7 +58,7 @@ abstract final class AppLight {
   static const bgSurface = Color(0xFFFFFFFF);
 
   /// 밝은 배경 위 반투명 표면
-  static const bgSurfaceSubtle = Color(0x28FFFFFF);
+  static const bgSurfaceSubtle = Color(0x63FFFFFF);
 
   /// 살짝 푸른 기가 도는 캔버스 변형
   static const bgCanvasAlt = Color(0xFFF8FAFC);
@@ -74,7 +74,7 @@ abstract final class AppLight {
   static const borderSubtle = Color(0xFFE5E8EB);
 
   /// 반투명 테두리
-  static const borderSubtleAlpha = Color(0x111C1C1E);
+  static const borderSubtleAlpha = Color(0x2B1C1C1C);
 
   // 상태
   static const statusError = Color(0xFFB03D3F);

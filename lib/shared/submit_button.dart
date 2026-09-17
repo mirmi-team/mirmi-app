@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../shared/app_colors.dart';
+import 'app_palette.dart';
 import 'app_refresh.dart';
 
 class SubmitButton extends StatelessWidget {
@@ -36,7 +37,8 @@ class SubmitButton extends StatelessWidget {
             backgroundColor: errorButton ? _errorColor : _teal,
             disabledBackgroundColor: _surfaceColor,
             disabledForegroundColor: _captionColor,
-            foregroundColor: Colors.white,
+            // 라이트 모드에서는 어두운 글자가 되어야 읽힌다.
+            foregroundColor: AppPalette.of(context).textPrimary,
             elevation: 0,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(30),
