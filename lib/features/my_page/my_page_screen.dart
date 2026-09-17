@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../core/services/auth_service.dart';
+import '../../core/services/theme_service.dart';
 import '../../shared/app_banner.dart';
 import '../../shared/app_colors.dart';
 import '../../shared/app_refresh.dart';
@@ -24,8 +25,9 @@ class _MyPageScreenState extends State<MyPageScreen> with AppBannerMixin {
   bool _uploading = false;
   File? _localImage;
 
-  /// 다크모드 토글. 아직 실제 테마 전환과는 연결되어 있지 않다.
-  bool _darkMode = true;
+  /// 스위치가 부드럽게 움직이도록 지역 상태로 들고 있는다.
+  /// 실제 테마는 ThemeService 가 관리한다.
+  late bool _darkMode = ThemeService.mode.value != ThemeMode.light;
 
   static const _teal = AppBrand.primary;
   static const _bgColor = AppDark.bgCanvas;
@@ -325,7 +327,10 @@ class _MyPageScreenState extends State<MyPageScreen> with AppBannerMixin {
                       _ToggleItem(
                         label: '다크모드',
                         value: _darkMode,
-                        onChanged: (v) => setState(() => _darkMode = v),
+                        onChanged: (v) {
+                          setState(() => _darkMode = v);
+                          ThemeService.setDark(v);
+                        },
                       ),
                       const SizedBox(height: 20),
                       _MenuItem(
