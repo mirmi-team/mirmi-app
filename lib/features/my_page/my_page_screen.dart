@@ -27,11 +27,11 @@ class _MyPageScreenState extends State<MyPageScreen> with AppBannerMixin {
   /// 다크모드 토글. 아직 실제 테마 전환과는 연결되어 있지 않다.
   bool _darkMode = true;
 
-  static const _teal = AppColors.mainColor;
-  static const _bgColor = AppColors.backB;
-  static const _textColor = AppColors.mainText;
-  static const _surfaceColor = AppColors.surfaceHover;
-  static const _errorColor = AppColors.error;
+  static const _teal = AppBrand.primary;
+  static const _bgColor = AppDark.bgCanvas;
+  static const _textColor = AppDark.textPrimary;
+  static const _surfaceColor = AppDark.bgSurfaceHover;
+  static const _errorColor = AppDark.statusError;
 
   @override
   void initState() {
@@ -360,13 +360,13 @@ class _InfoCell extends StatelessWidget {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: valueColor ?? AppColors.mainText,
+              color: valueColor ?? AppDark.textPrimary,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             label,
-            style: const TextStyle(fontSize: 13, color: AppColors.caption),
+            style: const TextStyle(fontSize: 13, color: AppDark.textTertiary),
           ),
         ],
       ),
@@ -393,15 +393,15 @@ class _ToggleItem extends StatelessWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(fontSize: 16, color: AppColors.mainText),
+            style: const TextStyle(fontSize: 16, color: AppDark.textPrimary),
           ),
           Switch(
             value: value,
             onChanged: onChanged,
             activeThumbColor: Colors.white,
-            activeTrackColor: AppColors.mainColor,
+            activeTrackColor: AppBrand.primary,
             inactiveThumbColor: Colors.white,
-            inactiveTrackColor: AppColors.surfaceHover,
+            inactiveTrackColor: AppDark.bgSurfaceHover,
             trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
           ),
         ],
@@ -430,7 +430,7 @@ class _MenuItem extends StatelessWidget {
               label,
               style: TextStyle(
                 fontSize: 16,
-                color: labelColor ?? AppColors.mainText,
+                color: labelColor ?? AppDark.textPrimary,
               ),
             ),
             Icon(Icons.chevron_right, color: Colors.white, size: 26),

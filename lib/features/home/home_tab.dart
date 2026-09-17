@@ -44,7 +44,7 @@ class HomeTab extends StatefulWidget {
 }
 
 class _HomeTabState extends State<HomeTab> with AppBannerMixin {
-  static const _textColor = AppColors.mainText;
+  static const _textColor = AppDark.textPrimary;
 
   bool _loading = true;
 
@@ -218,7 +218,7 @@ class _SectionTitle extends StatelessWidget {
       style: const TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.w600,
-        color: AppColors.mainText,
+        color: AppDark.textPrimary,
       ),
     );
   }
@@ -237,12 +237,12 @@ class _NoticeStrip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: AppColors.card,
+          color: AppDark.bgSurface,
           borderRadius: BorderRadius.circular(14),
         ),
         child: Row(
           children: [
-            const Icon(Icons.campaign, color: AppColors.mainColor, size: 26),
+            const Icon(Icons.campaign, color: AppBrand.primary, size: 26),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
@@ -251,7 +251,7 @@ class _NoticeStrip extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   fontSize: 14,
-                  color: AppColors.mainText,
+                  color: AppDark.textPrimary,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -278,7 +278,7 @@ class _ReturnCheckCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.fromLTRB(18, 16, 14, 16),
         decoration: BoxDecoration(
-          color: AppColors.card,
+          color: AppDark.bgSurface,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -292,13 +292,13 @@ class _ReturnCheckCard extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.mainText,
+                      color: AppDark.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 6),
                   const Text(
                     '입실 체크 시 사감 선생님께 알림이 발송됩니다.',
-                    style: TextStyle(fontSize: 12, color: AppColors.caption),
+                    style: TextStyle(fontSize: 12, color: AppDark.textTertiary),
                   ),
                 ],
               ),
@@ -306,7 +306,7 @@ class _ReturnCheckCard extends StatelessWidget {
             const SizedBox(width: 10),
             const Icon(
               Icons.chevron_right,
-              color: AppColors.mainText,
+              color: AppDark.textPrimary,
               size: 24,
             ),
           ],
@@ -326,22 +326,22 @@ class _EmptySchedule extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 34),
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: AppDark.bgSurface,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.border, width: 1),
+        border: Border.all(color: AppDark.borderSubtle, width: 1),
       ),
       child: const Column(
         children: [
-          Icon(Icons.event_note_outlined, color: AppColors.caption, size: 26),
+          Icon(Icons.event_note_outlined, color: AppDark.textTertiary, size: 26),
           SizedBox(height: 10),
           Text(
             '등록된 일정이 없습니다.',
-            style: TextStyle(fontSize: 13, color: AppColors.body),
+            style: TextStyle(fontSize: 13, color: AppDark.textSecondary),
           ),
           SizedBox(height: 4),
           Text(
             '새 일정이 등록되면 이곳에 표시됩니다.',
-            style: TextStyle(fontSize: 11, color: AppColors.caption),
+            style: TextStyle(fontSize: 11, color: AppDark.textTertiary),
           ),
         ],
       ),

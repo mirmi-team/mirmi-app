@@ -14,10 +14,10 @@ class LogoutScreen extends StatefulWidget {
 class _LogoutScreenState extends State<LogoutScreen> {
   bool _loading = false;
 
-  static const _bgColor = AppColors.backB;
-  static const _textColor = AppColors.mainText;
-  static const _surfaceColor = AppColors.surfaceHover;
-  static const _bodyColor = AppColors.body;
+  static const _bgColor = AppDark.bgCanvas;
+  static const _textColor = AppDark.textPrimary;
+  static const _surfaceColor = AppDark.bgSurfaceHover;
+  static const _bodyColor = AppDark.textSecondary;
 
   Future<void> _logout() async {
     setState(() => _loading = true);

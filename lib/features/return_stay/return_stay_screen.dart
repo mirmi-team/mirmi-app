@@ -26,7 +26,7 @@ class ReturnStayScreen extends StatefulWidget {
 
 class _ReturnStayScreenState extends State<ReturnStayScreen>
     with AppBannerMixin {
-  static const _textColor = AppColors.mainText;
+  static const _textColor = AppDark.textPrimary;
 
   static const _returnOptions = ['바로 복귀', '석식 복귀', '8시 복귀'];
 
@@ -263,7 +263,7 @@ class _ReturnStayScreenState extends State<ReturnStayScreen>
                                 style: TextStyle(
                                   fontSize: 12,
                                   height: 1.4,
-                                  color: AppColors.caption,
+                                  color: AppDark.textTertiary,
                                 ),
                               ),
                             ],
@@ -305,7 +305,7 @@ class _ReturnCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.fromLTRB(18, 16, 14, 16),
         decoration: BoxDecoration(
-          color: AppColors.card,
+          color: AppDark.bgSurface,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -319,13 +319,13 @@ class _ReturnCard extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.mainText,
+                      color: AppDark.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 6),
                   const Text(
                     '입실 체크 시 사감 선생님께 알림이 발송됩니다.',
-                    style: TextStyle(fontSize: 12, color: AppColors.caption),
+                    style: TextStyle(fontSize: 12, color: AppDark.textTertiary),
                   ),
                 ],
               ),
@@ -333,7 +333,7 @@ class _ReturnCard extends StatelessWidget {
             const SizedBox(width: 10),
             const Icon(
               Icons.chevron_right,
-              color: AppColors.mainText,
+              color: AppDark.textPrimary,
               size: 24,
             ),
           ],
@@ -352,7 +352,7 @@ class _FieldLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text,
-      style: const TextStyle(fontSize: 13, color: AppColors.body),
+      style: const TextStyle(fontSize: 13, color: AppDark.textSecondary),
     );
   }
 }
@@ -382,7 +382,7 @@ class _ChoiceButton extends StatelessWidget {
         height: 52,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: selected ? AppColors.mainColor : AppColors.card,
+          color: selected ? AppBrand.primary : AppDark.bgSurface,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Text(
@@ -390,7 +390,7 @@ class _ChoiceButton extends StatelessWidget {
           style: TextStyle(
             fontSize: 14,
             fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-            color: AppColors.mainText,
+            color: AppDark.textPrimary,
           ),
         ),
       ),
@@ -409,7 +409,7 @@ class _PhoneField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: AppDark.bgSurface,
         borderRadius: BorderRadius.circular(15),
       ),
       child: TextField(
@@ -421,10 +421,10 @@ class _PhoneField extends StatelessWidget {
           FilteringTextInputFormatter.digitsOnly,
           LengthLimitingTextInputFormatter(_phoneDigits),
         ],
-        style: const TextStyle(color: AppColors.mainText, fontSize: 13),
+        style: const TextStyle(color: AppDark.textPrimary, fontSize: 13),
         decoration: const InputDecoration(
           hintText: '숫자만 입력',
-          hintStyle: TextStyle(color: AppColors.caption, fontSize: 13),
+          hintStyle: TextStyle(color: AppDark.textTertiary, fontSize: 13),
           border: InputBorder.none,
           contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 17),
         ),

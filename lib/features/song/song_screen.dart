@@ -23,7 +23,7 @@ class SongScreen extends StatefulWidget {
 }
 
 class _SongScreenState extends State<SongScreen> with AppBannerMixin {
-  static const _textColor = AppColors.mainText;
+  static const _textColor = AppDark.textPrimary;
 
   final _queryController = TextEditingController();
 
@@ -101,14 +101,14 @@ class _SongScreenState extends State<SongScreen> with AppBannerMixin {
                       height: 48,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       decoration: BoxDecoration(
-                        color: AppColors.card,
+                        color: AppDark.bgSurface,
                         borderRadius: BorderRadius.circular(24),
                       ),
                       child: Row(
                         children: [
                           const Icon(
                             Icons.search,
-                            color: AppColors.caption,
+                            color: AppDark.textTertiary,
                             size: 18,
                           ),
                           const SizedBox(width: 8),
@@ -124,7 +124,7 @@ class _SongScreenState extends State<SongScreen> with AppBannerMixin {
                               decoration: const InputDecoration(
                                 hintText: '음악 찾아보기',
                                 hintStyle: TextStyle(
-                                  color: AppColors.caption,
+                                  color: AppDark.textTertiary,
                                   fontSize: 14,
                                 ),
                                 border: InputBorder.none,
@@ -145,7 +145,7 @@ class _SongScreenState extends State<SongScreen> with AppBannerMixin {
                       width: 59,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: AppColors.card,
+                        color: AppDark.bgSurface,
                         borderRadius: BorderRadius.circular(24),
                       ),
                       child: _searching
@@ -177,9 +177,9 @@ class _SongScreenState extends State<SongScreen> with AppBannerMixin {
                   height: 48,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: AppColors.card,
+                    color: AppDark.bgSurface,
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.border),
+                    border: Border.all(color: AppDark.borderSubtle),
                   ),
                   child: const Text(
                     '내 신청 목록 보기',
@@ -241,7 +241,7 @@ class _CenterMessage extends StatelessWidget {
     return Center(
       child: Text(
         text,
-        style: const TextStyle(fontSize: 13, color: AppColors.caption),
+        style: const TextStyle(fontSize: 13, color: AppDark.textTertiary),
       ),
     );
   }

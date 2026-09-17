@@ -15,8 +15,8 @@ class NoticeDetailScreen extends StatelessWidget {
 
   final Notice notice;
 
-  static const _bgColor = AppColors.backB;
-  static const _textColor = AppColors.mainText;
+  static const _bgColor = AppDark.bgCanvas;
+  static const _textColor = AppDark.textPrimary;
 
   @override
   Widget build(BuildContext context) {
@@ -90,7 +90,7 @@ class _NoticeImage extends StatelessWidget {
           return const AspectRatio(
             aspectRatio: 1,
             child: ColoredBox(
-              color: AppColors.card,
+              color: AppDark.bgSurface,
               child: AppLoadingIndicator(size: 26, strokeWidth: 2.4),
             ),
           );
@@ -98,21 +98,21 @@ class _NoticeImage extends StatelessWidget {
         errorBuilder: (context, error, stackTrace) => Container(
           padding: const EdgeInsets.symmetric(vertical: 40),
           decoration: BoxDecoration(
-            color: AppColors.card,
+            color: AppDark.bgSurface,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppColors.border, width: 1),
+            border: Border.all(color: AppDark.borderSubtle, width: 1),
           ),
           child: const Column(
             children: [
               Icon(
                 Icons.image_not_supported_outlined,
-                color: AppColors.caption,
+                color: AppDark.textTertiary,
                 size: 26,
               ),
               SizedBox(height: 10),
               Text(
                 '이미지를 불러오지 못했습니다.',
-                style: TextStyle(fontSize: 13, color: AppColors.body),
+                style: TextStyle(fontSize: 13, color: AppDark.textSecondary),
               ),
             ],
           ),

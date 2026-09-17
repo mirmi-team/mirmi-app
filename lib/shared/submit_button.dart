@@ -18,10 +18,10 @@ class SubmitButton extends StatelessWidget {
   final bool submitButton;
   final bool errorButton;
 
-  static const _teal = AppColors.mainColor;
-  static const _surfaceColor = AppColors.surfaceHover;
-  static const _captionColor = AppColors.caption;
-  static const _errorColor = AppColors.error;
+  static const _teal = AppBrand.primary;
+  static const _surfaceColor = AppDark.bgSurfaceHover;
+  static const _captionColor = AppDark.textTertiary;
+  static const _errorColor = AppDark.statusError;
 
   @override
   Widget build(BuildContext context) {

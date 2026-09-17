@@ -20,7 +20,7 @@ class NoticeScreen extends StatefulWidget {
 
 class _NoticeScreenState extends State<NoticeScreen>
     with AppBannerMixin, WidgetsBindingObserver {
-  static const _textColor = AppColors.mainText;
+  static const _textColor = AppDark.textPrimary;
 
   /// 0 = 공지 사항, 1 = 건의사항
   int _tabIndex = 0;
@@ -178,7 +178,7 @@ class _NoticeScreenState extends State<NoticeScreen>
 
               // ── 기숙사 일정 ─────────────────────────────
               const SizedBox(height: 28),
-              const Divider(color: AppColors.border, height: 1),
+              const Divider(color: AppDark.borderSubtle, height: 1),
               const SizedBox(height: 28),
               if (_loading)
                 const AppSkeleton(height: 320, radius: 10)
@@ -192,7 +192,7 @@ class _NoticeScreenState extends State<NoticeScreen>
                   ),
                 ),
                 const SizedBox(height: 28),
-                const Divider(color: AppColors.border, height: 1),
+                const Divider(color: AppDark.borderSubtle, height: 1),
                 const SizedBox(height: 24),
                 const Text(
                   '오늘 일정',
@@ -206,7 +206,7 @@ class _NoticeScreenState extends State<NoticeScreen>
                 if (_todaySchedules.isEmpty)
                   const Text(
                     '오늘 예정된 일정이 없습니다.',
-                    style: TextStyle(fontSize: 13, color: AppColors.caption),
+                    style: TextStyle(fontSize: 13, color: AppDark.textTertiary),
                   )
                 else
                   for (final schedule in _todaySchedules) ...[
@@ -239,7 +239,7 @@ class _NoticeCard extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
         decoration: BoxDecoration(
-          color: AppColors.surfaceHover,
+          color: AppDark.bgSurfaceHover,
           borderRadius: BorderRadius.circular(6),
         ),
         child: Row(
@@ -254,7 +254,7 @@ class _NoticeCard extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.mainText,
+                      color: AppDark.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -263,7 +263,7 @@ class _NoticeCard extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 12,
                       height: 1.35,
-                      color: AppColors.caption,
+                      color: AppDark.textTertiary,
                     ),
                   ),
                 ],
@@ -274,7 +274,7 @@ class _NoticeCard extends StatelessWidget {
               padding: const EdgeInsets.only(top: 2),
               child: Text(
                 notice.timeAgo,
-                style: const TextStyle(fontSize: 10, color: AppColors.caption),
+                style: const TextStyle(fontSize: 10, color: AppDark.textTertiary),
               ),
             ),
           ],
@@ -294,26 +294,26 @@ class _EmptyNotice extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 34),
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: AppDark.bgSurface,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.border, width: 1),
+        border: Border.all(color: AppDark.borderSubtle, width: 1),
       ),
       child: const Column(
         children: [
           Icon(
             Icons.notifications_off_outlined,
-            color: AppColors.caption,
+            color: AppDark.textTertiary,
             size: 26,
           ),
           SizedBox(height: 10),
           Text(
             '오늘 등록된 공지사항이 없습니다.',
-            style: TextStyle(fontSize: 13, color: AppColors.body),
+            style: TextStyle(fontSize: 13, color: AppDark.textSecondary),
           ),
           SizedBox(height: 4),
           Text(
             '새 공지가 올라오면 이곳에 표시됩니다.',
-            style: TextStyle(fontSize: 11, color: AppColors.caption),
+            style: TextStyle(fontSize: 11, color: AppDark.textTertiary),
           ),
         ],
       ),

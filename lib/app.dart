@@ -19,11 +19,11 @@ class MyApp extends StatelessWidget {
         // dark로 두면 iOS 키보드가 다크 테마로 뜬다. (Android는 시스템 IME가 결정)
         theme: ThemeData(
           brightness: Brightness.dark,
-          scaffoldBackgroundColor: AppColors.backB,
+          scaffoldBackgroundColor: AppDark.bgCanvas,
           textSelectionTheme: const TextSelectionThemeData(
-            cursorColor: AppColors.mainColor,
+            cursorColor: AppBrand.primary,
             selectionColor: Color(0x5506B6D4),
-            selectionHandleColor: AppColors.mainColor,
+            selectionHandleColor: AppBrand.primary,
           ),
         ),
         builder: (context, child) {

@@ -15,12 +15,12 @@ class LaundryScreen extends StatefulWidget {
 }
 
 class _LaundryScreenState extends State<LaundryScreen> {
-  static const _teal = AppColors.mainColor;
-  static const _bgColor = AppColors.backB;
-  static const _captionColor = AppColors.caption;
-  static const _textColor = AppColors.mainText;
-  static const _cardColor = AppColors.card;
-  static const _errorColor = AppColors.error;
+  static const _teal = AppBrand.primary;
+  static const _bgColor = AppDark.bgCanvas;
+  static const _captionColor = AppDark.textTertiary;
+  static const _textColor = AppDark.textPrimary;
+  static const _cardColor = AppDark.bgSurface;
+  static const _errorColor = AppDark.statusError;
 
   bool _isLoading = true;
   String? _errorMessage;

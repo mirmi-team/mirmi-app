@@ -20,13 +20,13 @@ class _MeritLogScreenState extends State<MeritLogScreen> with AppBannerMixin {
   // 0=전체 1=상점 2=벌점
   int _tabIndex = 0;
 
-  static const _bgColor = AppColors.backB;
-  static const _textColor = AppColors.mainText;
-  static const _captionColor = AppColors.caption;
-  static const _surfaceColor = AppColors.surfaceHover;
-  static const _cardColor = AppColors.card;
-  static const _bodyColor = AppColors.body;
-  static const _teal = AppColors.mainColor;
+  static const _bgColor = AppDark.bgCanvas;
+  static const _textColor = AppDark.textPrimary;
+  static const _captionColor = AppDark.textTertiary;
+  static const _surfaceColor = AppDark.bgSurfaceHover;
+  static const _cardColor = AppDark.bgSurface;
+  static const _bodyColor = AppDark.textSecondary;
+  static const _teal = AppBrand.primary;
 
   @override
   void initState() {
@@ -178,7 +178,7 @@ class _MeritLogScreenState extends State<MeritLogScreen> with AppBannerMixin {
                           ],
                         ),
                         const Spacer(),
-                        const Divider(color: AppColors.border, height: 1),
+                        const Divider(color: AppDark.borderSubtle, height: 1),
                         const SizedBox(height: 15),
                         SizedBox(
                           child: Padding(
@@ -221,7 +221,7 @@ class _MeritLogScreenState extends State<MeritLogScreen> with AppBannerMixin {
                           right: 10,
                           bottom: 0,
                           child: Divider(
-                            color: AppColors.body,
+                            color: AppDark.textSecondary,
                             height: 1,
                             thickness: 1,
                           ),
@@ -235,7 +235,7 @@ class _MeritLogScreenState extends State<MeritLogScreen> with AppBannerMixin {
                           child: Container(
                             width: tabWidth,
                             height: 2,
-                            color: AppColors.mainColor,
+                            color: AppBrand.primary,
                           ),
                         ),
                         // 탭 버튼들
@@ -369,7 +369,7 @@ class _MeritLogScreenState extends State<MeritLogScreen> with AppBannerMixin {
                                                         fontSize: 15,
                                                         fontWeight:
                                                             FontWeight.w600,
-                                                        color: AppColors.error,
+                                                        color: AppDark.statusError,
                                                       ),
                                                     ),
                                                 ],
@@ -379,7 +379,7 @@ class _MeritLogScreenState extends State<MeritLogScreen> with AppBannerMixin {
                                         ),
                                       ),
                                       const Divider(
-                                        color: AppColors.border,
+                                        color: AppDark.borderSubtle,
                                         height: 1,
                                       ),
                                     ],
@@ -438,7 +438,7 @@ class _Tab extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                  color: selected ? AppColors.mainColor : AppColors.body,
+                  color: selected ? AppBrand.primary : AppDark.textSecondary,
                 ),
               ),
             ),

@@ -19,7 +19,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  static const _bgColor = AppColors.backB;
+  static const _bgColor = AppDark.bgCanvas;
 
   final PageController _pageController = PageController();
 
@@ -190,7 +190,7 @@ class _NavBar extends StatefulWidget {
 }
 
 class _NavBarState extends State<_NavBar> with SingleTickerProviderStateMixin {
-  static const _surfaceColor = AppColors.surfaceHover;
+  static const _surfaceColor = AppDark.bgSurfaceHover;
 
   static const _items = [
     _NavItem(icon: Icons.home_outlined, activeIcon: Icons.home_rounded),

@@ -12,7 +12,7 @@ Future<void> showScheduleSheet(
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
-    backgroundColor: AppColors.card,
+    backgroundColor: AppDark.bgSurface,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
@@ -48,7 +48,7 @@ class _ScheduleSheet extends StatelessWidget {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: AppColors.border,
+                color: AppDark.borderSubtle,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -61,7 +61,7 @@ class _ScheduleSheet extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: AppColors.mainText,
+                color: AppDark.textPrimary,
               ),
             ),
           ),
@@ -72,7 +72,7 @@ class _ScheduleSheet extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
               itemCount: schedules.length,
               separatorBuilder: (_, _) =>
-                  const Divider(color: AppColors.border, height: 32),
+                  const Divider(color: AppDark.borderSubtle, height: 32),
               itemBuilder: (context, i) => ScheduleTile(schedule: schedules[i]),
             ),
           ),
@@ -98,7 +98,7 @@ class ScheduleTile extends StatelessWidget {
           style: const TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w600,
-            color: AppColors.mainText,
+            color: AppDark.textPrimary,
           ),
         ),
         if (schedule.description.isNotEmpty) ...[
@@ -108,7 +108,7 @@ class ScheduleTile extends StatelessWidget {
             style: const TextStyle(
               fontSize: 13,
               height: 1.45,
-              color: AppColors.caption,
+              color: AppDark.textTertiary,
             ),
           ),
         ],

@@ -16,10 +16,10 @@ class InquiryScreen extends StatefulWidget {
 }
 
 class _InquiryScreenState extends State<InquiryScreen> with AppBannerMixin {
-  static const _bgColor = AppColors.backB;
-  static const _textColor = AppColors.mainText;
-  static const _captionColor = AppColors.caption;
-  static const _surfaceColor = AppColors.surfaceHover;
+  static const _bgColor = AppDark.bgCanvas;
+  static const _textColor = AppDark.textPrimary;
+  static const _captionColor = AppDark.textTertiary;
+  static const _surfaceColor = AppDark.bgSurfaceHover;
 
   final _subjectCtrl = TextEditingController();
   final _messageCtrl = TextEditingController();
@@ -207,7 +207,7 @@ class GuideText extends StatelessWidget {
   final String text;
   const GuideText({super.key, required this.text});
 
-  static const _textColor = AppColors.mainText;
+  static const _textColor = AppDark.textPrimary;
 
   @override
   Widget build(BuildContext context) {
@@ -228,8 +228,8 @@ class TextInput extends StatelessWidget {
     this.onChanged,
   });
 
-  static const _textColor = AppColors.mainText;
-  static const _cardColor = AppColors.card2;
+  static const _textColor = AppDark.textPrimary;
+  static const _cardColor = AppDark.bgSurface;
 
   @override
   Widget build(BuildContext context) {

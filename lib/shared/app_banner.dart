@@ -7,12 +7,12 @@ import 'app_colors.dart';
 mixin AppBannerMixin<T extends StatefulWidget> on State<T> {
   bool _bannerVisible = false;
   String? _bannerMessage;
-  Color _bannerColor = AppColors.error;
+  Color _bannerColor = AppDark.statusError;
   IconData _bannerIcon = Icons.priority_high_rounded;
 
-  void showErrorBanner(String msg) => _show(msg, AppColors.error, Icons.priority_high_rounded);
-  void showSuccessBanner(String msg) => _show(msg, AppColors.mainColor, Icons.check);
-  void showInfoBanner(String msg) => _show(msg, AppColors.mainColor, Icons.info_outline);
+  void showErrorBanner(String msg) => _show(msg, AppDark.statusError, Icons.priority_high_rounded);
+  void showSuccessBanner(String msg) => _show(msg, AppBrand.primary, Icons.check);
+  void showInfoBanner(String msg) => _show(msg, AppBrand.primary, Icons.info_outline);
 
   void _show(String msg, Color color, IconData icon) {
     setState(() {

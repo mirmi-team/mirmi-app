@@ -35,9 +35,9 @@ class AppSegmentedTabs extends StatelessWidget {
         return Container(
           height: _height,
           decoration: BoxDecoration(
-            color: AppColors.card,
+            color: AppDark.bgSurface,
             borderRadius: BorderRadius.circular(_height / 2),
-            border: Border.all(color: AppColors.border, width: 1),
+            border: Border.all(color: AppDark.borderSubtle, width: 1),
           ),
           child: Stack(
             children: [
@@ -72,8 +72,8 @@ class AppSegmentedTabs extends StatelessWidget {
                                 ? FontWeight.w700
                                 : FontWeight.w500,
                             color: selected
-                                ? AppColors.mainText
-                                : AppColors.caption,
+                                ? AppDark.textPrimary
+                                : AppDark.textTertiary,
                           ),
                           child: Text(labels[i]),
                         ),

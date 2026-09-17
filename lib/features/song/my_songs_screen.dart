@@ -25,7 +25,7 @@ Future<void> showMySongsSheet(BuildContext context) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
-    backgroundColor: AppColors.card,
+    backgroundColor: AppDark.bgSurface,
     constraints: BoxConstraints(maxHeight: maxHeight),
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -46,7 +46,7 @@ class MySongsScreen extends StatefulWidget {
 }
 
 class _MySongsScreenState extends State<MySongsScreen> with AppBannerMixin {
-  static const _textColor = AppColors.mainText;
+  static const _textColor = AppDark.textPrimary;
 
   bool _loading = true;
   List<MorningSong> _songs = const [];
@@ -161,7 +161,7 @@ class _MySongsScreenState extends State<MySongsScreen> with AppBannerMixin {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.border,
+                  color: AppDark.borderSubtle,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -208,7 +208,7 @@ class _MySongsScreenState extends State<MySongsScreen> with AppBannerMixin {
                   child: Center(
                     child: Text(
                       '신청한 곡이 없습니다.',
-                      style: TextStyle(fontSize: 13, color: AppColors.caption),
+                      style: TextStyle(fontSize: 13, color: AppDark.textTertiary),
                     ),
                   ),
                 )
@@ -221,7 +221,7 @@ class _MySongsScreenState extends State<MySongsScreen> with AppBannerMixin {
                           _dateLabel(group.key),
                           style: const TextStyle(
                             fontSize: 13,
-                            color: AppColors.caption,
+                            color: AppDark.textTertiary,
                           ),
                         ),
                       ),

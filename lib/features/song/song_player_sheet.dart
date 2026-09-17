@@ -33,7 +33,7 @@ Future<void> showSongPlayerSheet(
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
-    backgroundColor: AppColors.card,
+    backgroundColor: AppDark.bgSurface,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
@@ -88,7 +88,7 @@ class _SongPlayerSheetState extends State<_SongPlayerSheet> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: AppColors.border,
+                color: AppDark.borderSubtle,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -104,7 +104,7 @@ class _SongPlayerSheetState extends State<_SongPlayerSheet> {
                 fontSize: 15,
                 fontWeight: FontWeight.w700,
                 height: 1.35,
-                color: AppColors.mainText,
+                color: AppDark.textPrimary,
               ),
             ),
           ),
@@ -118,7 +118,7 @@ class _SongPlayerSheetState extends State<_SongPlayerSheet> {
             padding: EdgeInsets.symmetric(horizontal: 20),
             child: Text(
               '일부 영상은 저작권자 설정으로 앱 안에서 재생되지 않을 수 있습니다.',
-              style: TextStyle(fontSize: 11, color: AppColors.caption),
+              style: TextStyle(fontSize: 11, color: AppDark.textTertiary),
             ),
           ),
           const SizedBox(height: 20),

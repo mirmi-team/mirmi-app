@@ -30,10 +30,10 @@ class LaundryStatusSection extends StatelessWidget {
   /// true 면 기기 자리에 스켈레톤을 놓는다. 제목과 층 뱃지는 그대로 보인다.
   final bool loading;
 
-  static const _teal = AppColors.mainColor;
-  static const _textColor = AppColors.mainText;
-  static const _captionColor = AppColors.caption;
-  static const _cardColor = AppColors.card;
+  static const _teal = AppBrand.primary;
+  static const _textColor = AppDark.textPrimary;
+  static const _captionColor = AppDark.textTertiary;
+  static const _cardColor = AppDark.bgSurface;
 
   /// 한 층에 놓인 세탁기 수. 로딩 중 자리를 잡아둘 때 쓴다.
   static const _skeletonCount = 3;

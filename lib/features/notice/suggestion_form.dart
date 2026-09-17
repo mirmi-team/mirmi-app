@@ -26,7 +26,7 @@ class SuggestionForm extends StatefulWidget {
 }
 
 class _SuggestionFormState extends State<SuggestionForm> {
-  static const _textColor = AppColors.mainText;
+  static const _textColor = AppDark.textPrimary;
 
   final _titleController = TextEditingController();
   final _contentController = TextEditingController();
@@ -64,7 +64,7 @@ class _SuggestionFormState extends State<SuggestionForm> {
       context: context,
       // 기본 최대 높이가 화면의 9/16 이라 항목 7개가 들어가지 않는다.
       isScrollControlled: true,
-      backgroundColor: AppColors.card,
+      backgroundColor: AppDark.bgSurface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -79,7 +79,7 @@ class _SuggestionFormState extends State<SuggestionForm> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.border,
+                  color: AppDark.borderSubtle,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -103,14 +103,14 @@ class _SuggestionFormState extends State<SuggestionForm> {
                           ? FontWeight.w700
                           : FontWeight.w500,
                       color: _category == entry.key
-                          ? AppColors.mainColor
+                          ? AppBrand.primary
                           : _textColor,
                     ),
                   ),
                   trailing: _category == entry.key
                       ? const Icon(
                           Icons.check,
-                          color: AppColors.mainColor,
+                          color: AppBrand.primary,
                           size: 20,
                         )
                       : null,
@@ -192,7 +192,7 @@ class _SuggestionFormState extends State<SuggestionForm> {
                       height: 54,
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       decoration: BoxDecoration(
-                        color: AppColors.card,
+                        color: AppDark.bgSurface,
                         borderRadius: BorderRadius.circular(15),
                       ),
                       child: Row(
@@ -205,14 +205,14 @@ class _SuggestionFormState extends State<SuggestionForm> {
                               style: TextStyle(
                                 fontSize: 13,
                                 color: _category == null
-                                    ? AppColors.caption
+                                    ? AppDark.textTertiary
                                     : _textColor,
                               ),
                             ),
                           ),
                           const Icon(
                             Icons.keyboard_arrow_down_rounded,
-                            color: AppColors.caption,
+                            color: AppDark.textTertiary,
                             size: 22,
                           ),
                         ],
@@ -226,7 +226,7 @@ class _SuggestionFormState extends State<SuggestionForm> {
                   const SizedBox(height: 10),
                   Container(
                     decoration: BoxDecoration(
-                      color: AppColors.card,
+                      color: AppDark.bgSurface,
                       borderRadius: BorderRadius.circular(15),
                     ),
                     child: TextField(
@@ -238,7 +238,7 @@ class _SuggestionFormState extends State<SuggestionForm> {
                       decoration: const InputDecoration(
                         hintText: '예) 3층 샤워실 온수가 자주 끊겨요',
                         hintStyle: TextStyle(
-                          color: AppColors.caption,
+                          color: AppDark.textTertiary,
                           fontSize: 13,
                         ),
                         border: InputBorder.none,
@@ -256,7 +256,7 @@ class _SuggestionFormState extends State<SuggestionForm> {
                   const SizedBox(height: 10),
                   Container(
                     decoration: BoxDecoration(
-                      color: AppColors.card,
+                      color: AppDark.bgSurface,
                       borderRadius: BorderRadius.circular(15),
                     ),
                     child: TextField(
@@ -274,7 +274,7 @@ class _SuggestionFormState extends State<SuggestionForm> {
                             '예) 저녁 8시 이후 3층 샤워실 온수가 끊겨서\n'
                             '    씻기 불편해요. 점검 부탁드립니다.',
                         hintStyle: TextStyle(
-                          color: AppColors.caption,
+                          color: AppDark.textTertiary,
                           fontSize: 13,
                           height: 1.5,
                         ),
@@ -291,7 +291,7 @@ class _SuggestionFormState extends State<SuggestionForm> {
                   const Center(
                     child: Text(
                       '건의 내용은 사감선생님께 전송됩니다.',
-                      style: TextStyle(fontSize: 12, color: AppColors.caption),
+                      style: TextStyle(fontSize: 12, color: AppDark.textTertiary),
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -318,7 +318,7 @@ class _FieldLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text,
-      style: const TextStyle(fontSize: 13, color: AppColors.body),
+      style: const TextStyle(fontSize: 13, color: AppDark.textSecondary),
     );
   }
 }

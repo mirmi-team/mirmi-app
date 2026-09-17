@@ -68,7 +68,7 @@ class _ScheduleCalendarState extends State<ScheduleCalendar> {
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: AppColors.mainText,
+            color: AppDark.textPrimary,
           ),
         ),
         const SizedBox(height: 18),
@@ -88,14 +88,14 @@ class _ScheduleCalendarState extends State<ScheduleCalendar> {
                   style: const TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.mainColor,
+                    color: AppBrand.primary,
                   ),
                 ),
                 Text(
                   '${_month.year}',
                   style: const TextStyle(
                     fontSize: 12,
-                    color: AppColors.caption,
+                    color: AppDark.textTertiary,
                   ),
                 ),
               ],
@@ -116,7 +116,7 @@ class _ScheduleCalendarState extends State<ScheduleCalendar> {
                 child: Center(
                   child: Text(
                     name,
-                    style: const TextStyle(fontSize: 13, color: AppColors.body),
+                    style: const TextStyle(fontSize: 13, color: AppDark.textSecondary),
                   ),
                 ),
               ),
@@ -163,7 +163,7 @@ class _ScheduleCalendarState extends State<ScheduleCalendar> {
               width: 4,
               height: 4,
               decoration: BoxDecoration(
-                color: isToday ? AppColors.mainColor : Colors.transparent,
+                color: isToday ? AppBrand.primary : Colors.transparent,
                 shape: BoxShape.circle,
               ),
             ),
@@ -173,7 +173,7 @@ class _ScheduleCalendarState extends State<ScheduleCalendar> {
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: hasSchedule ? FontWeight.w700 : FontWeight.w400,
-                color: hasSchedule ? AppColors.mainText : AppColors.body,
+                color: hasSchedule ? AppDark.textPrimary : AppDark.textSecondary,
               ),
             ),
             const SizedBox(height: 5),
@@ -182,7 +182,7 @@ class _ScheduleCalendarState extends State<ScheduleCalendar> {
               width: 26,
               height: 2,
               decoration: BoxDecoration(
-                color: hasSchedule ? AppColors.mainColor : Colors.transparent,
+                color: hasSchedule ? AppBrand.primary : Colors.transparent,
                 borderRadius: BorderRadius.circular(1),
               ),
             ),
@@ -206,7 +206,7 @@ class _ArrowButton extends StatelessWidget {
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.all(8),
-        child: Icon(icon, color: AppColors.mainText, size: 24),
+        child: Icon(icon, color: AppDark.textPrimary, size: 24),
       ),
     );
   }

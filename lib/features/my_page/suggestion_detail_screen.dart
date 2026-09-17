@@ -23,8 +23,8 @@ class SuggestionDetailScreen extends StatefulWidget {
 
 class _SuggestionDetailScreenState extends State<SuggestionDetailScreen>
     with AppBannerMixin {
-  static const _bgColor = AppColors.backB;
-  static const _textColor = AppColors.mainText;
+  static const _bgColor = AppDark.bgCanvas;
+  static const _textColor = AppDark.textPrimary;
 
   bool _loading = true;
   late Suggestion _suggestion = widget.suggestion;
@@ -112,7 +112,7 @@ class _SuggestionDetailScreenState extends State<SuggestionDetailScreen>
               width: 36,
               height: 36,
               decoration: const BoxDecoration(
-                color: AppColors.surfaceHover,
+                color: AppDark.bgSurfaceHover,
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -172,7 +172,7 @@ class _SuggestionDetailScreenState extends State<SuggestionDetailScreen>
                         style: const TextStyle(
                           fontSize: 14,
                           height: 1.55,
-                          color: AppColors.body,
+                          color: AppDark.textSecondary,
                         ),
                       ),
                     const SizedBox(height: 22),
@@ -184,7 +184,7 @@ class _SuggestionDetailScreenState extends State<SuggestionDetailScreen>
                           _suggestion.dateLabel,
                           style: const TextStyle(
                             fontSize: 12,
-                            color: AppColors.caption,
+                            color: AppDark.textTertiary,
                           ),
                         ),
                         if (_writer != null && _writer!.isNotEmpty) ...[
@@ -192,14 +192,14 @@ class _SuggestionDetailScreenState extends State<SuggestionDetailScreen>
                           Container(
                             width: 1,
                             height: 11,
-                            color: AppColors.border,
+                            color: AppDark.borderSubtle,
                           ),
                           const SizedBox(width: 10),
                           Text(
                             _writer!,
                             style: const TextStyle(
                               fontSize: 12,
-                              color: AppColors.caption,
+                              color: AppDark.textTertiary,
                             ),
                           ),
                         ],
@@ -244,9 +244,9 @@ class _ReplyCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: AppDark.bgSurface,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.border, width: 1),
+        border: Border.all(color: AppDark.borderSubtle, width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -255,8 +255,8 @@ class _ReplyCard extends StatelessWidget {
             children: [
               const CircleAvatar(
                 radius: 13,
-                backgroundColor: AppColors.surfaceHover,
-                child: Icon(Icons.person, size: 15, color: AppColors.caption),
+                backgroundColor: AppDark.bgSurfaceHover,
+                child: Icon(Icons.person, size: 15, color: AppDark.textTertiary),
               ),
               const SizedBox(width: 10),
               const Text(
@@ -264,7 +264,7 @@ class _ReplyCard extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.mainText,
+                  color: AppDark.textPrimary,
                 ),
               ),
             ],
@@ -275,7 +275,7 @@ class _ReplyCard extends StatelessWidget {
             style: const TextStyle(
               fontSize: 13,
               height: 1.55,
-              color: AppColors.body,
+              color: AppDark.textSecondary,
             ),
           ),
         ],
@@ -294,13 +294,13 @@ class _NoReply extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 18),
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: AppDark.bgSurface,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.border, width: 1),
+        border: Border.all(color: AppDark.borderSubtle, width: 1),
       ),
       child: const Text(
         '아직 답변이 달리지 않았어요.',
-        style: TextStyle(fontSize: 13, color: AppColors.caption),
+        style: TextStyle(fontSize: 13, color: AppDark.textTertiary),
       ),
     );
   }

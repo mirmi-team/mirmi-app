@@ -65,7 +65,7 @@ class SongRow extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.mainText,
+                  color: AppDark.textPrimary,
                 ),
               ),
               if (subtitle.isNotEmpty) ...[
@@ -75,7 +75,7 @@ class SongRow extends StatelessWidget {
                     const Icon(
                       Icons.check_circle,
                       size: 13,
-                      color: AppColors.caption,
+                      color: AppDark.textTertiary,
                     ),
                     const SizedBox(width: 4),
                     Expanded(
@@ -85,7 +85,7 @@ class SongRow extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 12,
-                          color: AppColors.caption,
+                          color: AppDark.textTertiary,
                         ),
                       ),
                     ),
@@ -105,9 +105,9 @@ class SongRow extends StatelessWidget {
               height: 32,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: AppColors.card,
+                color: AppDark.bgSurface,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.border),
+                border: Border.all(color: AppDark.borderSubtle),
               ),
               child: busy
                   ? const AppLoadingIndicator(size: 14, strokeWidth: 2)
@@ -117,8 +117,8 @@ class SongRow extends StatelessWidget {
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: destructive
-                            ? AppColors.error
-                            : AppColors.mainText,
+                            ? AppDark.statusError
+                            : AppDark.textPrimary,
                       ),
                     ),
             ),
@@ -135,8 +135,8 @@ class _ThumbFallback extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.card,
-      child: const Icon(Icons.music_note, size: 20, color: AppColors.caption),
+      color: AppDark.bgSurface,
+      child: const Icon(Icons.music_note, size: 20, color: AppDark.textTertiary),
     );
   }
 }

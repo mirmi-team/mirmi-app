@@ -17,11 +17,11 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen>
   bool _agreed = false;
   bool _loading = false;
 
-  static const _bgColor = AppColors.backB;
-  static const _textColor = AppColors.mainText;
-  static const _surfaceColor = AppColors.surfaceHover;
-  static const _bodyColor = AppColors.body;
-  static const _borderColor = AppColors.border;
+  static const _bgColor = AppDark.bgCanvas;
+  static const _textColor = AppDark.textPrimary;
+  static const _surfaceColor = AppDark.bgSurfaceHover;
+  static const _bodyColor = AppDark.textSecondary;
+  static const _borderColor = AppDark.borderSubtle;
 
   Future<void> _submit() async {
     if (!_agreed) return;

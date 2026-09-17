@@ -18,8 +18,8 @@ class MySuggestionsScreen extends StatefulWidget {
 
 class _MySuggestionsScreenState extends State<MySuggestionsScreen>
     with AppBannerMixin {
-  static const _bgColor = AppColors.backB;
-  static const _textColor = AppColors.mainText;
+  static const _bgColor = AppDark.bgCanvas;
+  static const _textColor = AppDark.textPrimary;
 
   bool _loading = true;
   List<Suggestion> _suggestions = const [];
@@ -65,7 +65,7 @@ class _MySuggestionsScreenState extends State<MySuggestionsScreen>
               width: 36,
               height: 36,
               decoration: const BoxDecoration(
-                color: AppColors.surfaceHover,
+                color: AppDark.bgSurfaceHover,
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -109,7 +109,7 @@ class _MySuggestionsScreenState extends State<MySuggestionsScreen>
                               '보낸 건의사항이 없습니다.',
                               style: TextStyle(
                                 fontSize: 13,
-                                color: AppColors.caption,
+                                color: AppDark.textTertiary,
                               ),
                             ),
                           ),
@@ -117,7 +117,7 @@ class _MySuggestionsScreenState extends State<MySuggestionsScreen>
                       : SliverList.separated(
                           itemCount: _suggestions.length,
                           separatorBuilder: (_, _) =>
-                              const Divider(color: AppColors.border, height: 1),
+                              const Divider(color: AppDark.borderSubtle, height: 1),
                           itemBuilder: (context, i) => _SuggestionCard(
                             suggestion: _suggestions[i],
                             onTap: () async {
@@ -168,7 +168,7 @@ class _SuggestionCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 14,
-                      color: AppColors.mainText,
+                      color: AppDark.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -176,7 +176,7 @@ class _SuggestionCard extends StatelessWidget {
                     suggestion.dateLabel,
                     style: const TextStyle(
                       fontSize: 11,
-                      color: AppColors.caption,
+                      color: AppDark.textTertiary,
                     ),
                   ),
                 ],
@@ -185,7 +185,7 @@ class _SuggestionCard extends StatelessWidget {
             const SizedBox(width: 8),
             const Icon(
               Icons.chevron_right,
-              color: AppColors.mainText,
+              color: AppDark.textPrimary,
               size: 22,
             ),
           ],
@@ -207,8 +207,8 @@ class ReplyBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: hasReply
-            ? AppColors.mainColor.withValues(alpha: 0.9)
-            : AppColors.surfaceHover,
+            ? AppBrand.primary.withValues(alpha: 0.9)
+            : AppDark.bgSurfaceHover,
         borderRadius: BorderRadius.circular(46),
       ),
       child: Text(
@@ -216,7 +216,7 @@ class ReplyBadge extends StatelessWidget {
         style: TextStyle(
           fontSize: 10,
           fontWeight: FontWeight.w600,
-          color: hasReply ? AppColors.backB : AppColors.body,
+          color: hasReply ? AppDark.bgCanvas : AppDark.textSecondary,
         ),
       ),
     );

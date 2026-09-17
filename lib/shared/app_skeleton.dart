@@ -45,7 +45,7 @@ class _AppSkeletonState extends State<AppSkeleton>
           width: widget.width ?? double.infinity,
           height: widget.height,
           decoration: BoxDecoration(
-            color: Color.lerp(AppColors.card, AppColors.surfaceHover, t),
+            color: Color.lerp(AppDark.bgSurface, AppDark.bgSurfaceHover, t),
             borderRadius: BorderRadius.circular(widget.radius),
           ),
         );

@@ -25,12 +25,12 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
 
   String? _newError;
 
-  static const _bgColor = AppColors.backB;
-  static const _textColor = AppColors.mainText;
-  static const _captionColor = AppColors.caption;
-  static const _surfaceColor = AppColors.surfaceHover;
-  static const _bodyColor = AppColors.body;
-  static const _errorColor = AppColors.error;
+  static const _bgColor = AppDark.bgCanvas;
+  static const _textColor = AppDark.textPrimary;
+  static const _captionColor = AppDark.textTertiary;
+  static const _surfaceColor = AppDark.bgSurfaceHover;
+  static const _bodyColor = AppDark.textSecondary;
+  static const _errorColor = AppDark.statusError;
 
   static final _pwRegex = RegExp(r'^(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$');
 
@@ -308,17 +308,17 @@ class _PasswordField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: AppDark.bgSurface,
         borderRadius: BorderRadius.circular(8),
       ),
       child: TextField(
         controller: controller,
         obscureText: obscure,
         onChanged: onChanged,
-        style: const TextStyle(fontSize: 15, color: AppColors.mainText),
+        style: const TextStyle(fontSize: 15, color: AppDark.textPrimary),
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle: const TextStyle(fontSize: 13, color: AppColors.caption),
+          hintStyle: const TextStyle(fontSize: 13, color: AppDark.textTertiary),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,
@@ -330,7 +330,7 @@ class _PasswordField extends StatelessWidget {
                     obscure
                         ? Icons.visibility_off_outlined
                         : Icons.visibility_outlined,
-                    color: AppColors.caption,
+                    color: AppDark.textTertiary,
                     size: 20,
                   ),
                   onPressed: onToggle,

@@ -21,12 +21,12 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _showErrorBanner = false;
   String? _errorMessage;
 
-  static const _teal = AppColors.mainColor;
-  static const _errorColor = AppColors.error;
-  static const _bgColor = AppColors.backB;
-  static const _captainColor = AppColors.caption;
-  static const _cardColor = AppColors.card;
-  static const _textColor = AppColors.mainText;
+  static const _teal = AppBrand.primary;
+  static const _errorColor = AppDark.statusError;
+  static const _bgColor = AppDark.bgCanvas;
+  static const _captainColor = AppDark.textTertiary;
+  static const _cardColor = AppDark.bgSurface;
+  static const _textColor = AppDark.textPrimary;
 
   @override
   void initState() {

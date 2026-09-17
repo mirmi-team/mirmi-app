@@ -54,10 +54,10 @@ class _ConfirmDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final confirmColor = destructive ? AppColors.error : AppColors.mainColor;
+    final confirmColor = destructive ? AppDark.statusError : AppBrand.primary;
 
     return Dialog(
-      backgroundColor: AppColors.card,
+      backgroundColor: AppDark.bgSurface,
       insetPadding: const EdgeInsets.symmetric(horizontal: 40),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
@@ -71,7 +71,7 @@ class _ConfirmDialog extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.w700,
-                color: AppColors.mainText,
+                color: AppDark.textPrimary,
               ),
             ),
             const SizedBox(height: 12),
@@ -81,7 +81,7 @@ class _ConfirmDialog extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 13,
                 height: 1.6,
-                color: AppColors.body,
+                color: AppDark.textSecondary,
               ),
             ),
             const SizedBox(height: 24),
@@ -93,8 +93,8 @@ class _ConfirmDialog extends StatelessWidget {
                     child: TextButton(
                       onPressed: () => Navigator.of(context).pop(),
                       style: TextButton.styleFrom(
-                        backgroundColor: AppColors.surfaceHover,
-                        foregroundColor: AppColors.caption,
+                        backgroundColor: AppDark.bgSurfaceHover,
+                        foregroundColor: AppDark.textTertiary,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(24),
                         ),
