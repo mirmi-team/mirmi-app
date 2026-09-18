@@ -5,6 +5,7 @@ import '../../shared/app_back_button.dart';
 import '../../shared/app_colors.dart';
 import '../../shared/app_palette.dart';
 import '../../shared/app_banner.dart';
+import '../../shared/app_dialog.dart';
 import '../../shared/submit_button.dart';
 
 class DeleteAccountScreen extends StatefulWidget {
@@ -27,6 +28,16 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen>
 
   Future<void> _submit() async {
     if (!_agreed) return;
+
+    final ok = await showConfirmDialog(
+      context,
+      title: '정말 탈퇴할까요?',
+      message: '모든 정보가 삭제되며 복구할 수 없어요.',
+      confirmText: '탈퇴하기',
+      destructive: true,
+    );
+    if (ok != true || !mounted) return;
+
     setState(() => _loading = true);
     try {
       await AuthService.deleteAccount();

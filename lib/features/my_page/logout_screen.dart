@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:mirmi_app/shared/submit_button.dart';
 import '../../core/services/auth_service.dart';
 import '../../shared/app_back_button.dart';
+import '../../shared/app_dialog.dart';
 import '../../shared/app_palette.dart';
 
 class LogoutScreen extends StatefulWidget {
@@ -21,6 +22,14 @@ class _LogoutScreenState extends State<LogoutScreen> {
   Color get _bodyColor => _palette.textSecondary;
 
   Future<void> _logout() async {
+    final ok = await showConfirmDialog(
+      context,
+      title: '로그아웃 할까요?',
+      message: '다시 로그인하려면 이메일과 비밀번호가 필요해요.',
+      confirmText: '로그아웃',
+    );
+    if (ok != true || !mounted) return;
+
     setState(() => _loading = true);
     try {
       await AuthService.logout();
