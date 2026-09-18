@@ -151,10 +151,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ? null
                                 : _onLogin,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: _isValid ? _teal : _captainColor,
-                              disabledBackgroundColor: _captainColor,
-                              disabledForegroundColor: Colors.white,
-                              foregroundColor: Colors.white,
+                              backgroundColor: _isValid
+                                  ? _teal
+                                  : _palette.borderDefault,
+                              disabledBackgroundColor: _palette.borderDefault,
+                              disabledForegroundColor: _palette.textTertiary,
+                              foregroundColor: _textColor,
                               elevation: 0,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(30),

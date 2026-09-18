@@ -20,12 +20,10 @@ class SubmitButton extends StatelessWidget {
   final bool errorButton;
 
   static const _teal = AppBrand.primary;
-  static const _surfaceColor = AppDark.bgSurfaceHover;
-  static const _captionColor = AppDark.textTertiary;
-  static const _errorColor = AppDark.statusError;
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
       child: SizedBox(
@@ -34,11 +32,12 @@ class SubmitButton extends StatelessWidget {
         child: ElevatedButton(
           onPressed: loadingButton ? null : onPressed,
           style: ElevatedButton.styleFrom(
-            backgroundColor: errorButton ? _errorColor : _teal,
-            disabledBackgroundColor: _surfaceColor,
-            disabledForegroundColor: _captionColor,
+            backgroundColor: errorButton ? palette.statusError : _teal,
+            // 비활성 버튼 색은 앱 전체가 borderDefault 로 통일.
+            disabledBackgroundColor: palette.borderDefault,
+            disabledForegroundColor: palette.textTertiary,
             // 라이트 모드에서는 어두운 글자가 되어야 읽힌다.
-            foregroundColor: AppPalette.of(context).textPrimary,
+            foregroundColor: palette.textPrimary,
             elevation: 0,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(30),

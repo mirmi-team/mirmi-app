@@ -767,9 +767,11 @@ class _SignupScreenState extends State<SignupScreen> {
                   ? null
                   : _onNext,
               style: ElevatedButton.styleFrom(
-                backgroundColor: _isCurrentStepValid ? _teal : _captainColor,
-                disabledBackgroundColor: _captainColor,
-                disabledForegroundColor: _textColor,
+                backgroundColor: _isCurrentStepValid
+                    ? _teal
+                    : _palette.borderDefault,
+                disabledBackgroundColor: _palette.borderDefault,
+                disabledForegroundColor: _palette.textTertiary,
                 foregroundColor: _textColor,
                 elevation: 0,
                 shape: RoundedRectangleBorder(
