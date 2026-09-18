@@ -10,6 +10,7 @@ import '../../core/services/auth_service.dart';
 import '../../core/services/theme_service.dart';
 import '../../shared/app_banner.dart';
 import '../../shared/app_colors.dart';
+import '../../shared/app_palette.dart';
 import '../../shared/app_refresh.dart';
 
 class MyPageScreen extends StatefulWidget {
@@ -30,10 +31,15 @@ class _MyPageScreenState extends State<MyPageScreen> with AppBannerMixin {
   late bool _darkMode = ThemeService.mode.value != ThemeMode.light;
 
   static const _teal = AppBrand.primary;
-  static const _bgColor = AppDark.bgCanvas;
-  static const _textColor = AppDark.textPrimary;
-  static const _surfaceColor = AppDark.bgSurfaceHover;
-  static const _errorColor = AppDark.statusError;
+  AppPalette get _palette => AppPalette.of(context);
+  Color get _textColor => _palette.textPrimary;
+
+  /// 뒤로가기 버튼 배경
+  /// 뒤로가기 버튼 배경. borderSubtle 은 라이트에서 캔버스(E9E9E9)와
+  /// 거의 같은 색이라 원이 안 보인다. bgSurfaceHover 는 다크 27272A,
+  /// 라이트 흰색이라 양쪽 다 배경과 구분된다.
+  Color get _surfaceColor => _palette.bgSurfaceHover;
+  Color get _errorColor => _palette.statusError;
 
   @override
   void initState() {
@@ -145,6 +151,7 @@ class _MyPageScreenState extends State<MyPageScreen> with AppBannerMixin {
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
     final name = _user?['username'] as String? ?? '';
     final grade = _user?['grade'] as int?;
     final classNo = _user?['class_no'] as int?;
@@ -153,9 +160,9 @@ class _MyPageScreenState extends State<MyPageScreen> with AppBannerMixin {
     final imageProvider = _profileImageProvider();
 
     return Scaffold(
-      backgroundColor: _bgColor,
+      // 배경색은 ThemeData.scaffoldBackgroundColor 가 정한다.
       appBar: AppBar(
-        backgroundColor: _bgColor,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: true,
@@ -170,17 +177,13 @@ class _MyPageScreenState extends State<MyPageScreen> with AppBannerMixin {
                 color: _surfaceColor,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.chevron_left,
-                color: _textColor,
-                size: 22,
-              ),
+              child: Icon(Icons.chevron_left, color: _textColor, size: 22),
             ),
           ),
         ),
         title: Text(
           _loading ? '' : '$name님의 정보',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w600,
             color: _textColor,
@@ -242,7 +245,10 @@ class _MyPageScreenState extends State<MyPageScreen> with AppBannerMixin {
                                 decoration: BoxDecoration(
                                   color: _teal,
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: _bgColor, width: 2),
+                                  border: Border.all(
+                                    color: palette.bgCanvas,
+                                    width: 2,
+                                  ),
                                 ),
                                 child: _uploading
                                     ? const Padding(
@@ -268,7 +274,7 @@ class _MyPageScreenState extends State<MyPageScreen> with AppBannerMixin {
                       // ── 이름 ──────────────────────────────────────
                       Text(
                         name,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: _textColor,
@@ -356,6 +362,7 @@ class _InfoCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
     return Expanded(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -365,13 +372,13 @@ class _InfoCell extends StatelessWidget {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: valueColor ?? AppDark.textPrimary,
+              color: valueColor ?? palette.textPrimary,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             label,
-            style: const TextStyle(fontSize: 13, color: AppDark.textTertiary),
+            style: TextStyle(fontSize: 13, color: palette.textTertiary),
           ),
         ],
       ),
@@ -391,6 +398,7 @@ class _ToggleItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
       child: Row(
@@ -398,7 +406,7 @@ class _ToggleItem extends StatelessWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(fontSize: 16, color: AppDark.textPrimary),
+            style: TextStyle(fontSize: 16, color: palette.textPrimary),
           ),
           Switch(
             value: value,
@@ -406,7 +414,8 @@ class _ToggleItem extends StatelessWidget {
             activeThumbColor: Colors.white,
             activeTrackColor: AppBrand.primary,
             inactiveThumbColor: Colors.white,
-            inactiveTrackColor: AppDark.bgSurfaceHover,
+            // 라이트에서 bgSurfaceHover 는 흰색이라 흰 썸과 구분이 안 된다.
+            inactiveTrackColor: palette.borderDefault,
             trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
           ),
         ],
@@ -423,6 +432,7 @@ class _MenuItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
@@ -435,10 +445,10 @@ class _MenuItem extends StatelessWidget {
               label,
               style: TextStyle(
                 fontSize: 16,
-                color: labelColor ?? AppDark.textPrimary,
+                color: labelColor ?? palette.textPrimary,
               ),
             ),
-            Icon(Icons.chevron_right, color: Colors.white, size: 26),
+            Icon(Icons.chevron_right, color: palette.textPrimary, size: 26),
           ],
         ),
       ),

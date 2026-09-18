@@ -91,6 +91,10 @@ abstract final class AppColors {
   /// 입력 필드 힌트, 네비게이션 테두리
   static const hint = Color(0xFFA7A7A7);
 
-  /// 프로필 사진 기본 배경
-  static const avatarBg = Color(0xFFD9D9D9);
+  /// 프로필 사진 기본 배경.
+  ///
+  /// 테마별로 나누지 않고 한 색만 쓴다. 다크 배경(09090B)과 라이트
+  /// 배경(E9E9E9) 사이의 중간 회색이라 양쪽 모두에서 원이 또렷하게 보인다.
+  /// (기존 D9D9D9 는 라이트 배경과 거의 같아 묻혔다)
+  static const avatarBg = Color(0xFFB0B0B8);
 }
