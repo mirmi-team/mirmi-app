@@ -41,11 +41,17 @@ class _AppSkeletonState extends State<AppSkeleton>
       animation: _ctrl,
       builder: (context, _) {
         final t = Curves.easeInOut.transform(_ctrl.value);
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final base = isDark ? AppDark.bgSurface : AppLight.borderSubtle;
+        final highlight = isDark
+            ? AppDark.bgSurfaceHover
+            : AppLight.borderDefault;
         return Container(
           width: widget.width ?? double.infinity,
           height: widget.height,
           decoration: BoxDecoration(
-            color: Color.lerp(AppDark.bgSurface, AppDark.bgSurfaceHover, t),
+            // 다크는 카드보다 밝게, 라이트는 배경보다 어둡게 오간다.
+            color: Color.lerp(base, highlight, t),
             borderRadius: BorderRadius.circular(widget.radius),
           ),
         );
