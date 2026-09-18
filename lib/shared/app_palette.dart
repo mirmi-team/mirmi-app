@@ -16,6 +16,7 @@ class AppPalette {
     required this.bgCanvas,
     required this.bgSurface,
     required this.bgSurfaceSubtle,
+    required this.bgSurfaceHover,
     required this.textPrimary,
     required this.textSecondary,
     required this.textTertiary,
@@ -29,6 +30,9 @@ class AppPalette {
   final Color bgCanvas;
   final Color bgSurface;
   final Color bgSurfaceSubtle;
+
+  /// 배경 위에 한 단계 올라온 표면 (카드 위 카드 등)
+  final Color bgSurfaceHover;
   final Color textPrimary;
   final Color textSecondary;
   final Color textTertiary;
@@ -46,6 +50,7 @@ class AppPalette {
     bgCanvas: AppDark.bgCanvas,
     bgSurface: AppDark.bgSurface,
     bgSurfaceSubtle: AppDark.bgSurfaceSubtle,
+    bgSurfaceHover: AppDark.bgSurfaceHover,
     textPrimary: AppDark.textPrimary,
     textSecondary: AppDark.textSecondary,
     textTertiary: AppDark.textTertiary,
@@ -61,6 +66,8 @@ class AppPalette {
     bgCanvas: AppLight.bgCanvas,
     bgSurface: AppLight.bgSurface,
     bgSurfaceSubtle: AppLight.bgSurfaceSubtle,
+    // 라이트는 흰 표면 하나로 충분해 bgSurface 와 같은 값을 쓴다.
+    bgSurfaceHover: AppLight.bgSurface,
     textPrimary: AppLight.textPrimary,
     textSecondary: AppLight.textSecondary,
     textTertiary: AppLight.textTertiary,

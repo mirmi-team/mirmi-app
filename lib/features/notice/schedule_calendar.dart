@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/services/schedule_service.dart';
 import '../../shared/app_colors.dart';
+import '../../shared/app_palette.dart';
 
 /// 기숙사 일정 달력.
 ///
@@ -53,6 +54,7 @@ class _ScheduleCalendarState extends State<ScheduleCalendar> {
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
     final byDate = _byDate;
 
     // 달력 첫 칸은 그 달 1일이 속한 주의 일요일부터.
@@ -63,12 +65,12 @@ class _ScheduleCalendarState extends State<ScheduleCalendar> {
 
     return Column(
       children: [
-        const Text(
+        Text(
           '기숙사 일정',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: AppDark.textPrimary,
+            color: palette.textPrimary,
           ),
         ),
         const SizedBox(height: 18),
@@ -93,10 +95,7 @@ class _ScheduleCalendarState extends State<ScheduleCalendar> {
                 ),
                 Text(
                   '${_month.year}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppDark.textTertiary,
-                  ),
+                  style: TextStyle(fontSize: 12, color: palette.textTertiary),
                 ),
               ],
             ),
@@ -116,7 +115,10 @@ class _ScheduleCalendarState extends State<ScheduleCalendar> {
                 child: Center(
                   child: Text(
                     name,
-                    style: const TextStyle(fontSize: 13, color: AppDark.textSecondary),
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: palette.textSecondary,
+                    ),
                   ),
                 ),
               ),
@@ -130,7 +132,11 @@ class _ScheduleCalendarState extends State<ScheduleCalendar> {
             children: [
               for (int col = 0; col < 7; col++)
                 Expanded(
-                  child: _buildCell(row * 7 + col - leading + 1, byDate),
+                  child: _buildCell(
+                    row * 7 + col - leading + 1,
+                    byDate,
+                    palette,
+                  ),
                 ),
             ],
           ),
@@ -140,7 +146,11 @@ class _ScheduleCalendarState extends State<ScheduleCalendar> {
     );
   }
 
-  Widget _buildCell(int day, Map<String, List<DormSchedule>> byDate) {
+  Widget _buildCell(
+    int day,
+    Map<String, List<DormSchedule>> byDate,
+    AppPalette palette,
+  ) {
     // 이번 달 범위를 벗어난 칸은 비워둔다.
     final daysInMonth = DateTime(_month.year, _month.month + 1, 0).day;
     if (day < 1 || day > daysInMonth) return const SizedBox(height: 44);
@@ -173,7 +183,9 @@ class _ScheduleCalendarState extends State<ScheduleCalendar> {
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: hasSchedule ? FontWeight.w700 : FontWeight.w400,
-                color: hasSchedule ? AppDark.textPrimary : AppDark.textSecondary,
+                color: hasSchedule
+                    ? palette.textPrimary
+                    : palette.textSecondary,
               ),
             ),
             const SizedBox(height: 5),
@@ -201,12 +213,13 @@ class _ArrowButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.all(8),
-        child: Icon(icon, color: AppDark.textPrimary, size: 24),
+        child: Icon(icon, color: palette.textPrimary, size: 24),
       ),
     );
   }

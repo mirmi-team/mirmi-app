@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/suggestion_service.dart';
 import '../../shared/app_colors.dart';
+import '../../shared/app_palette.dart';
 import '../../shared/keyboard_inset.dart';
 import '../../shared/submit_button.dart';
 
@@ -26,7 +27,8 @@ class SuggestionForm extends StatefulWidget {
 }
 
 class _SuggestionFormState extends State<SuggestionForm> {
-  static const _textColor = AppDark.textPrimary;
+  AppPalette get _palette => AppPalette.of(context);
+  Color get _textColor => _palette.textPrimary;
 
   final _titleController = TextEditingController();
   final _contentController = TextEditingController();
@@ -60,11 +62,12 @@ class _SuggestionFormState extends State<SuggestionForm> {
 
   Future<void> _pickCategory() async {
     FocusScope.of(context).unfocus();
+    final palette = AppPalette.of(context);
     final picked = await showModalBottomSheet<String>(
       context: context,
       // 기본 최대 높이가 화면의 9/16 이라 항목 7개가 들어가지 않는다.
       isScrollControlled: true,
-      backgroundColor: AppDark.bgSurface,
+      backgroundColor: palette.bgSurface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -79,12 +82,12 @@ class _SuggestionFormState extends State<SuggestionForm> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppDark.borderSubtle,
+                  color: palette.borderSubtle,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 '카테고리 선택',
                 style: TextStyle(
                   fontSize: 15,
@@ -160,6 +163,7 @@ class _SuggestionFormState extends State<SuggestionForm> {
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
     // 필드가 늘어나면 화면이 짧거나 키보드가 올라왔을 때 아래가 잘리므로
     // 전송 버튼까지 전부 스크롤 안에 두고, 하단 네비게이션 바 자리를 비워둔다.
     return KeyboardInset(
@@ -172,7 +176,7 @@ class _SuggestionFormState extends State<SuggestionForm> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     '건의하기',
                     style: TextStyle(
                       fontSize: 18,
@@ -192,7 +196,7 @@ class _SuggestionFormState extends State<SuggestionForm> {
                       height: 54,
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       decoration: BoxDecoration(
-                        color: AppDark.bgSurface,
+                        color: palette.bgSurface,
                         borderRadius: BorderRadius.circular(15),
                       ),
                       child: Row(
@@ -205,14 +209,14 @@ class _SuggestionFormState extends State<SuggestionForm> {
                               style: TextStyle(
                                 fontSize: 13,
                                 color: _category == null
-                                    ? AppDark.textTertiary
+                                    ? palette.textTertiary
                                     : _textColor,
                               ),
                             ),
                           ),
-                          const Icon(
+                          Icon(
                             Icons.keyboard_arrow_down_rounded,
-                            color: AppDark.textTertiary,
+                            color: palette.textTertiary,
                             size: 22,
                           ),
                         ],
@@ -226,7 +230,7 @@ class _SuggestionFormState extends State<SuggestionForm> {
                   const SizedBox(height: 10),
                   Container(
                     decoration: BoxDecoration(
-                      color: AppDark.bgSurface,
+                      color: palette.bgSurface,
                       borderRadius: BorderRadius.circular(15),
                     ),
                     child: TextField(
@@ -234,11 +238,11 @@ class _SuggestionFormState extends State<SuggestionForm> {
                       textInputAction: TextInputAction.next,
                       // DB 컬럼이 varchar(255)
                       inputFormatters: [LengthLimitingTextInputFormatter(255)],
-                      style: const TextStyle(color: _textColor, fontSize: 13),
-                      decoration: const InputDecoration(
+                      style: TextStyle(color: _textColor, fontSize: 13),
+                      decoration: InputDecoration(
                         hintText: '예) 3층 샤워실 온수가 자주 끊겨요',
                         hintStyle: TextStyle(
-                          color: AppDark.textTertiary,
+                          color: palette.textTertiary,
                           fontSize: 13,
                         ),
                         border: InputBorder.none,
@@ -256,25 +260,25 @@ class _SuggestionFormState extends State<SuggestionForm> {
                   const SizedBox(height: 10),
                   Container(
                     decoration: BoxDecoration(
-                      color: AppDark.bgSurface,
+                      color: palette.bgSurface,
                       borderRadius: BorderRadius.circular(15),
                     ),
                     child: TextField(
                       controller: _contentController,
                       maxLines: 5,
                       textInputAction: TextInputAction.newline,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: _textColor,
                         fontSize: 13,
                         height: 1.5,
                       ),
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         hintText:
                             '언제, 어디서 있었던 일인지 적어주세요.\n'
                             '예) 저녁 8시 이후 3층 샤워실 온수가 끊겨서\n'
                             '    씻기 불편해요. 점검 부탁드립니다.',
                         hintStyle: TextStyle(
-                          color: AppDark.textTertiary,
+                          color: palette.textTertiary,
                           fontSize: 13,
                           height: 1.5,
                         ),
@@ -288,10 +292,13 @@ class _SuggestionFormState extends State<SuggestionForm> {
                   ),
                   const SizedBox(height: 22),
 
-                  const Center(
+                  Center(
                     child: Text(
                       '건의 내용은 사감선생님께 전송됩니다.',
-                      style: TextStyle(fontSize: 12, color: AppDark.textTertiary),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: palette.textTertiary,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -316,9 +323,10 @@ class _FieldLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
     return Text(
       text,
-      style: const TextStyle(fontSize: 13, color: AppDark.textSecondary),
+      style: TextStyle(fontSize: 13, color: palette.textSecondary),
     );
   }
 }

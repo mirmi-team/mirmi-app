@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/services/schedule_service.dart';
-import '../../shared/app_colors.dart';
+import '../../shared/app_palette.dart';
 
 /// 누른 날짜의 일정을 아래에서 올려 보여준다.
 Future<void> showScheduleSheet(
@@ -9,10 +9,11 @@ Future<void> showScheduleSheet(
   required DateTime date,
   required List<DormSchedule> schedules,
 }) {
+  final palette = AppPalette.of(context);
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
-    backgroundColor: AppDark.bgSurface,
+    backgroundColor: palette.bgSurface,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
@@ -33,6 +34,7 @@ class _ScheduleSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
     final mm = date.month.toString().padLeft(2, '0');
     final dd = date.day.toString().padLeft(2, '0');
     final weekday = _weekdayNames[date.weekday - 1];
@@ -48,7 +50,7 @@ class _ScheduleSheet extends StatelessWidget {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: AppDark.borderSubtle,
+                color: palette.borderSubtle,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -58,10 +60,10 @@ class _ScheduleSheet extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Text(
               '$mm.$dd ($weekday)',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: AppDark.textPrimary,
+                color: palette.textPrimary,
               ),
             ),
           ),
@@ -72,7 +74,7 @@ class _ScheduleSheet extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
               itemCount: schedules.length,
               separatorBuilder: (_, _) =>
-                  const Divider(color: AppDark.borderSubtle, height: 32),
+                  Divider(color: palette.borderSubtle, height: 32),
               itemBuilder: (context, i) => ScheduleTile(schedule: schedules[i]),
             ),
           ),
@@ -90,25 +92,26 @@ class ScheduleTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           schedule.title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w600,
-            color: AppDark.textPrimary,
+            color: palette.textPrimary,
           ),
         ),
         if (schedule.description.isNotEmpty) ...[
           const SizedBox(height: 6),
           Text(
             schedule.description,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               height: 1.45,
-              color: AppDark.textTertiary,
+              color: palette.textTertiary,
             ),
           ),
         ],
