@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'app_colors.dart';
 
@@ -87,10 +88,31 @@ abstract final class AppTheme {
   static ThemeData get dark => _build(Brightness.dark, AppPalette.dark);
   static ThemeData get light => _build(Brightness.light, AppPalette.light);
 
+  /// 상태바·네비게이션바 글자와 아이콘 색.
+  ///
+  /// 배경은 앱 화면이 비치도록 투명하게 두고 아이콘 밝기만 뒤집는다.
+  /// 안드로이드는 `...IconBrightness`(아이콘 자체의 밝기), iOS 는
+  /// `statusBarBrightness`(뒤에 깔린 배경의 밝기)를 보므로 값이 서로 반대다.
+  static SystemUiOverlayStyle overlayStyle(bool isDark) => SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+    statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+    systemNavigationBarColor: Colors.transparent,
+    systemNavigationBarContrastEnforced: false,
+    systemNavigationBarIconBrightness: isDark
+        ? Brightness.light
+        : Brightness.dark,
+  );
+
   static ThemeData _build(Brightness brightness, AppPalette palette) {
+    final isDark = brightness == Brightness.dark;
     return ThemeData(
       brightness: brightness,
       scaffoldBackgroundColor: palette.bgCanvas,
+      // AppBar 는 자기 영역의 오버레이 스타일을 직접 정하고, 그게 앱 전체에
+      // 걸어둔 AnnotatedRegion 보다 안쪽이라 이긴다. 여기서 같은 값을 줘야
+      // 상단바가 있는 화면에서도 상태바 글자색이 테마를 따라간다.
+      appBarTheme: AppBarTheme(systemOverlayStyle: overlayStyle(isDark)),
       textSelectionTheme: TextSelectionThemeData(
         cursorColor: AppBrand.primary,
         selectionColor: AppBrand.primary.withValues(alpha: 0.33),

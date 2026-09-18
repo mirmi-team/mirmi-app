@@ -13,12 +13,7 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      systemNavigationBarColor: Colors.transparent,
-      systemNavigationBarContrastEnforced: false,
-      systemNavigationBarIconBrightness: Brightness.dark,
-    ),
-  );
+  // 상태바·네비게이션바 색은 app.dart 의 AnnotatedRegion 이 테마에 맞춰 정한다.
+  // 여기서 한 번 고정해두면 테마를 바꿔도 그대로 남는다.
   runApp(const MyApp());
 }

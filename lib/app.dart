@@ -46,20 +46,13 @@ class MyApp extends StatelessWidget {
 
           result = MediaQuery(data: data, child: result);
           // 시스템 설정이 아니라 앱이 쓰는 테마를 따라간다.
-          final isDark = themeMode != ThemeMode.light;
+          final isDark = switch (themeMode) {
+            ThemeMode.dark => true,
+            ThemeMode.light => false,
+            ThemeMode.system => mq.platformBrightness == Brightness.dark,
+          };
           result = AnnotatedRegion<SystemUiOverlayStyle>(
-            value: SystemUiOverlayStyle(
-              statusBarColor: Colors.transparent,
-              statusBarIconBrightness: isDark
-                  ? Brightness.light
-                  : Brightness.dark,
-              statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
-              systemNavigationBarColor: Colors.transparent,
-              systemNavigationBarContrastEnforced: false,
-              systemNavigationBarIconBrightness: isDark
-                  ? Brightness.light
-                  : Brightness.dark,
-            ),
+            value: AppTheme.overlayStyle(isDark),
             child: result,
           );
           return result;
