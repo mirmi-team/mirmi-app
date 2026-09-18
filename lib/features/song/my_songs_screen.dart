@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/song_service.dart';
 import '../../shared/app_banner.dart';
-import '../../shared/app_colors.dart';
+import '../../shared/app_palette.dart';
 import '../../shared/app_dialog.dart';
 import '../../shared/app_refresh.dart';
 import '../../shared/app_skeleton.dart';
@@ -22,10 +22,11 @@ Future<void> showMySongsSheet(BuildContext context) {
   final maxHeight =
       media.size.height - media.padding.top - kToolbarHeight - searchAreaExtent;
 
+  final palette = AppPalette.of(context);
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
-    backgroundColor: AppDark.bgSurface,
+    backgroundColor: palette.bgSurface,
     constraints: BoxConstraints(maxHeight: maxHeight),
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -46,7 +47,8 @@ class MySongsScreen extends StatefulWidget {
 }
 
 class _MySongsScreenState extends State<MySongsScreen> with AppBannerMixin {
-  static const _textColor = AppDark.textPrimary;
+  AppPalette get _palette => AppPalette.of(context);
+  Color get _textColor => _palette.textPrimary;
 
   bool _loading = true;
   List<MorningSong> _songs = const [];
@@ -149,6 +151,7 @@ class _MySongsScreenState extends State<MySongsScreen> with AppBannerMixin {
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
     return Stack(
       children: [
         Column(
@@ -161,13 +164,13 @@ class _MySongsScreenState extends State<MySongsScreen> with AppBannerMixin {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppDark.borderSubtle,
+                  color: palette.borderSubtle,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
             ),
             const SizedBox(height: 20),
-            const Padding(
+            Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
               child: Text(
                 '내 신청 목록',
@@ -188,6 +191,7 @@ class _MySongsScreenState extends State<MySongsScreen> with AppBannerMixin {
   }
 
   Widget _buildBody() {
+    final palette = _palette;
     if (_loading) {
       return ListView.separated(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 40),
@@ -203,12 +207,15 @@ class _MySongsScreenState extends State<MySongsScreen> with AppBannerMixin {
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 40),
           sliver: _songs.isEmpty
-              ? const SliverFillRemaining(
+              ? SliverFillRemaining(
                   hasScrollBody: false,
                   child: Center(
                     child: Text(
                       '신청한 곡이 없습니다.',
-                      style: TextStyle(fontSize: 13, color: AppDark.textTertiary),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: palette.textTertiary,
+                      ),
                     ),
                   ),
                 )
@@ -219,9 +226,9 @@ class _MySongsScreenState extends State<MySongsScreen> with AppBannerMixin {
                         padding: const EdgeInsets.only(bottom: 14),
                         child: Text(
                           _dateLabel(group.key),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 13,
-                            color: AppDark.textTertiary,
+                            color: palette.textTertiary,
                           ),
                         ),
                       ),

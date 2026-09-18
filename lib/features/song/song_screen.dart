@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/song_service.dart';
 import '../../shared/app_banner.dart';
-import '../../shared/app_colors.dart';
+import '../../shared/app_palette.dart';
 import '../../shared/app_refresh.dart';
 import '../../shared/keyboard_inset.dart';
 import 'my_songs_screen.dart';
@@ -23,7 +23,8 @@ class SongScreen extends StatefulWidget {
 }
 
 class _SongScreenState extends State<SongScreen> with AppBannerMixin {
-  static const _textColor = AppDark.textPrimary;
+  AppPalette get _palette => AppPalette.of(context);
+  Color get _textColor => _palette.textPrimary;
 
   final _queryController = TextEditingController();
 
@@ -87,6 +88,7 @@ class _SongScreenState extends State<SongScreen> with AppBannerMixin {
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
     return Stack(
       children: [
         Column(
@@ -101,14 +103,14 @@ class _SongScreenState extends State<SongScreen> with AppBannerMixin {
                       height: 48,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       decoration: BoxDecoration(
-                        color: AppDark.bgSurface,
+                        color: palette.bgSurface,
                         borderRadius: BorderRadius.circular(24),
                       ),
                       child: Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.search,
-                            color: AppDark.textTertiary,
+                            color: palette.textTertiary,
                             size: 18,
                           ),
                           const SizedBox(width: 8),
@@ -117,14 +119,11 @@ class _SongScreenState extends State<SongScreen> with AppBannerMixin {
                               controller: _queryController,
                               textInputAction: TextInputAction.search,
                               onSubmitted: (_) => _search(),
-                              style: const TextStyle(
-                                color: _textColor,
-                                fontSize: 14,
-                              ),
-                              decoration: const InputDecoration(
+                              style: TextStyle(color: _textColor, fontSize: 14),
+                              decoration: InputDecoration(
                                 hintText: '음악 찾아보기',
                                 hintStyle: TextStyle(
-                                  color: AppDark.textTertiary,
+                                  color: palette.textTertiary,
                                   fontSize: 14,
                                 ),
                                 border: InputBorder.none,
@@ -145,12 +144,12 @@ class _SongScreenState extends State<SongScreen> with AppBannerMixin {
                       width: 59,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: AppDark.bgSurface,
+                        color: palette.bgSurface,
                         borderRadius: BorderRadius.circular(24),
                       ),
                       child: _searching
                           ? const AppLoadingIndicator(size: 18, strokeWidth: 2)
-                          : const Text(
+                          : Text(
                               '검색',
                               style: TextStyle(
                                 fontSize: 13,
@@ -177,11 +176,11 @@ class _SongScreenState extends State<SongScreen> with AppBannerMixin {
                   height: 48,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: AppDark.bgSurface,
+                    color: palette.bgSurface,
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppDark.borderSubtle),
+                    border: Border.all(color: palette.borderSubtle),
                   ),
-                  child: const Text(
+                  child: Text(
                     '내 신청 목록 보기',
                     style: TextStyle(
                       fontSize: 16,
@@ -238,10 +237,11 @@ class _CenterMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
     return Center(
       child: Text(
         text,
-        style: const TextStyle(fontSize: 13, color: AppDark.textTertiary),
+        style: TextStyle(fontSize: 13, color: palette.textTertiary),
       ),
     );
   }
