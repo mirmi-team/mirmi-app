@@ -19,8 +19,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  static const _bgColor = AppDark.bgCanvas;
-
   final PageController _pageController = PageController();
 
   late final List<Widget> _pages = [
@@ -48,7 +46,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final topInset = MediaQuery.of(context).padding.top + kToolbarHeight;
 
     return Scaffold(
-      backgroundColor: _bgColor,
+      // 배경색은 지정하지 않는다. ThemeData.scaffoldBackgroundColor 가
+      // 테마에 맞는 색을 넣어준다. 고정하면 라이트 모드에서 검은 배경이 남는다.
       extendBodyBehindAppBar: true,
       // 키보드가 올라와도 하단 네비게이션 바는 제자리에 둔다.
       // 대신 각 탭의 스크롤뷰가 키보드 높이만큼 하단 여백을 줘서
@@ -103,6 +102,26 @@ class _HomeGradient extends StatelessWidget {
   /// 상태바/AppBar 아래로 그라데이션이 이어지는 길이. 공지 줄 근처에서 사라진다.
   static const _contentExtent = 150.0;
 
+  /// 테마별 상단 그라데이션.
+  LinearGradient _gradientOf(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      stops: isDark ? const [0.0, 1.0] : const [0.0, 0.5, 1.0],
+      colors: isDark
+          ? const [
+              Color(0xFF003A49), // 0% - 불투명
+              Color(0x00008DAF), // 100% - 투명
+            ]
+          : const [
+              Color(0xFF86EDFF), // 0%
+              Color(0xFFE3F8FC), // 50%
+              Color(0xFFE9E9E9), // 100% - 기본 배경색과 같아 자연스럽게 이어진다
+            ],
+    );
+  }
+
   double get _page {
     if (!pageController.hasClients) return 0;
     if (!pageController.position.haveDimensions) return 0;
@@ -134,16 +153,7 @@ class _HomeGradient extends StatelessWidget {
           },
           child: Container(
             height: height,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0xFF003A49), // 0% - 불투명
-                  Color(0x00008DAF), // 100% - 투명
-                ],
-              ),
-            ),
+            decoration: BoxDecoration(gradient: _gradientOf(context)),
           ),
         ),
       ),
@@ -190,8 +200,6 @@ class _NavBar extends StatefulWidget {
 }
 
 class _NavBarState extends State<_NavBar> with SingleTickerProviderStateMixin {
-  static const _surfaceColor = AppDark.bgSurfaceHover;
-
   static const _items = [
     _NavItem(icon: Icons.home_outlined, activeIcon: Icons.home_rounded),
     _NavItem(
@@ -288,12 +296,45 @@ class _NavBarState extends State<_NavBar> with SingleTickerProviderStateMixin {
     _select(target);
   }
 
+  /// 네비게이션 바 색. 다크는 반투명 유리, 라이트는 흰 바에 옅은 그림자.
+  ({Color bar, Color barBorder, Color shadow, Color pill, Color icon})
+  _navColorsOf(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // 채움과 테두리는 두 모드가 같은 투명도를 쓴다. (반투명 유리 느낌)
+    // 알약·아이콘·그림자만 배경 밝기에 맞춰 달라진다.
+    const bar = Color(0x14FFFFFF); // 흰색 8%
+    const whiteBar = Color(0xA6F7F7F7); // 흰색 97%
+    final barBorder = AppColors.hint.withValues(alpha: 0.40);
+
+    if (isDark) {
+      return (
+        bar: bar,
+        barBorder: barBorder,
+        shadow: Colors.black,
+        pill: AppDark.bgSurfaceHover,
+        icon: AppColors.navIcon,
+      );
+    }
+    return (
+      bar: whiteBar,
+      barBorder: barBorder,
+      // 검은 그림자를 그대로 쓰면 밝은 배경에서 너무 진하다.
+      shadow: AppLight.textPrimary.withValues(alpha: 0.21),
+      // 다크의 알약(27272A)과 같이 불투명. 다크는 배경보다 한 단계 밝고,
+      // 라이트는 같은 논리로 한 단계 어두운 회색을 쓴다.
+      pill: Color(0xFFD1D1D1),
+      icon: AppLight.textTertiary,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // padding 이 아니라 viewPadding 을 쓴다. padding.bottom 은 키보드가 올라오는
     // 동안 0 으로 줄어드는데, iOS 분기의 (sysBottom - 8) 이 음수가 되어
     // Padding 이 assertion 으로 터진다. viewPadding 은 키보드와 무관하게 고정이라
     // 네비바 높이도 흔들리지 않는다.
+    final nav = _navColorsOf(context);
     final sysBottom = MediaQuery.viewPaddingOf(context).bottom;
     final bottomPad = Platform.isAndroid
         ? (sysBottom > 0 ? sysBottom + 8.0 : 24.0)
@@ -343,15 +384,12 @@ class _NavBarState extends State<_NavBar> with SingleTickerProviderStateMixin {
                   child: Container(
                     height: navH,
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.08),
+                      color: nav.bar,
                       borderRadius: BorderRadius.circular(32),
-                      border: Border.all(
-                        color: AppColors.hint.withValues(alpha: 0.40),
-                        width: 1.0,
-                      ),
+                      border: Border.all(color: nav.barBorder, width: 1.0),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 1),
+                          color: nav.shadow,
                           blurRadius: 20,
                           offset: const Offset(0, 4),
                         ),
@@ -366,7 +404,7 @@ class _NavBarState extends State<_NavBar> with SingleTickerProviderStateMixin {
                           bottom: margin,
                           child: Container(
                             decoration: BoxDecoration(
-                              color: _surfaceColor,
+                              color: nav.pill,
                               borderRadius: BorderRadius.circular(
                                 navH / 2 - margin,
                               ),
@@ -387,16 +425,18 @@ class _NavBarState extends State<_NavBar> with SingleTickerProviderStateMixin {
                                       active
                                           ? _items[i].activeIcon
                                           : _items[i].icon,
-                                      color: AppColors.navIcon,
+                                      color: active
+                                          ? AppBrand.primary
+                                          : nav.icon,
                                       size: 27.0,
                                       shadows: active
                                           ? const [
                                               Shadow(
-                                                color: AppColors.navIcon,
+                                                color: AppBrand.primary,
                                                 blurRadius: 1.8,
                                               ),
                                               Shadow(
-                                                color: AppColors.navIcon,
+                                                color: AppBrand.primary,
                                                 blurRadius: 1.8,
                                               ),
                                             ]

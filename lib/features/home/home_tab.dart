@@ -10,6 +10,7 @@ import '../../core/services/schedule_service.dart';
 import '../../core/utils/app_clock.dart';
 import '../../shared/app_banner.dart';
 import '../../shared/app_colors.dart';
+import '../../shared/app_palette.dart';
 import '../../shared/app_refresh.dart';
 import '../../shared/app_skeleton.dart';
 import '../laundry/laundry_status_section.dart';
@@ -45,7 +46,8 @@ class HomeTab extends StatefulWidget {
 }
 
 class _HomeTabState extends State<HomeTab> with AppBannerMixin {
-  static const _textColor = AppDark.textPrimary;
+  AppPalette get _palette => AppPalette.of(context);
+  Color get _textColor => _palette.textPrimary;
 
   bool _loading = true;
 
@@ -172,7 +174,7 @@ class _HomeTabState extends State<HomeTab> with AppBannerMixin {
                     child: Text(
                       '안녕하세요.\n'
                       '${_roomNumber ?? '-'}호 ${_username ?? ''}님',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 24,
                         height: 1.35,
                         fontWeight: FontWeight.w800,
@@ -246,11 +248,12 @@ class _ScheduleList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
       decoration: BoxDecoration(
-        color: AppDark.bgSurface,
+        color: palette.bgSurface,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
@@ -275,10 +278,10 @@ class _ScheduleList extends StatelessWidget {
                 Expanded(
                   child: Text(
                     schedule.title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       height: 1.35,
-                      color: AppDark.textPrimary,
+                      color: palette.textPrimary,
                     ),
                   ),
                 ),
@@ -298,12 +301,13 @@ class _SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
     return Text(
       text,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.w600,
-        color: AppDark.textPrimary,
+        color: palette.textPrimary,
       ),
     );
   }
@@ -316,13 +320,14 @@ class _NoticeStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () => context.push('/notice-detail', extra: notice),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: AppDark.bgSurface,
+          color: palette.bgSurface,
           borderRadius: BorderRadius.circular(14),
         ),
         child: Row(
@@ -334,9 +339,9 @@ class _NoticeStrip extends StatelessWidget {
                 notice.title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
-                  color: AppDark.textPrimary,
+                  color: palette.textPrimary,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -357,13 +362,14 @@ class _ReturnCheckCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.fromLTRB(18, 16, 14, 16),
         decoration: BoxDecoration(
-          color: AppDark.bgSurface,
+          color: palette.bgSurface,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -374,26 +380,22 @@ class _ReturnCheckCard extends StatelessWidget {
                 children: [
                   Text(
                     '${type.label} 입실 체크',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: AppDark.textPrimary,
+                      color: palette.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 6),
-                  const Text(
+                  Text(
                     '입실 체크 시 사감 선생님께 알림이 발송됩니다.',
-                    style: TextStyle(fontSize: 12, color: AppDark.textTertiary),
+                    style: TextStyle(fontSize: 12, color: palette.textTertiary),
                   ),
                 ],
               ),
             ),
             const SizedBox(width: 10),
-            const Icon(
-              Icons.chevron_right,
-              color: AppDark.textPrimary,
-              size: 24,
-            ),
+            Icon(Icons.chevron_right, color: palette.textPrimary, size: 24),
           ],
         ),
       ),
@@ -407,30 +409,31 @@ class _EmptySchedule extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 34),
       decoration: BoxDecoration(
-        color: AppDark.bgSurface,
+        color: palette.bgSurface,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppDark.borderSubtle, width: 1),
+        border: Border.all(color: palette.borderSubtle, width: 1),
       ),
-      child: const Column(
+      child: Column(
         children: [
           Icon(
             Icons.event_note_outlined,
-            color: AppDark.textTertiary,
+            color: palette.textTertiary,
             size: 26,
           ),
           SizedBox(height: 10),
           Text(
             '등록된 일정이 없습니다.',
-            style: TextStyle(fontSize: 13, color: AppDark.textSecondary),
+            style: TextStyle(fontSize: 13, color: palette.textSecondary),
           ),
           SizedBox(height: 4),
           Text(
             '새 일정이 등록되면 이곳에 표시됩니다.',
-            style: TextStyle(fontSize: 11, color: AppDark.textTertiary),
+            style: TextStyle(fontSize: 11, color: palette.textTertiary),
           ),
         ],
       ),
