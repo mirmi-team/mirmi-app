@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/services/auth_service.dart';
 import '../../shared/app_back_button.dart';
 import '../../shared/app_colors.dart';
+import '../../shared/app_palette.dart';
 import '../../shared/app_refresh.dart';
 import '../../shared/app_banner.dart';
 
@@ -21,11 +22,11 @@ class _MeritLogScreenState extends State<MeritLogScreen> with AppBannerMixin {
   // 0=전체 1=상점 2=벌점
   int _tabIndex = 0;
 
-  static const _bgColor = AppDark.bgCanvas;
-  static const _textColor = AppDark.textPrimary;
-  static const _captionColor = AppDark.textTertiary;
-  static const _cardColor = AppDark.bgSurface;
-  static const _bodyColor = AppDark.textSecondary;
+  AppPalette get _palette => AppPalette.of(context);
+  Color get _textColor => _palette.textPrimary;
+  Color get _captionColor => _palette.textTertiary;
+  Color get _cardColor => _palette.bgSurface;
+  Color get _bodyColor => _palette.textSecondary;
   static const _teal = AppBrand.primary;
 
   @override
@@ -95,14 +96,14 @@ class _MeritLogScreenState extends State<MeritLogScreen> with AppBannerMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _bgColor,
+      // 배경색은 ThemeData.scaffoldBackgroundColor 가 정한다.
       appBar: AppBar(
-        backgroundColor: _bgColor,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: true,
         leading: const AppBackButton(),
-        title: const Text(
+        title: Text(
           '상벌점 내역',
           style: TextStyle(
             fontSize: 20,
@@ -135,7 +136,7 @@ class _MeritLogScreenState extends State<MeritLogScreen> with AppBannerMixin {
                         Row(
                           children: [
                             const SizedBox(width: 10),
-                            const Text(
+                            Text(
                               '현재 상벌점',
                               style: TextStyle(
                                 fontSize: 16,
@@ -160,14 +161,14 @@ class _MeritLogScreenState extends State<MeritLogScreen> with AppBannerMixin {
                           ],
                         ),
                         const Spacer(),
-                        const Divider(color: AppDark.borderSubtle, height: 1),
+                        Divider(color: _palette.borderSubtle, height: 1),
                         const SizedBox(height: 15),
                         SizedBox(
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 10),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: const [
+                              children: [
                                 Text(
                                   '상벌점 기준 안내',
                                   style: TextStyle(
@@ -177,7 +178,7 @@ class _MeritLogScreenState extends State<MeritLogScreen> with AppBannerMixin {
                                 ),
                                 Icon(
                                   Icons.chevron_right,
-                                  color: Colors.white,
+                                  color: _textColor,
                                   size: 30,
                                 ),
                               ],
@@ -198,12 +199,12 @@ class _MeritLogScreenState extends State<MeritLogScreen> with AppBannerMixin {
                     return Stack(
                       children: [
                         // 전체 구분선
-                        const Positioned(
+                        Positioned(
                           left: 10,
                           right: 10,
                           bottom: 0,
                           child: Divider(
-                            color: AppDark.textSecondary,
+                            color: _bodyColor,
                             height: 1,
                             thickness: 1,
                           ),
@@ -280,7 +281,7 @@ class _MeritLogScreenState extends State<MeritLogScreen> with AppBannerMixin {
                                       ),
                                       child: Text(
                                         item,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 13,
                                           color: _bodyColor,
                                         ),
@@ -307,7 +308,7 @@ class _MeritLogScreenState extends State<MeritLogScreen> with AppBannerMixin {
                                                 children: [
                                                   Text(
                                                     log['reason'] as String,
-                                                    style: const TextStyle(
+                                                    style: TextStyle(
                                                       fontSize: 18,
                                                       fontWeight:
                                                           FontWeight.w800,
@@ -320,7 +321,7 @@ class _MeritLogScreenState extends State<MeritLogScreen> with AppBannerMixin {
                                                       log['created_at']
                                                           as String,
                                                     ),
-                                                    style: const TextStyle(
+                                                    style: TextStyle(
                                                       fontSize: 12,
                                                       color: _bodyColor,
                                                     ),
@@ -347,12 +348,12 @@ class _MeritLogScreenState extends State<MeritLogScreen> with AppBannerMixin {
                                                   else
                                                     Text(
                                                       '$score점',
-                                                      style: const TextStyle(
+                                                      style: TextStyle(
                                                         fontSize: 15,
                                                         fontWeight:
                                                             FontWeight.w600,
-                                                        color:
-                                                            AppDark.statusError,
+                                                        color: _palette
+                                                            .statusError,
                                                       ),
                                                     ),
                                                 ],
@@ -361,8 +362,8 @@ class _MeritLogScreenState extends State<MeritLogScreen> with AppBannerMixin {
                                           ],
                                         ),
                                       ),
-                                      const Divider(
-                                        color: AppDark.borderSubtle,
+                                      Divider(
+                                        color: _palette.borderSubtle,
                                         height: 1,
                                       ),
                                     ],
@@ -406,6 +407,7 @@ class _Tab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
@@ -421,7 +423,7 @@ class _Tab extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                  color: selected ? AppBrand.primary : AppDark.textSecondary,
+                  color: selected ? AppBrand.primary : palette.textSecondary,
                 ),
               ),
             ),

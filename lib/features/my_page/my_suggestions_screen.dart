@@ -6,6 +6,7 @@ import '../../core/services/suggestion_service.dart';
 import '../../shared/app_back_button.dart';
 import '../../shared/app_banner.dart';
 import '../../shared/app_colors.dart';
+import '../../shared/app_palette.dart';
 import '../../shared/app_refresh.dart';
 import '../../shared/app_skeleton.dart';
 
@@ -19,8 +20,8 @@ class MySuggestionsScreen extends StatefulWidget {
 
 class _MySuggestionsScreenState extends State<MySuggestionsScreen>
     with AppBannerMixin {
-  static const _bgColor = AppDark.bgCanvas;
-  static const _textColor = AppDark.textPrimary;
+  AppPalette get _palette => AppPalette.of(context);
+  Color get _textColor => _palette.textPrimary;
 
   bool _loading = true;
   List<Suggestion> _suggestions = const [];
@@ -52,14 +53,14 @@ class _MySuggestionsScreenState extends State<MySuggestionsScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _bgColor,
+      // 배경색은 ThemeData.scaffoldBackgroundColor 가 정한다.
       appBar: AppBar(
-        backgroundColor: _bgColor,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: true,
         leading: const AppBackButton(),
-        title: const Text(
+        title: Text(
           '내 건의사항',
           style: TextStyle(
             fontSize: 20,
@@ -85,24 +86,22 @@ class _MySuggestionsScreenState extends State<MySuggestionsScreen>
                   // 좌우 여백은 카드가 직접 갖는다. 구분선이 화면 끝까지 닿도록.
                   padding: const EdgeInsets.only(top: 8, bottom: 24),
                   sliver: _suggestions.isEmpty
-                      ? const SliverFillRemaining(
+                      ? SliverFillRemaining(
                           hasScrollBody: false,
                           child: Center(
                             child: Text(
                               '보낸 건의사항이 없습니다.',
                               style: TextStyle(
                                 fontSize: 13,
-                                color: AppDark.textTertiary,
+                                color: _palette.textTertiary,
                               ),
                             ),
                           ),
                         )
                       : SliverList.separated(
                           itemCount: _suggestions.length,
-                          separatorBuilder: (_, _) => const Divider(
-                            color: AppDark.borderSubtle,
-                            height: 1,
-                          ),
+                          separatorBuilder: (_, _) =>
+                              Divider(color: _palette.borderSubtle, height: 1),
                           itemBuilder: (context, i) => _SuggestionCard(
                             suggestion: _suggestions[i],
                             onTap: () async {
@@ -134,6 +133,7 @@ class _SuggestionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
@@ -151,28 +151,18 @@ class _SuggestionCard extends StatelessWidget {
                     suggestion.labeledTitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: AppDark.textPrimary,
-                    ),
+                    style: TextStyle(fontSize: 14, color: palette.textPrimary),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     suggestion.dateLabel,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: AppDark.textTertiary,
-                    ),
+                    style: TextStyle(fontSize: 11, color: palette.textTertiary),
                   ),
                 ],
               ),
             ),
             const SizedBox(width: 8),
-            const Icon(
-              Icons.chevron_right,
-              color: AppDark.textPrimary,
-              size: 22,
-            ),
+            Icon(Icons.chevron_right, color: palette.textPrimary, size: 22),
           ],
         ),
       ),
@@ -188,12 +178,13 @@ class ReplyBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: hasReply
             ? AppBrand.primary.withValues(alpha: 0.9)
-            : AppDark.bgSurfaceHover,
+            : palette.bgSurfaceHover,
         borderRadius: BorderRadius.circular(46),
       ),
       child: Text(
@@ -201,7 +192,8 @@ class ReplyBadge extends StatelessWidget {
         style: TextStyle(
           fontSize: 10,
           fontWeight: FontWeight.w600,
-          color: hasReply ? AppDark.bgCanvas : AppDark.textSecondary,
+          // 청록 알약 위 글자는 양 테마 모두 진한 색이어야 읽힌다.
+          color: hasReply ? AppDark.bgCanvas : palette.textSecondary,
         ),
       ),
     );

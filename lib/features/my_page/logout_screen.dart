@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:mirmi_app/shared/submit_button.dart';
 import '../../core/services/auth_service.dart';
 import '../../shared/app_back_button.dart';
-import '../../shared/app_colors.dart';
+import '../../shared/app_palette.dart';
 
 class LogoutScreen extends StatefulWidget {
   const LogoutScreen({super.key});
@@ -15,10 +15,10 @@ class LogoutScreen extends StatefulWidget {
 class _LogoutScreenState extends State<LogoutScreen> {
   bool _loading = false;
 
-  static const _bgColor = AppDark.bgCanvas;
-  static const _textColor = AppDark.textPrimary;
-  static const _surfaceColor = AppDark.bgSurfaceHover;
-  static const _bodyColor = AppDark.textSecondary;
+  AppPalette get _palette => AppPalette.of(context);
+  Color get _textColor => _palette.textPrimary;
+  Color get _surfaceColor => _palette.bgSurfaceHover;
+  Color get _bodyColor => _palette.textSecondary;
 
   Future<void> _logout() async {
     setState(() => _loading = true);
@@ -32,14 +32,14 @@ class _LogoutScreenState extends State<LogoutScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _bgColor,
+      // 배경색은 ThemeData.scaffoldBackgroundColor 가 정한다.
       appBar: AppBar(
-        backgroundColor: _bgColor,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: true,
         leading: const AppBackButton(),
-        title: const Text(
+        title: Text(
           '로그아웃',
           style: TextStyle(
             fontSize: 20,
@@ -72,7 +72,7 @@ class _LogoutScreenState extends State<LogoutScreen> {
                     ),
                   ),
                   const SizedBox(height: 34),
-                  const Text(
+                  Text(
                     '로그아웃 하시겠어요?',
                     style: TextStyle(
                       fontSize: 18,
@@ -81,7 +81,7 @@ class _LogoutScreenState extends State<LogoutScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     '로그아웃 시 현재 계정에서\n안전하게 로그아웃됩니다.',
                     textAlign: TextAlign.center,
                     style: TextStyle(

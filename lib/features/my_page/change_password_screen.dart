@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/services/auth_service.dart';
 import '../../shared/app_back_button.dart';
-import '../../shared/app_colors.dart';
+import '../../shared/app_palette.dart';
 import '../../shared/keyboard_inset.dart';
 import '../../shared/app_banner.dart';
 import '../../shared/submit_button.dart';
@@ -26,12 +26,12 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
 
   String? _newError;
 
-  static const _bgColor = AppDark.bgCanvas;
-  static const _textColor = AppDark.textPrimary;
-  static const _captionColor = AppDark.textTertiary;
-  static const _surfaceColor = AppDark.bgSurfaceHover;
-  static const _bodyColor = AppDark.textSecondary;
-  static const _errorColor = AppDark.statusError;
+  AppPalette get _palette => AppPalette.of(context);
+  Color get _textColor => _palette.textPrimary;
+  Color get _captionColor => _palette.textTertiary;
+  Color get _surfaceColor => _palette.bgSurfaceHover;
+  Color get _bodyColor => _palette.textSecondary;
+  Color get _errorColor => _palette.statusError;
 
   static final _pwRegex = RegExp(r'^(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$');
 
@@ -90,17 +90,17 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _bgColor,
+      // 배경색은 ThemeData.scaffoldBackgroundColor 가 정한다.
       // 키보드가 올라와도 하단 버튼은 제자리에 둔다.
       // 입력창은 아래 KeyboardInset 안에서 스크롤로 올라온다.
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        backgroundColor: _bgColor,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: true,
         leading: const AppBackButton(),
-        title: const Text(
+        title: Text(
           '비밀번호 변경',
           style: TextStyle(
             fontSize: 20,
@@ -152,7 +152,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
 
                             const SizedBox(height: 20),
 
-                            const Center(
+                            Center(
                               child: Text(
                                 '안전한 계정 관리를 위해\n주기적으로 비밀번호를 변경해주세요.',
                                 textAlign: TextAlign.center,
@@ -166,7 +166,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
 
                             const SizedBox(height: 32),
 
-                            const Text(
+                            Text(
                               '현재 비밀번호',
                               style: TextStyle(
                                 fontSize: 16,
@@ -186,7 +186,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
 
                             const SizedBox(height: 24),
 
-                            const Text(
+                            Text(
                               '새 비밀번호',
                               style: TextStyle(
                                 fontSize: 16,
@@ -229,7 +229,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
 
                             const SizedBox(height: 24),
 
-                            const Text(
+                            Text(
                               '새 비밀번호 확인',
                               style: TextStyle(
                                 fontSize: 16,
@@ -289,19 +289,20 @@ class _PasswordField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
     return Container(
       decoration: BoxDecoration(
-        color: AppDark.bgSurface,
+        color: palette.bgSurface,
         borderRadius: BorderRadius.circular(8),
       ),
       child: TextField(
         controller: controller,
         obscureText: obscure,
         onChanged: onChanged,
-        style: const TextStyle(fontSize: 15, color: AppDark.textPrimary),
+        style: TextStyle(fontSize: 15, color: palette.textPrimary),
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle: const TextStyle(fontSize: 13, color: AppDark.textTertiary),
+          hintStyle: TextStyle(fontSize: 13, color: palette.textTertiary),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,
@@ -313,7 +314,7 @@ class _PasswordField extends StatelessWidget {
                     obscure
                         ? Icons.visibility_off_outlined
                         : Icons.visibility_outlined,
-                    color: AppDark.textTertiary,
+                    color: palette.textTertiary,
                     size: 20,
                   ),
                   onPressed: onToggle,

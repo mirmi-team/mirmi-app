@@ -5,7 +5,7 @@ import '../../core/services/auth_service.dart';
 import '../../core/services/suggestion_service.dart';
 import '../../shared/app_back_button.dart';
 import '../../shared/app_banner.dart';
-import '../../shared/app_colors.dart';
+import '../../shared/app_palette.dart';
 import '../../shared/app_dialog.dart';
 import '../../shared/app_skeleton.dart';
 import '../../shared/submit_button.dart';
@@ -24,8 +24,8 @@ class SuggestionDetailScreen extends StatefulWidget {
 
 class _SuggestionDetailScreenState extends State<SuggestionDetailScreen>
     with AppBannerMixin {
-  static const _bgColor = AppDark.bgCanvas;
-  static const _textColor = AppDark.textPrimary;
+  AppPalette get _palette => AppPalette.of(context);
+  Color get _textColor => _palette.textPrimary;
 
   bool _loading = true;
   late Suggestion _suggestion = widget.suggestion;
@@ -99,14 +99,14 @@ class _SuggestionDetailScreenState extends State<SuggestionDetailScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _bgColor,
+      // 배경색은 ThemeData.scaffoldBackgroundColor 가 정한다.
       appBar: AppBar(
-        backgroundColor: _bgColor,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: true,
         leading: const AppBackButton(),
-        title: const Text(
+        title: Text(
           '내 건의사항',
           style: TextStyle(
             fontSize: 20,
@@ -131,7 +131,7 @@ class _SuggestionDetailScreenState extends State<SuggestionDetailScreen>
                     const SizedBox(height: 14),
                     Text(
                       _suggestion.labeledTitle,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 19,
                         fontWeight: FontWeight.w700,
                         height: 1.35,
@@ -152,10 +152,10 @@ class _SuggestionDetailScreenState extends State<SuggestionDetailScreen>
                     else
                       Text(
                         _suggestion.description ?? '',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
                           height: 1.55,
-                          color: AppDark.textSecondary,
+                          color: _palette.textSecondary,
                         ),
                       ),
                     const SizedBox(height: 22),
@@ -165,9 +165,9 @@ class _SuggestionDetailScreenState extends State<SuggestionDetailScreen>
                       children: [
                         Text(
                           _suggestion.dateLabel,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12,
-                            color: AppDark.textTertiary,
+                            color: _palette.textTertiary,
                           ),
                         ),
                         if (_writer != null && _writer!.isNotEmpty) ...[
@@ -175,14 +175,14 @@ class _SuggestionDetailScreenState extends State<SuggestionDetailScreen>
                           Container(
                             width: 1,
                             height: 11,
-                            color: AppDark.borderSubtle,
+                            color: _palette.borderSubtle,
                           ),
                           const SizedBox(width: 10),
                           Text(
                             _writer!,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
-                              color: AppDark.textTertiary,
+                              color: _palette.textTertiary,
                             ),
                           ),
                         ],
@@ -223,35 +223,37 @@ class _ReplyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
       decoration: BoxDecoration(
-        color: AppDark.bgSurface,
+        color: palette.bgSurface,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppDark.borderSubtle, width: 1),
+        border: Border.all(color: palette.borderSubtle, width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const CircleAvatar(
+              CircleAvatar(
                 radius: 13,
-                backgroundColor: AppDark.bgSurfaceHover,
+                // 흰 카드 위라 bgSurfaceHover(라이트에서 흰색)는 묻힌다.
+                backgroundColor: palette.borderSubtle,
                 child: Icon(
                   Icons.person,
                   size: 15,
-                  color: AppDark.textTertiary,
+                  color: palette.textTertiary,
                 ),
               ),
               const SizedBox(width: 10),
-              const Text(
+              Text(
                 '사감 선생님',
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: AppDark.textPrimary,
+                  color: palette.textPrimary,
                 ),
               ),
             ],
@@ -259,10 +261,10 @@ class _ReplyCard extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             reply,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               height: 1.55,
-              color: AppDark.textSecondary,
+              color: palette.textSecondary,
             ),
           ),
         ],
@@ -276,18 +278,19 @@ class _NoReply extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 18),
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: AppDark.bgSurface,
+        color: palette.bgSurface,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppDark.borderSubtle, width: 1),
+        border: Border.all(color: palette.borderSubtle, width: 1),
       ),
-      child: const Text(
+      child: Text(
         '아직 답변이 달리지 않았어요.',
-        style: TextStyle(fontSize: 13, color: AppDark.textTertiary),
+        style: TextStyle(fontSize: 13, color: palette.textTertiary),
       ),
     );
   }

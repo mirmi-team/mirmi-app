@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/services/auth_service.dart';
 import '../../shared/app_back_button.dart';
 import '../../shared/app_colors.dart';
+import '../../shared/app_palette.dart';
 import '../../shared/app_banner.dart';
 import '../../shared/submit_button.dart';
 
@@ -18,11 +19,11 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen>
   bool _agreed = false;
   bool _loading = false;
 
-  static const _bgColor = AppDark.bgCanvas;
-  static const _textColor = AppDark.textPrimary;
-  static const _surfaceColor = AppDark.bgSurfaceHover;
-  static const _bodyColor = AppDark.textSecondary;
-  static const _borderColor = AppDark.borderSubtle;
+  AppPalette get _palette => AppPalette.of(context);
+  Color get _textColor => _palette.textPrimary;
+  Color get _surfaceColor => _palette.bgSurfaceHover;
+  Color get _bodyColor => _palette.textSecondary;
+  Color get _borderColor => _palette.borderDefault;
 
   Future<void> _submit() async {
     if (!_agreed) return;
@@ -43,14 +44,14 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _bgColor,
+      // 배경색은 ThemeData.scaffoldBackgroundColor 가 정한다.
       appBar: AppBar(
-        backgroundColor: _bgColor,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: true,
         leading: const AppBackButton(),
-        title: const Text(
+        title: Text(
           '회원 탈퇴',
           style: TextStyle(
             fontSize: 20,
@@ -86,7 +87,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen>
                         ),
                       ),
                       const SizedBox(height: 34),
-                      const Text(
+                      Text(
                         '정말 회원 탈퇴를 하시겠어요?',
                         style: TextStyle(
                           fontSize: 18,
@@ -95,7 +96,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen>
                         ),
                       ),
                       const SizedBox(height: 8),
-                      const Text(
+                      Text(
                         '탈퇴 시 모든 정보가 삭제되며,\n복구가 불가능합니다.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
@@ -119,8 +120,12 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen>
                         width: 22,
                         height: 22,
                         decoration: BoxDecoration(
-                          color: _agreed ? _borderColor : Colors.white,
-
+                          // 체크하면 브랜드색으로 채우고, 아니면 표면색 + 테두리.
+                          // (흰 박스에 흰 체크는 라이트에서 보이지 않는다)
+                          color: _agreed
+                              ? AppBrand.primary
+                              : _palette.bgSurface,
+                          border: Border.all(color: _borderColor),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: _agreed
