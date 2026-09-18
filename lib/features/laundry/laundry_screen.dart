@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/laundry_service.dart';
 import '../../shared/app_colors.dart';
+import '../../shared/app_palette.dart';
 import '../../shared/app_skeleton.dart';
 import 'laundry_reservation_screen.dart';
 import 'laundry_status_section.dart';
@@ -16,11 +17,22 @@ class LaundryScreen extends StatefulWidget {
 
 class _LaundryScreenState extends State<LaundryScreen> {
   static const _teal = AppBrand.primary;
-  static const _bgColor = AppDark.bgCanvas;
-  static const _captionColor = AppDark.textTertiary;
-  static const _textColor = AppDark.textPrimary;
-  static const _cardColor = AppDark.bgSurface;
-  static const _errorColor = AppDark.statusError;
+
+  // 테마에 따라 바뀌는 색. build 에서 현재 팔레트를 받아 쓴다.
+  late AppPalette _palette;
+  Color get _captionColor => _palette.textTertiary;
+  Color get _textColor => _palette.textPrimary;
+  Color get _cardColor => _palette.bgSurface;
+  Color get _errorColor => _palette.statusError;
+
+  /// 월 이동 화살표 버튼 배경
+  Color get _arrowBgColor => _palette.borderSubtle;
+
+  /// 더 이동할 수 없을 때의 화살표
+  Color get _arrowOffColor => _palette.textDisabled;
+
+  /// 시간표 구분선
+  Color get _dividerColor => _palette.borderSubtle;
 
   bool _isLoading = true;
   String? _errorMessage;
@@ -200,8 +212,9 @@ class _LaundryScreenState extends State<LaundryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    _palette = AppPalette.of(context);
     return Scaffold(
-      backgroundColor: _bgColor,
+      // 배경색은 ThemeData.scaffoldBackgroundColor 가 정한다.
       body: SafeArea(
         child: AppRefreshScrollView(
           onRefresh: () => _loadData(silent: true),
@@ -210,7 +223,7 @@ class _LaundryScreenState extends State<LaundryScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
-                  const Text(
+                  Text(
                     '남은 세탁기를 확인하고\n빠르게 예약해 보세요.',
                     style: TextStyle(
                       color: _textColor,
@@ -221,10 +234,7 @@ class _LaundryScreenState extends State<LaundryScreen> {
                   const SizedBox(height: 32),
 
                   if (_errorMessage != null) ...[
-                    Text(
-                      _errorMessage!,
-                      style: const TextStyle(color: _errorColor),
-                    ),
+                    Text(_errorMessage!, style: TextStyle(color: _errorColor)),
                     const SizedBox(height: 12),
                   ],
 
@@ -264,19 +274,19 @@ class _LaundryScreenState extends State<LaundryScreen> {
               child: Container(
                 width: 40,
                 height: 40,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF2A2A2E),
+                decoration: BoxDecoration(
+                  color: _arrowBgColor,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   Icons.chevron_left,
-                  color: _canGoPrev ? _textColor : const Color(0xFF52525B),
+                  color: _canGoPrev ? _textColor : _arrowOffColor,
                 ),
               ),
             ),
             Text(
               _selectedDateLabel,
-              style: const TextStyle(
+              style: TextStyle(
                 color: _textColor,
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
@@ -287,13 +297,13 @@ class _LaundryScreenState extends State<LaundryScreen> {
               child: Container(
                 width: 40,
                 height: 40,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF2A2A2E),
+                decoration: BoxDecoration(
+                  color: _arrowBgColor,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   Icons.chevron_right,
-                  color: _canGoNext ? _textColor : const Color(0xFF52525B),
+                  color: _canGoNext ? _textColor : _arrowOffColor,
                 ),
               ),
             ),
@@ -312,7 +322,7 @@ class _LaundryScreenState extends State<LaundryScreen> {
                 children: [
                   Padding(
                     padding: const EdgeInsets.only(left: 20),
-                    child: const SizedBox(
+                    child: SizedBox(
                       width: 40,
                       child: Text(
                         '시간',
@@ -330,7 +340,7 @@ class _LaundryScreenState extends State<LaundryScreen> {
                       child: Text(
                         '${e.key + 1}호',
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: _textColor,
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -341,7 +351,7 @@ class _LaundryScreenState extends State<LaundryScreen> {
                 ],
               ),
               const SizedBox(height: 20),
-              Container(height: 1, color: const Color(0xFF27272A)),
+              Container(height: 1, color: _dividerColor),
               const SizedBox(height: 18),
               ..._scheduleSlotTimes().map(
                 (slotTime) => _buildScheduleRow(slotTime),
@@ -371,7 +381,7 @@ class _LaundryScreenState extends State<LaundryScreen> {
                 children: [
                   Text(
                     startLabel,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: _textColor,
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -379,7 +389,7 @@ class _LaundryScreenState extends State<LaundryScreen> {
                   ),
                   Text(
                     endLabel,
-                    style: const TextStyle(color: _textColor, fontSize: 10),
+                    style: TextStyle(color: _textColor, fontSize: 10),
                   ),
                 ],
               ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/utils/app_clock.dart';
 import '../../shared/app_colors.dart';
+import '../../shared/app_palette.dart';
 import '../../shared/app_skeleton.dart';
 
 /// 세탁기 사용 현황 (제목 + 층 뱃지 + 기기 카드들).
@@ -31,9 +32,6 @@ class LaundryStatusSection extends StatelessWidget {
   final bool loading;
 
   static const _teal = AppBrand.primary;
-  static const _textColor = AppDark.textPrimary;
-  static const _captionColor = AppDark.textTertiary;
-  static const _cardColor = AppDark.bgSurface;
 
   /// 한 층에 놓인 세탁기 수. 로딩 중 자리를 잡아둘 때 쓴다.
   static const _skeletonCount = 3;
@@ -66,16 +64,17 @@ class LaundryStatusSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
+            Text(
               '세탁기 사용 현황',
               style: TextStyle(
-                color: _textColor,
+                color: palette.textPrimary,
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
               ),
@@ -83,7 +82,10 @@ class LaundryStatusSection extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: const Color(0xFF1E2A2E),
+                // 다크는 어두운 틸, 라이트는 브랜드 틴트
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? const Color(0xFF1E2A2E)
+                    : AppBrand.subtle,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
@@ -113,7 +115,7 @@ class LaundryStatusSection extends StatelessWidget {
           child: Row(
             children: [
               for (int i = 0; i < machines.length; i++) ...[
-                Expanded(child: _buildMachineCard(i, machines[i])),
+                Expanded(child: _buildMachineCard(i, machines[i], palette)),
                 if (i != machines.length - 1) const SizedBox(width: 8),
               ],
             ],
@@ -123,7 +125,11 @@ class LaundryStatusSection extends StatelessWidget {
     );
   }
 
-  Widget _buildMachineCard(int index, Map<String, dynamic> machine) {
+  Widget _buildMachineCard(
+    int index,
+    Map<String, dynamic> machine,
+    AppPalette palette,
+  ) {
     final occupant = _occupantOf(index + 1);
     final bool isOccupied = occupant != null;
 
@@ -132,16 +138,16 @@ class LaundryStatusSection extends StatelessWidget {
             children: [
               Text(
                 '${occupant['room_number']}호',
-                style: const TextStyle(
-                  color: _textColor,
+                style: TextStyle(
+                  color: palette.textPrimary,
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
               ),
               const SizedBox(height: 2),
-              const Text(
+              Text(
                 '사용중',
-                style: TextStyle(color: _captionColor, fontSize: 12),
+                style: TextStyle(color: palette.textTertiary, fontSize: 12),
               ),
             ],
           )
@@ -158,17 +164,17 @@ class LaundryStatusSection extends StatelessWidget {
       height: _cardHeight,
       padding: EdgeInsets.only(top: 16, bottom: isOccupied ? 5 : 16),
       decoration: BoxDecoration(
-        color: _cardColor,
+        color: palette.bgSurface,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xff3F3F46), width: 1),
+        border: Border.all(color: palette.borderDefault, width: 1),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
             '${index + 1}호',
-            style: const TextStyle(
-              color: _textColor,
+            style: TextStyle(
+              color: palette.textPrimary,
               fontSize: 16,
               fontWeight: FontWeight.w600,
             ),
@@ -177,7 +183,8 @@ class LaundryStatusSection extends StatelessWidget {
           Icon(
             Icons.local_laundry_service,
             size: 54,
-            color: isOccupied ? _teal : Colors.white,
+            // 흰색으로 두면 라이트 모드에서 흰 카드에 묻혀 안 보인다.
+            color: isOccupied ? _teal : palette.textTertiary,
           ),
           SizedBox(height: isOccupied ? 10 : 14),
           detailWidget,

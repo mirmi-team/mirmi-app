@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/laundry_service.dart';
 import '../../shared/app_colors.dart';
+import '../../shared/app_palette.dart';
 import '../../core/utils/app_clock.dart';
 
 class LaundryReservationScreen extends StatefulWidget {
@@ -15,10 +16,15 @@ class LaundryReservationScreen extends StatefulWidget {
 
 class _LaundryReservationScreenState extends State<LaundryReservationScreen> {
   static const _teal = AppBrand.primary;
-  static const _bgColor = AppDark.bgCanvas;
-  static const _captionColor = AppDark.textTertiary;
-  static const _textColor = AppDark.textPrimary;
-  static const _cardColor = AppDark.bgSurface;
+
+  // 테마에 따라 바뀌는 색. build 에서 현재 팔레트를 받아 쓴다.
+  late AppPalette _palette;
+  Color get _captionColor => _palette.textTertiary;
+  Color get _textColor => _palette.textPrimary;
+  Color get _cardColor => _palette.bgSurface;
+
+  /// 시간을 고르기 전의 예약 버튼
+  Color get _disabledBtnColor => _palette.borderDefault;
 
   Map<String, dynamic>? _me;
   bool _submitting = false;
@@ -86,17 +92,18 @@ class _LaundryReservationScreenState extends State<LaundryReservationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    _palette = AppPalette.of(context);
     return Scaffold(
-      backgroundColor: _bgColor,
+      // 배경색은 ThemeData.scaffoldBackgroundColor 가 정한다.
       appBar: AppBar(
-        backgroundColor: _bgColor,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.chevron_left, color: _textColor),
+          icon: Icon(Icons.chevron_left, color: _textColor),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           '세탁기 예약',
           style: TextStyle(
             color: _textColor,
@@ -112,7 +119,7 @@ class _LaundryReservationScreenState extends State<LaundryReservationScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 33),
-              const Text(
+              Text(
                 '예약자 정보',
                 style: TextStyle(
                   color: _textColor,
@@ -125,14 +132,14 @@ class _LaundryReservationScreenState extends State<LaundryReservationScreen> {
                 _me == null
                     ? '불러오는 중...'
                     : '${_me!['room_number']}호 ${_me!['username']}님',
-                style: const TextStyle(
+                style: TextStyle(
                   color: _textColor,
                   fontSize: 20,
                   fontWeight: FontWeight(700),
                 ),
               ),
               const SizedBox(height: 4),
-              const Row(
+              Row(
                 children: [
                   Icon(Icons.info_outline, size: 14, color: _captionColor),
                   SizedBox(width: 4),
@@ -148,7 +155,7 @@ class _LaundryReservationScreenState extends State<LaundryReservationScreen> {
               ),
               const SizedBox(height: 32),
 
-              const Text(
+              Text(
                 '세탁기 사용 신청',
                 style: TextStyle(
                   color: _textColor,
@@ -157,7 +164,7 @@ class _LaundryReservationScreenState extends State<LaundryReservationScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 '예약 시간을 선택해 주세요.',
                 style: TextStyle(
                   color: _textColor,
@@ -203,7 +210,7 @@ class _LaundryReservationScreenState extends State<LaundryReservationScreen> {
                   margin: const EdgeInsets.only(bottom: 20),
                   decoration: BoxDecoration(
                     color: _selectedTimeIndex == null || _submitting
-                        ? const Color(0xffA1A1AA)
+                        ? _disabledBtnColor
                         : _teal,
                     borderRadius: BorderRadius.circular(72),
                   ),
