@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mirmi_app/shared/submit_button.dart';
 import '../../core/services/auth_service.dart';
+import '../../shared/app_back_button.dart';
 import '../../shared/app_banner.dart';
 import '../../shared/app_colors.dart';
 import '../../shared/keyboard_inset.dart';
@@ -19,7 +20,6 @@ class _InquiryScreenState extends State<InquiryScreen> with AppBannerMixin {
   static const _bgColor = AppDark.bgCanvas;
   static const _textColor = AppDark.textPrimary;
   static const _captionColor = AppDark.textTertiary;
-  static const _surfaceColor = AppDark.bgSurfaceHover;
 
   final _subjectCtrl = TextEditingController();
   final _messageCtrl = TextEditingController();
@@ -78,25 +78,7 @@ class _InquiryScreenState extends State<InquiryScreen> with AppBannerMixin {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: true,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 16),
-          child: GestureDetector(
-            onTap: () => context.pop(),
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: _surfaceColor,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.chevron_left,
-                color: _textColor,
-                size: 22,
-              ),
-            ),
-          ),
-        ),
+        leading: const AppBackButton(),
         title: const Text(
           '문의 메일보내기',
           style: TextStyle(

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/services/auth_service.dart';
+import '../../shared/app_back_button.dart';
 import '../../shared/app_colors.dart';
 import '../../shared/app_palette.dart';
 import '../../shared/app_refresh.dart';
@@ -389,13 +390,9 @@ class _SignupScreenState extends State<SignupScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 8, top: 4),
-                child: IconButton(
-                  icon: const Icon(Icons.chevron_left, size: 28),
-                  onPressed: _onBack,
-                  color: Colors.white,
-                ),
+              AppBackButton(
+                onTap: _onBack,
+                padding: const EdgeInsets.only(left: 16, top: 8),
               ),
               Expanded(
                 child: ClipRect(

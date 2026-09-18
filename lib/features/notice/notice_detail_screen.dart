@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../core/services/notice_service.dart';
+import '../../shared/app_back_button.dart';
 import '../../shared/app_palette.dart';
 import '../../shared/app_top_bar.dart';
 import '../../shared/app_refresh.dart';
@@ -25,20 +25,9 @@ class NoticeDetailScreen extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(20, 4, 20, 40),
         children: [
           // ── 뒤로가기 ────────────────────────────────────────
-          Align(
+          const Align(
             alignment: Alignment.centerLeft,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => context.pop(),
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 8, horizontal: 0),
-                child: Icon(
-                  Icons.chevron_left,
-                  color: palette.textPrimary,
-                  size: 28,
-                ),
-              ),
-            ),
+            child: AppBackButton(padding: EdgeInsets.symmetric(vertical: 8)),
           ),
           const SizedBox(height: 32),
 

@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/theme_service.dart';
+import '../../shared/app_back_button.dart';
 import '../../shared/app_banner.dart';
 import '../../shared/app_colors.dart';
 import '../../shared/app_palette.dart';
@@ -34,11 +35,6 @@ class _MyPageScreenState extends State<MyPageScreen> with AppBannerMixin {
   AppPalette get _palette => AppPalette.of(context);
   Color get _textColor => _palette.textPrimary;
 
-  /// 뒤로가기 버튼 배경
-  /// 뒤로가기 버튼 배경. borderSubtle 은 라이트에서 캔버스(E9E9E9)와
-  /// 거의 같은 색이라 원이 안 보인다. bgSurfaceHover 는 다크 27272A,
-  /// 라이트 흰색이라 양쪽 다 배경과 구분된다.
-  Color get _surfaceColor => _palette.bgSurfaceHover;
   Color get _errorColor => _palette.statusError;
 
   @override
@@ -166,21 +162,7 @@ class _MyPageScreenState extends State<MyPageScreen> with AppBannerMixin {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: true,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 16),
-          child: GestureDetector(
-            onTap: () => context.pop(),
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: _surfaceColor,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(Icons.chevron_left, color: _textColor, size: 22),
-            ),
-          ),
-        ),
+        leading: const AppBackButton(),
         title: Text(
           _loading ? '' : '$name님의 정보',
           style: TextStyle(

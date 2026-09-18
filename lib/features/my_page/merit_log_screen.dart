@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/services/auth_service.dart';
+import '../../shared/app_back_button.dart';
 import '../../shared/app_colors.dart';
 import '../../shared/app_refresh.dart';
 import '../../shared/app_banner.dart';
@@ -23,7 +24,6 @@ class _MeritLogScreenState extends State<MeritLogScreen> with AppBannerMixin {
   static const _bgColor = AppDark.bgCanvas;
   static const _textColor = AppDark.textPrimary;
   static const _captionColor = AppDark.textTertiary;
-  static const _surfaceColor = AppDark.bgSurfaceHover;
   static const _cardColor = AppDark.bgSurface;
   static const _bodyColor = AppDark.textSecondary;
   static const _teal = AppBrand.primary;
@@ -101,25 +101,7 @@ class _MeritLogScreenState extends State<MeritLogScreen> with AppBannerMixin {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: true,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 16),
-          child: GestureDetector(
-            onTap: () => context.pop(),
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: _surfaceColor,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.chevron_left,
-                color: _textColor,
-                size: 22,
-              ),
-            ),
-          ),
-        ),
+        leading: const AppBackButton(),
         title: const Text(
           '상벌점 내역',
           style: TextStyle(
@@ -369,7 +351,8 @@ class _MeritLogScreenState extends State<MeritLogScreen> with AppBannerMixin {
                                                         fontSize: 15,
                                                         fontWeight:
                                                             FontWeight.w600,
-                                                        color: AppDark.statusError,
+                                                        color:
+                                                            AppDark.statusError,
                                                       ),
                                                     ),
                                                 ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/services/auth_service.dart';
+import '../../shared/app_back_button.dart';
 import '../../shared/app_colors.dart';
 import '../../shared/app_banner.dart';
 import '../../shared/submit_button.dart';
@@ -48,25 +49,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen>
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: true,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 16),
-          child: GestureDetector(
-            onTap: () => context.pop(),
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: _surfaceColor,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.chevron_left,
-                color: _textColor,
-                size: 22,
-              ),
-            ),
-          ),
-        ),
+        leading: const AppBackButton(),
         title: const Text(
           '회원 탈퇴',
           style: TextStyle(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/laundry_service.dart';
+import '../../shared/app_back_button.dart';
 import '../../shared/app_colors.dart';
 import '../../shared/app_palette.dart';
 import '../../core/utils/app_clock.dart';
@@ -99,10 +100,7 @@ class _LaundryReservationScreenState extends State<LaundryReservationScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.chevron_left, color: _textColor),
-          onPressed: () => Navigator.pop(context),
-        ),
+        leading: AppBackButton(onTap: () => Navigator.pop(context)),
         title: Text(
           '세탁기 예약',
           style: TextStyle(

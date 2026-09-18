@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/services/auth_service.dart';
 import '../../core/services/suggestion_service.dart';
+import '../../shared/app_back_button.dart';
 import '../../shared/app_banner.dart';
 import '../../shared/app_colors.dart';
 import '../../shared/app_refresh.dart';
@@ -57,25 +58,7 @@ class _MySuggestionsScreenState extends State<MySuggestionsScreen>
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: true,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 16),
-          child: GestureDetector(
-            onTap: () => context.pop(),
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: const BoxDecoration(
-                color: AppDark.bgSurfaceHover,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.chevron_left,
-                color: _textColor,
-                size: 22,
-              ),
-            ),
-          ),
-        ),
+        leading: const AppBackButton(),
         title: const Text(
           '내 건의사항',
           style: TextStyle(
@@ -116,8 +99,10 @@ class _MySuggestionsScreenState extends State<MySuggestionsScreen>
                         )
                       : SliverList.separated(
                           itemCount: _suggestions.length,
-                          separatorBuilder: (_, _) =>
-                              const Divider(color: AppDark.borderSubtle, height: 1),
+                          separatorBuilder: (_, _) => const Divider(
+                            color: AppDark.borderSubtle,
+                            height: 1,
+                          ),
                           itemBuilder: (context, i) => _SuggestionCard(
                             suggestion: _suggestions[i],
                             onTap: () async {
