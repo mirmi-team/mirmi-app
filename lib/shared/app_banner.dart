@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
+import 'app_palette.dart';
 
 /// Stack 안에서 상단 슬라이드 배너를 띄우는 mixin.
 /// State 클래스에 `with AppBannerMixin` 추가 후
@@ -7,18 +8,24 @@ import 'app_colors.dart';
 mixin AppBannerMixin<T extends StatefulWidget> on State<T> {
   bool _bannerVisible = false;
   String? _bannerMessage;
-  Color _bannerColor = AppDark.statusError;
+  Color? _bannerColor;
   IconData _bannerIcon = Icons.priority_high_rounded;
 
-  void showErrorBanner(String msg) => _show(msg, AppDark.statusError, Icons.priority_high_rounded);
-  void showSuccessBanner(String msg) => _show(msg, AppBrand.primary, Icons.check);
-  void showInfoBanner(String msg) => _show(msg, AppBrand.primary, Icons.info_outline);
+  void showErrorBanner(String msg) => _show(
+    msg,
+    AppPalette.of(context).statusError,
+    Icons.priority_high_rounded,
+  );
+  void showSuccessBanner(String msg) =>
+      _show(msg, AppBrand.primary, Icons.check);
+  void showInfoBanner(String msg) =>
+      _show(msg, AppBrand.primary, Icons.info_outline);
 
   void _show(String msg, Color color, IconData icon) {
     setState(() {
       _bannerMessage = msg;
-      _bannerColor   = color;
-      _bannerIcon    = icon;
+      _bannerColor = color;
+      _bannerIcon = icon;
       _bannerVisible = false;
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -32,9 +39,12 @@ mixin AppBannerMixin<T extends StatefulWidget> on State<T> {
   /// Stack의 자식으로 추가. _bannerMessage가 null이면 빈 위젯 반환.
   Widget buildBanner() {
     if (_bannerMessage == null) return const SizedBox.shrink();
-    final color = _bannerColor;
+    // _show 가 항상 색을 넣어주지만, 없으면 에러색으로 떨어뜨린다.
+    final color = _bannerColor ?? AppPalette.of(context).statusError;
     return Positioned(
-      top: 0, left: 0, right: 0,
+      top: 0,
+      left: 0,
+      right: 0,
       child: ClipRect(
         child: SafeArea(
           child: AnimatedSlide(
@@ -45,7 +55,10 @@ mixin AppBannerMixin<T extends StatefulWidget> on State<T> {
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 14,
+                ),
                 decoration: BoxDecoration(
                   color: color,
                   borderRadius: BorderRadius.circular(14),
@@ -61,8 +74,12 @@ mixin AppBannerMixin<T extends StatefulWidget> on State<T> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
-                      width: 28, height: 28,
-                      decoration: const BoxDecoration(color: Colors.white24, shape: BoxShape.circle),
+                      width: 28,
+                      height: 28,
+                      decoration: const BoxDecoration(
+                        color: Colors.white24,
+                        shape: BoxShape.circle,
+                      ),
                       child: Icon(_bannerIcon, color: Colors.white, size: 16),
                     ),
                     const SizedBox(width: 10),

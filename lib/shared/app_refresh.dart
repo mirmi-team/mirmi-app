@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
+import 'app_palette.dart';
 
 /// 로딩 스피너 공통 규격.
 const double _indicatorSize = 22.0;
@@ -202,7 +203,7 @@ class _AppRefreshScrollViewState extends State<AppRefreshScrollView> {
         value: progress,
         strokeWidth: _strokeWidth,
         color: AppBrand.primary,
-        backgroundColor: AppDark.borderSubtle,
+        backgroundColor: AppPalette.of(context).borderSubtle,
       );
     }
 
