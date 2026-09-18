@@ -628,17 +628,11 @@ class _SignupScreenState extends State<SignupScreen> {
           children: [
             _buildNumberInput(_gradeController),
             const SizedBox(width: 8),
-            const Text(
-              '학년',
-              style: TextStyle(color: Colors.white, fontSize: 18),
-            ),
+            Text('학년', style: TextStyle(color: _textColor, fontSize: 18)),
             const SizedBox(width: 16),
             _buildNumberInput(_classController),
             const SizedBox(width: 8),
-            const Text(
-              '반',
-              style: TextStyle(color: Colors.white, fontSize: 18),
-            ),
+            Text('반', style: TextStyle(color: _textColor, fontSize: 18)),
           ],
         ),
         Builder(
@@ -1029,7 +1023,14 @@ class _SignupScreenState extends State<SignupScreen> {
             ),
           ),
           const SizedBox(width: 8),
-          Text(label, style: TextStyle(fontSize: 14, color: _radioLabelColor)),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+              color: selected ? _teal : _radioLabelColor,
+            ),
+          ),
         ],
       ),
     );
@@ -1075,10 +1076,11 @@ class _WaveDotsState extends State<_WaveDots>
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 2),
                 child: Container(
-                  width: 5,
-                  height: 5,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFCCCCCC),
+                  width: 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    // 연회색이라 두 테마 모두에서 잘 안 보였다. 브랜드색으로.
+                    color: AppBrand.primary,
                     shape: BoxShape.circle,
                   ),
                 ),
