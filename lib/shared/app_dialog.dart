@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
+import 'app_palette.dart';
 
 /// 앱 공통 확인 다이얼로그.
 ///
@@ -54,10 +55,11 @@ class _ConfirmDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final confirmColor = destructive ? AppColors.error : AppColors.mainColor;
+    final palette = AppPalette.of(context);
+    final confirmColor = destructive ? palette.statusError : AppBrand.primary;
 
     return Dialog(
-      backgroundColor: AppColors.card,
+      backgroundColor: palette.bgSurface,
       insetPadding: const EdgeInsets.symmetric(horizontal: 40),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
@@ -68,10 +70,10 @@ class _ConfirmDialog extends StatelessWidget {
             Text(
               title,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.w700,
-                color: AppColors.mainText,
+                color: palette.textPrimary,
               ),
             ),
             if (message.isNotEmpty) ...[
@@ -79,10 +81,10 @@ class _ConfirmDialog extends StatelessWidget {
               Text(
                 message,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   height: 1.6,
-                  color: AppColors.body,
+                  color: palette.textSecondary,
                 ),
               ),
             ],
@@ -95,8 +97,8 @@ class _ConfirmDialog extends StatelessWidget {
                     child: TextButton(
                       onPressed: () => Navigator.of(context).pop(),
                       style: TextButton.styleFrom(
-                        backgroundColor: AppColors.surfaceHover,
-                        foregroundColor: AppColors.caption,
+                        backgroundColor: palette.borderDefault,
+                        foregroundColor: palette.textTertiary,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(24),
                         ),

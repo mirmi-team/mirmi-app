@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/services/auth_service.dart';
 import '../../shared/app_banner.dart';
 import '../../shared/app_colors.dart';
+import '../../shared/app_palette.dart';
 import '../../shared/app_refresh.dart';
 import '../../shared/keyboard_inset.dart';
 import '../../shared/app_skeleton.dart';
@@ -26,7 +27,8 @@ class ReturnStayScreen extends StatefulWidget {
 
 class _ReturnStayScreenState extends State<ReturnStayScreen>
     with AppBannerMixin {
-  static const _textColor = AppColors.mainText;
+  AppPalette get _palette => AppPalette.of(context);
+  Color get _textColor => _palette.textPrimary;
 
   static const _returnOptions = ['바로 복귀', '석식 복귀', '8시 복귀'];
 
@@ -154,6 +156,7 @@ class _ReturnStayScreenState extends State<ReturnStayScreen>
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
     return Stack(
       children: [
         KeyboardInset(
@@ -185,7 +188,7 @@ class _ReturnStayScreenState extends State<ReturnStayScreen>
                             ),
                             child: Text(
                               '${_username ?? ''}님,\n입실체크를 해주세요',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 20,
                                 height: 1.35,
                                 fontWeight: FontWeight.w800,
@@ -194,7 +197,7 @@ class _ReturnStayScreenState extends State<ReturnStayScreen>
                             ),
                           ),
                           const SizedBox(height: 32),
-                          const Text(
+                          Text(
                             '복귀 체크',
                             style: TextStyle(
                               fontSize: 18,
@@ -217,7 +220,7 @@ class _ReturnStayScreenState extends State<ReturnStayScreen>
                             const SizedBox(height: 28),
 
                             // ── 외박/잔류 신청 (잔류 대상자에게만) ──────
-                            const Text(
+                            Text(
                               '이번 주 외박/잔류 신청',
                               style: TextStyle(
                                 fontSize: 18,
@@ -258,12 +261,12 @@ class _ReturnStayScreenState extends State<ReturnStayScreen>
                             ),
                             if (_submittedStatus != null) ...[
                               const SizedBox(height: 14),
-                              const Text(
+                              Text(
                                 '이번 주는 이미 신청했습니다. 변경이 필요하면 사감실로 문의해 주세요.',
                                 style: TextStyle(
                                   fontSize: 12,
                                   height: 1.4,
-                                  color: AppColors.caption,
+                                  color: palette.textTertiary,
                                 ),
                               ),
                             ],
@@ -299,13 +302,14 @@ class _ReturnCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.fromLTRB(18, 16, 14, 16),
         decoration: BoxDecoration(
-          color: AppColors.card,
+          color: palette.bgSurface,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -316,26 +320,22 @@ class _ReturnCard extends StatelessWidget {
                 children: [
                   Text(
                     label,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.mainText,
+                      color: palette.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 6),
-                  const Text(
+                  Text(
                     '입실 체크 시 사감 선생님께 알림이 발송됩니다.',
-                    style: TextStyle(fontSize: 12, color: AppColors.caption),
+                    style: TextStyle(fontSize: 12, color: palette.textTertiary),
                   ),
                 ],
               ),
             ),
             const SizedBox(width: 10),
-            const Icon(
-              Icons.chevron_right,
-              color: AppColors.mainText,
-              size: 24,
-            ),
+            Icon(Icons.chevron_right, color: palette.textPrimary, size: 24),
           ],
         ),
       ),
@@ -350,9 +350,10 @@ class _FieldLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
     return Text(
       text,
-      style: const TextStyle(fontSize: 13, color: AppColors.body),
+      style: TextStyle(fontSize: 13, color: palette.textSecondary),
     );
   }
 }
@@ -373,6 +374,7 @@ class _ChoiceButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: enabled ? onTap : null,
@@ -382,7 +384,7 @@ class _ChoiceButton extends StatelessWidget {
         height: 52,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: selected ? AppColors.mainColor : AppColors.card,
+          color: selected ? AppBrand.primary : palette.bgSurface,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Text(
@@ -390,7 +392,7 @@ class _ChoiceButton extends StatelessWidget {
           style: TextStyle(
             fontSize: 14,
             fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-            color: AppColors.mainText,
+            color: palette.textPrimary,
           ),
         ),
       ),
@@ -407,9 +409,10 @@ class _PhoneField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: palette.bgSurface,
         borderRadius: BorderRadius.circular(15),
       ),
       child: TextField(
@@ -421,10 +424,10 @@ class _PhoneField extends StatelessWidget {
           FilteringTextInputFormatter.digitsOnly,
           LengthLimitingTextInputFormatter(_phoneDigits),
         ],
-        style: const TextStyle(color: AppColors.mainText, fontSize: 13),
-        decoration: const InputDecoration(
+        style: TextStyle(color: palette.textPrimary, fontSize: 13),
+        decoration: InputDecoration(
           hintText: '숫자만 입력',
-          hintStyle: TextStyle(color: AppColors.caption, fontSize: 13),
+          hintStyle: TextStyle(color: palette.textTertiary, fontSize: 13),
           border: InputBorder.none,
           contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 17),
         ),

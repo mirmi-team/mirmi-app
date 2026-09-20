@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../shared/app_colors.dart';
+import '../../shared/app_palette.dart';
 import '../../shared/app_refresh.dart';
 
 // ── 곡 한 줄 ─────────────────────────────────────────────────
@@ -32,6 +32,7 @@ class SongRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -62,20 +63,20 @@ class SongRow extends StatelessWidget {
                 title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.mainText,
+                  color: palette.textPrimary,
                 ),
               ),
               if (subtitle.isNotEmpty) ...[
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.check_circle,
                       size: 13,
-                      color: AppColors.caption,
+                      color: palette.textTertiary,
                     ),
                     const SizedBox(width: 4),
                     Expanded(
@@ -83,9 +84,9 @@ class SongRow extends StatelessWidget {
                         subtitle,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.caption,
+                          color: palette.textTertiary,
                         ),
                       ),
                     ),
@@ -105,9 +106,9 @@ class SongRow extends StatelessWidget {
               height: 32,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: AppColors.card,
+                color: palette.bgSurface,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.border),
+                border: Border.all(color: palette.borderSubtle),
               ),
               child: busy
                   ? const AppLoadingIndicator(size: 14, strokeWidth: 2)
@@ -117,8 +118,8 @@ class SongRow extends StatelessWidget {
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: destructive
-                            ? AppColors.error
-                            : AppColors.mainText,
+                            ? palette.statusError
+                            : palette.textPrimary,
                       ),
                     ),
             ),
@@ -134,9 +135,10 @@ class _ThumbFallback extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
     return Container(
-      color: AppColors.card,
-      child: const Icon(Icons.music_note, size: 20, color: AppColors.caption),
+      color: palette.bgSurface,
+      child: Icon(Icons.music_note, size: 20, color: palette.textTertiary),
     );
   }
 }

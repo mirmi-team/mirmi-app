@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../shared/app_colors.dart';
+import 'app_palette.dart';
 import 'app_refresh.dart';
 
 class SubmitButton extends StatelessWidget {
@@ -18,13 +19,11 @@ class SubmitButton extends StatelessWidget {
   final bool submitButton;
   final bool errorButton;
 
-  static const _teal = AppColors.mainColor;
-  static const _surfaceColor = AppColors.surfaceHover;
-  static const _captionColor = AppColors.caption;
-  static const _errorColor = AppColors.error;
+  static const _teal = AppBrand.primary;
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
       child: SizedBox(
@@ -33,10 +32,12 @@ class SubmitButton extends StatelessWidget {
         child: ElevatedButton(
           onPressed: loadingButton ? null : onPressed,
           style: ElevatedButton.styleFrom(
-            backgroundColor: errorButton ? _errorColor : _teal,
-            disabledBackgroundColor: _surfaceColor,
-            disabledForegroundColor: _captionColor,
-            foregroundColor: Colors.white,
+            backgroundColor: errorButton ? palette.statusError : _teal,
+            // 비활성 버튼 색은 앱 전체가 borderDefault 로 통일.
+            disabledBackgroundColor: palette.borderDefault,
+            disabledForegroundColor: palette.textTertiary,
+            // 라이트 모드에서는 어두운 글자가 되어야 읽힌다.
+            foregroundColor: palette.textPrimary,
             elevation: 0,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(30),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
-import '../../shared/app_colors.dart';
+import '../../shared/app_palette.dart';
 
 /// 유튜브 주소에서 videoId 를 뽑는다. 형식이 다르면 null.
 ///
@@ -30,10 +30,11 @@ Future<void> showSongPlayerSheet(
   final videoId = youtubeVideoId(youtubeUrl);
   if (videoId == null) return Future.value();
 
+  final palette = AppPalette.of(context);
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
-    backgroundColor: AppColors.card,
+    backgroundColor: palette.bgSurface,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
@@ -77,6 +78,7 @@ class _SongPlayerSheetState extends State<_SongPlayerSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
     return SafeArea(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -88,7 +90,7 @@ class _SongPlayerSheetState extends State<_SongPlayerSheet> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: AppColors.border,
+                color: palette.borderSubtle,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -100,11 +102,11 @@ class _SongPlayerSheetState extends State<_SongPlayerSheet> {
               widget.title,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w700,
                 height: 1.35,
-                color: AppColors.mainText,
+                color: palette.textPrimary,
               ),
             ),
           ),
@@ -114,11 +116,11 @@ class _SongPlayerSheetState extends State<_SongPlayerSheet> {
             child: YoutubePlayer(controller: _controller, aspectRatio: 16 / 9),
           ),
           const SizedBox(height: 12),
-          const Padding(
+          Padding(
             padding: EdgeInsets.symmetric(horizontal: 20),
             child: Text(
               '일부 영상은 저작권자 설정으로 앱 안에서 재생되지 않을 수 있습니다.',
-              style: TextStyle(fontSize: 11, color: AppColors.caption),
+              style: TextStyle(fontSize: 11, color: palette.textTertiary),
             ),
           ),
           const SizedBox(height: 20),

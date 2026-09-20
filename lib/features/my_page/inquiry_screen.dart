@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mirmi_app/shared/submit_button.dart';
 import '../../core/services/auth_service.dart';
+import '../../shared/app_back_button.dart';
 import '../../shared/app_banner.dart';
-import '../../shared/app_colors.dart';
+import '../../shared/app_palette.dart';
 import '../../shared/keyboard_inset.dart';
 import '../../shared/app_dialog.dart';
 
@@ -16,10 +17,9 @@ class InquiryScreen extends StatefulWidget {
 }
 
 class _InquiryScreenState extends State<InquiryScreen> with AppBannerMixin {
-  static const _bgColor = AppColors.backB;
-  static const _textColor = AppColors.mainText;
-  static const _captionColor = AppColors.caption;
-  static const _surfaceColor = AppColors.surfaceHover;
+  AppPalette get _palette => AppPalette.of(context);
+  Color get _textColor => _palette.textPrimary;
+  Color get _captionColor => _palette.textTertiary;
 
   final _subjectCtrl = TextEditingController();
   final _messageCtrl = TextEditingController();
@@ -69,35 +69,17 @@ class _InquiryScreenState extends State<InquiryScreen> with AppBannerMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _bgColor,
+      // 배경색은 ThemeData.scaffoldBackgroundColor 가 정한다.
       // 키보드가 올라와도 '문의 보내기' 버튼은 제자리에 둔다.
       // 입력창은 아래 KeyboardInset 안에서 스크롤로 올라온다.
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        backgroundColor: _bgColor,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: true,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 16),
-          child: GestureDetector(
-            onTap: () => context.pop(),
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: _surfaceColor,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.chevron_left,
-                color: _textColor,
-                size: 22,
-              ),
-            ),
-          ),
-        ),
-        title: const Text(
+        leading: const AppBackButton(),
+        title: Text(
           '문의 메일보내기',
           style: TextStyle(
             fontSize: 20,
@@ -130,7 +112,7 @@ class _InquiryScreenState extends State<InquiryScreen> with AppBannerMixin {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               '문의하기',
                               style: TextStyle(
                                 fontSize: 18,
@@ -207,11 +189,13 @@ class GuideText extends StatelessWidget {
   final String text;
   const GuideText({super.key, required this.text});
 
-  static const _textColor = AppColors.mainText;
-
   @override
   Widget build(BuildContext context) {
-    return Text(text, style: TextStyle(color: _textColor, fontSize: 13));
+    final palette = AppPalette.of(context);
+    return Text(
+      text,
+      style: TextStyle(color: palette.textPrimary, fontSize: 13),
+    );
   }
 }
 
@@ -228,20 +212,18 @@ class TextInput extends StatelessWidget {
     this.onChanged,
   });
 
-  static const _textColor = AppColors.mainText;
-  static const _cardColor = AppColors.card2;
-
   @override
   Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
     return TextField(
       controller: controller,
       onChanged: onChanged,
-      style: TextStyle(color: _textColor, fontSize: 14),
+      style: TextStyle(color: palette.textPrimary, fontSize: 14),
       decoration: InputDecoration(
         hintText: hintText,
-        hintStyle: TextStyle(color: AppColors.hint, fontSize: 14),
+        hintStyle: TextStyle(color: palette.textTertiary, fontSize: 14),
         filled: true,
-        fillColor: _cardColor,
+        fillColor: palette.bgSurface,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide.none,
