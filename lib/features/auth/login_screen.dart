@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/services/auth_service.dart';
 import '../../shared/app_colors.dart';
+import '../../shared/app_palette.dart';
 import '../../shared/app_refresh.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -21,12 +22,15 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _showErrorBanner = false;
   String? _errorMessage;
 
-  static const _teal = AppColors.mainColor;
-  static const _errorColor = AppColors.error;
-  static const _bgColor = AppColors.backB;
-  static const _captainColor = AppColors.caption;
-  static const _cardColor = AppColors.card;
-  static const _textColor = AppColors.mainText;
+  static const _teal = AppBrand.primary;
+
+  // 테마에 따라 바뀌는 색. build 에서 현재 팔레트를 받아 쓴다.
+  late AppPalette _palette;
+  Color get _errorColor => _palette.statusError;
+  Color get _bgColor => _palette.bgCanvas;
+  Color get _captainColor => _palette.textTertiary;
+  Color get _cardColor => _palette.bgSurface;
+  Color get _textColor => _palette.textPrimary;
 
   @override
   void initState() {
@@ -98,6 +102,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    _palette = AppPalette.of(context);
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
@@ -146,10 +151,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ? null
                                 : _onLogin,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: _isValid ? _teal : _captainColor,
-                              disabledBackgroundColor: _captainColor,
-                              disabledForegroundColor: Colors.white,
-                              foregroundColor: Colors.white,
+                              backgroundColor: _isValid
+                                  ? _teal
+                                  : _palette.borderDefault,
+                              disabledBackgroundColor: _palette.borderDefault,
+                              disabledForegroundColor: _palette.textTertiary,
+                              foregroundColor: _textColor,
                               elevation: 0,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(30),
@@ -170,7 +177,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Text(
+                            Text(
                               '아직 계정이 없다면 ',
                               style: TextStyle(
                                 color: _captainColor,
@@ -333,7 +340,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildLabel(String text) {
     return Text(
       text,
-      style: const TextStyle(
+      style: TextStyle(
         color: _textColor,
         fontSize: 18,
         fontWeight: FontWeight.w600,
@@ -352,12 +359,12 @@ class _LoginScreenState extends State<LoginScreen> {
         borderRadius: BorderRadius.circular(15),
       ),
       child: TextField(
-        style: const TextStyle(fontSize: 14, color: _textColor),
+        style: TextStyle(fontSize: 14, color: _textColor),
         controller: controller,
         keyboardType: keyboardType,
         decoration: InputDecoration(
           hintText: hintText,
-          hintStyle: const TextStyle(color: _captainColor, fontSize: 13),
+          hintStyle: TextStyle(color: _captainColor, fontSize: 13),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 20,
@@ -375,12 +382,12 @@ class _LoginScreenState extends State<LoginScreen> {
         borderRadius: BorderRadius.circular(15),
       ),
       child: TextField(
-        style: const TextStyle(fontSize: 14, color: _textColor),
+        style: TextStyle(fontSize: 14, color: _textColor),
         controller: _passwordController,
         obscureText: _obscurePassword,
         decoration: InputDecoration(
           hintText: 'mirim123!',
-          hintStyle: const TextStyle(color: _captainColor, fontSize: 13),
+          hintStyle: TextStyle(color: _captainColor, fontSize: 13),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 20,

@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
+import 'app_palette.dart';
 
 /// 로딩 스피너 공통 규격.
 const double _indicatorSize = 22.0;
@@ -21,7 +22,7 @@ const double _strokeWidth = 2.2;
 /// ```
 class AppLoadingIndicator extends StatelessWidget {
   const AppLoadingIndicator({super.key, this.size, this.strokeWidth})
-    : color = AppColors.mainColor,
+    : color = AppBrand.primary,
       _centered = true;
 
   /// 컬러 버튼 위에 얹는 작은 흰색 스피너.
@@ -189,7 +190,7 @@ class _AppRefreshScrollViewState extends State<AppRefreshScrollView> {
     if (spinning) {
       spinner = const CircularProgressIndicator(
         strokeWidth: _strokeWidth,
-        color: AppColors.mainColor,
+        color: AppBrand.primary,
       );
     } else {
       // armed에서 pulledExtent로 계산하면 되돌아가는 동안 진행률이
@@ -201,8 +202,8 @@ class _AppRefreshScrollViewState extends State<AppRefreshScrollView> {
       spinner = CircularProgressIndicator(
         value: progress,
         strokeWidth: _strokeWidth,
-        color: AppColors.mainColor,
-        backgroundColor: AppColors.border,
+        color: AppBrand.primary,
+        backgroundColor: AppPalette.of(context).borderSubtle,
       );
     }
 

@@ -284,10 +284,7 @@ class AuthService {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
-        body: jsonEncode({
-          'status': status,
-          'parent_phone': parentPhone,
-        }),
+        body: jsonEncode({'status': status, 'parent_phone': parentPhone}),
       ),
     );
     _checkStatus(res);

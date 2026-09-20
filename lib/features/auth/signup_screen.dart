@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/services/auth_service.dart';
+import '../../shared/app_back_button.dart';
 import '../../shared/app_colors.dart';
+import '../../shared/app_palette.dart';
 import '../../shared/app_refresh.dart';
 
 enum _Step { email, password, studentInfo, dormInfo }
@@ -56,14 +58,28 @@ class _SignupScreenState extends State<SignupScreen> {
   String? _confirmPasswordError;
   String? _nameFieldError;
 
-  static const _teal = AppColors.mainColor;
-  static const _errorColor = AppColors.error;
-  static const _bgColor = AppColors.backB;
-  static const _captainColor = AppColors.caption;
-  static const _cardColor = AppColors.card;
-  static const _textColor = AppColors.mainText;
-  static const _surfaceColor = AppColors.surfaceHover;
-  static const _bodyColor = AppColors.body;
+  static const _teal = AppBrand.primary;
+
+  // 테마에 따라 바뀌는 색. build 에서 현재 팔레트를 받아 쓴다.
+  late AppPalette _palette;
+  Color get _errorColor => _palette.statusError;
+  Color get _bgColor => _palette.bgCanvas;
+
+  /// 힌트·안내 문구, 눈 아이콘
+  Color get _captainColor => _palette.textTertiary;
+
+  /// 입력 필드 배경
+  Color get _cardColor => _palette.bgSurfaceSubtle;
+  Color get _textColor => _palette.textPrimary;
+
+  /// 인증번호 보내기 버튼
+  Color get _surfaceColor => _palette.borderDefault;
+
+  /// 성별·지역 라디오 라벨
+  Color get _radioLabelColor => _palette.textDisabled;
+
+  /// 라디오 테두리 (선택 여부와 무관)
+  Color get _radioBorderColor => _palette.borderDefault;
 
   @override
   void initState() {
@@ -364,6 +380,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    _palette = AppPalette.of(context);
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
@@ -373,13 +390,9 @@ class _SignupScreenState extends State<SignupScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 8, top: 4),
-                child: IconButton(
-                  icon: const Icon(Icons.chevron_left, size: 28),
-                  onPressed: _onBack,
-                  color: Colors.white,
-                ),
+              AppBackButton(
+                onTap: _onBack,
+                padding: const EdgeInsets.only(left: 16, top: 8),
               ),
               Expanded(
                 child: ClipRect(
@@ -612,17 +625,11 @@ class _SignupScreenState extends State<SignupScreen> {
           children: [
             _buildNumberInput(_gradeController),
             const SizedBox(width: 8),
-            const Text(
-              '학년',
-              style: TextStyle(color: Colors.white, fontSize: 18),
-            ),
+            Text('학년', style: TextStyle(color: _textColor, fontSize: 18)),
             const SizedBox(width: 16),
             _buildNumberInput(_classController),
             const SizedBox(width: 8),
-            const Text(
-              '반',
-              style: TextStyle(color: Colors.white, fontSize: 18),
-            ),
+            Text('반', style: TextStyle(color: _textColor, fontSize: 18)),
           ],
         ),
         Builder(
@@ -751,9 +758,11 @@ class _SignupScreenState extends State<SignupScreen> {
                   ? null
                   : _onNext,
               style: ElevatedButton.styleFrom(
-                backgroundColor: _isCurrentStepValid ? _teal : _captainColor,
-                disabledBackgroundColor: _captainColor,
-                disabledForegroundColor: _textColor,
+                backgroundColor: _isCurrentStepValid
+                    ? _teal
+                    : _palette.borderDefault,
+                disabledBackgroundColor: _palette.borderDefault,
+                disabledForegroundColor: _palette.textTertiary,
                 foregroundColor: _textColor,
                 elevation: 0,
                 shape: RoundedRectangleBorder(
@@ -793,7 +802,7 @@ class _SignupScreenState extends State<SignupScreen> {
   Widget _buildLabel(String text) {
     return Text(
       text,
-      style: const TextStyle(
+      style: TextStyle(
         color: _textColor,
         fontSize: 18,
         fontWeight: FontWeight.w600,
@@ -812,10 +821,7 @@ class _SignupScreenState extends State<SignupScreen> {
         const SizedBox(width: 4),
         Text(
           text,
-          style: TextStyle(
-            color: tcolor ? _teal : _captainColor,
-            fontSize: 12,
-          ),
+          style: TextStyle(color: tcolor ? _teal : _captainColor, fontSize: 12),
         ),
       ],
     );
@@ -824,13 +830,10 @@ class _SignupScreenState extends State<SignupScreen> {
   Widget _buildInlineError(String text) {
     return Row(
       children: [
-        const Icon(Icons.info_outline, color: _errorColor, size: 14),
+        Icon(Icons.info_outline, color: _errorColor, size: 14),
         const SizedBox(width: 4),
         Flexible(
-          child: Text(
-            text,
-            style: const TextStyle(color: _errorColor, fontSize: 12),
-          ),
+          child: Text(text, style: TextStyle(color: _errorColor, fontSize: 12)),
         ),
       ],
     );
@@ -855,10 +858,10 @@ class _SignupScreenState extends State<SignupScreen> {
         inputFormatters: inputFormatters,
         readOnly: !enabled,
         textAlign: textAlign,
-        style: const TextStyle(color: _textColor, fontSize: 13),
+        style: TextStyle(color: _textColor, fontSize: 13),
         decoration: InputDecoration(
           hintText: hintText,
-          hintStyle: const TextStyle(color: _captainColor, fontSize: 13),
+          hintStyle: TextStyle(color: _captainColor, fontSize: 13),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 20,
@@ -885,10 +888,10 @@ class _SignupScreenState extends State<SignupScreen> {
         controller: controller,
         obscureText: obscure,
         onChanged: onChanged,
-        style: const TextStyle(color: _textColor, fontSize: 13),
+        style: TextStyle(color: _textColor, fontSize: 13),
         decoration: InputDecoration(
           hintText: hintText,
-          hintStyle: const TextStyle(color: _captainColor, fontSize: 13),
+          hintStyle: TextStyle(color: _captainColor, fontSize: 13),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 20,
@@ -932,10 +935,10 @@ class _SignupScreenState extends State<SignupScreen> {
               controller: controller,
               keyboardType: keyboardType,
               readOnly: !enabled,
-              style: const TextStyle(color: _textColor, fontSize: 13),
+              style: TextStyle(color: _textColor, fontSize: 13),
               decoration: InputDecoration(
                 hintText: hintText,
-                hintStyle: const TextStyle(color: _captainColor, fontSize: 13),
+                hintStyle: TextStyle(color: _captainColor, fontSize: 13),
                 border: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 20,
@@ -987,7 +990,7 @@ class _SignupScreenState extends State<SignupScreen> {
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           textAlign: TextAlign.center,
-          style: const TextStyle(color: _textColor, fontSize: 14),
+          style: TextStyle(color: _textColor, fontSize: 14),
           decoration: const InputDecoration(
             border: InputBorder.none,
             contentPadding: EdgeInsets.symmetric(vertical: 17),
@@ -1011,12 +1014,20 @@ class _SignupScreenState extends State<SignupScreen> {
             height: 22,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: selected ? _teal : _bodyColor,
-              border: Border.all(color: Colors.white),
+              // 채움만 선택 여부를 나타내고, 테두리는 둘 다 같은 색.
+              color: selected ? _teal : Colors.transparent,
+              border: Border.all(color: _radioBorderColor),
             ),
           ),
           const SizedBox(width: 8),
-          Text(label, style: const TextStyle(fontSize: 14, color: _textColor)),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+              color: selected ? _teal : _radioLabelColor,
+            ),
+          ),
         ],
       ),
     );
@@ -1062,10 +1073,11 @@ class _WaveDotsState extends State<_WaveDots>
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 2),
                 child: Container(
-                  width: 5,
-                  height: 5,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFCCCCCC),
+                  width: 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    // 연회색이라 두 테마 모두에서 잘 안 보였다. 브랜드색으로.
+                    color: AppBrand.primary,
                     shape: BoxShape.circle,
                   ),
                 ),
