@@ -25,6 +25,7 @@ class _LaundryReservationScreenState extends State<LaundryReservationScreen> {
   int? _selectedTimeIndex;
 
   late final List<Map<String, dynamic>> _timeSlots;
+  List<Map<String, dynamic>> _schedule = [];
 
   @override
   void initState() {
@@ -53,6 +54,42 @@ class _LaundryReservationScreenState extends State<LaundryReservationScreen> {
       },
     ];
     _loadMe();
+    _loadSchedule();
+  }
+
+  Future<void> _loadSchedule() async {
+    final machineId = widget.machine['id'] as int;
+    try {
+      final schedule = await LaundryService.getSchedule(
+        date: AppClock.now(),
+        floor: machineId ~/ 10,
+      );
+      if (mounted) setState(() => _schedule = schedule);
+    } on ApiException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.message)));
+      }
+    }
+  }
+
+  String _hhmm(DateTime t) =>
+      '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+
+  /// 이미 지난 시간 || 고정 시간 || 다른 사람이 신청한 시간이면 true
+  bool _isUnavailable(Map<String, dynamic> slot) {
+    if (!AppClock.now().isBefore(slot['end'] as DateTime)) return true;
+    final machineNo = (widget.machine['id'] as int) % 10;
+    final start = _hhmm(slot['start'] as DateTime);
+    final end = _hhmm(slot['end'] as DateTime);
+    return _schedule.any(
+      (s) =>
+          s['machine_no'] == machineNo &&
+          (s['start_time'] as String).startsWith(start) &&
+          (s['end_time'] as String).startsWith(end) &&
+          (s['type'] == 'FIXED' || s['room_number'] != null),
+    );
   }
 
   Future<void> _loadMe() async {
@@ -62,6 +99,12 @@ class _LaundryReservationScreenState extends State<LaundryReservationScreen> {
 
   Future<void> _submit() async {
     if (_selectedTimeIndex == null || _me == null) return;
+    if (AppClock.now().hour < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('오전 6시 이후부터 세탁기 예약이 가능합니다.')),
+      );
+      return;
+    }
     setState(() => _submitting = true);
 
     final slot = _timeSlots[_selectedTimeIndex!];
@@ -169,9 +212,14 @@ class _LaundryReservationScreenState extends State<LaundryReservationScreen> {
 
               ...List.generate(_timeSlots.length, (index) {
                 final slot = _timeSlots[index];
-                final isSelected = index == _selectedTimeIndex;
+                final isDisabled = _isUnavailable(slot);
+                final isSelected = !isDisabled && index == _selectedTimeIndex;
                 return GestureDetector(
-                  onTap: () => setState(() => _selectedTimeIndex = index),
+                  onTap: isDisabled
+                      ? null
+                      : () => setState(
+                          () => _selectedTimeIndex = isSelected ? null : index,
+                        ),
                   child: Container(
                     margin: const EdgeInsets.only(bottom: 10),
                     padding: const EdgeInsets.all(24),
@@ -183,7 +231,7 @@ class _LaundryReservationScreenState extends State<LaundryReservationScreen> {
                     child: Text(
                       slot['label'],
                       style: TextStyle(
-                        color: _textColor,
+                        color: isDisabled ? _captionColor : _textColor,
                         fontSize: 15,
                         fontWeight: FontWeight(590),
                       ),
