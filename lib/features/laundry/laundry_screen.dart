@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/laundry_service.dart';
 import '../../shared/app_colors.dart';
+import '../../shared/app_dialog.dart';
 import '../../shared/app_palette.dart';
 import '../../shared/app_skeleton.dart';
 import 'laundry_reservation_screen.dart';
@@ -35,8 +36,11 @@ class _LaundryScreenState extends State<LaundryScreen> {
   Color get _dividerColor => _palette.borderSubtle;
 
   bool _isLoading = true;
+  bool _isScheduleLoading = false; // 요일 이동 시 표 안쪽만 로딩
+  int _scheduleRequestId = 0;
   String? _errorMessage;
   int? _floor;
+  int? _roomNumber;
   List<Map<String, dynamic>> _machines = [];
 
   //고정 시간표
@@ -69,26 +73,37 @@ class _LaundryScreenState extends State<LaundryScreen> {
   bool _isSameDay(DateTime a, DateTime b) =>
       a.year == b.year && a.month == b.month && a.day == b.day;
 
+  String _twoDigit(int n) => n.toString().padLeft(2, '0');
+
   Future<void> _loadSchedule(DateTime date) async {
     if (_floor == null) return;
+    final requestId = ++_scheduleRequestId;
     if (_isSameDay(date, AppClock.now())) {
-      setState(() => _schedule = _todaySchedule);
+      setState(() {
+        _schedule = _todaySchedule;
+        _isScheduleLoading = false;
+      });
       return;
     }
+    setState(() => _isScheduleLoading = true);
     try {
       final schedule = await LaundryService.getSchedule(
         date: date,
         floor: _floor!,
       );
-      if (!mounted) return;
-      setState(() => _schedule = schedule);
+      if (!mounted || requestId != _scheduleRequestId) return;
+      setState(() {
+        _schedule = schedule;
+        _isScheduleLoading = false;
+      });
     } on ApiException catch (e) {
-      if (!mounted) return;
-      setState(() => _errorMessage = e.message);
+      if (!mounted || requestId != _scheduleRequestId) return;
+      setState(() {
+        _errorMessage = e.message;
+        _isScheduleLoading = false;
+      });
     }
   }
-
-  String _twoDigit(int n) => n.toString().padLeft(2, '0');
 
   @override
   void initState() {
@@ -129,6 +144,7 @@ class _LaundryScreenState extends State<LaundryScreen> {
       if (!mounted) return;
       setState(() {
         _floor = floor;
+        _roomNumber = roomNumber;
         _machines = myFloorMachines;
         _isLoading = false;
       });
@@ -200,11 +216,81 @@ class _LaundryScreenState extends State<LaundryScreen> {
     return matches.isEmpty ? null : matches.first;
   }
 
+  // 선택한 날짜의 해당 시간대가 이미 시작됐는지(진행 중 or 지남)
+  bool _hasStarted(Map<String, String> slotTime) {
+    final parts = slotTime['start_time']!.split(':');
+    final start = DateTime(
+      _selectedDate.year,
+      _selectedDate.month,
+      _selectedDate.day,
+      int.parse(parts[0]),
+      int.parse(parts[1]),
+    );
+    return !AppClock.now().isBefore(start);
+  }
+
+  String _dateKey(DateTime d) =>
+      '${d.year.toString().padLeft(4, '0')}-${_twoDigit(d.month)}-${_twoDigit(d.day)}';
+
+  /// 내 예약을 눌렀을 때 취소할지 말지
+  Future<void> _cancelMyReservation(
+    int machineNo,
+    Map<String, String> slotTime,
+  ) async {
+    final ok = await showConfirmDialog(
+      context,
+      title: '세탁기 예약을 취소하시겠습니까?',
+      message: '',
+      confirmText: '확인',
+      destructive: true,
+    );
+    if (ok != true || !mounted) return;
+
+    try {
+      final laundryId = _machines[machineNo - 1]['id'] as int;
+      final date = _dateKey(_selectedDate);
+      final start = slotTime['start_time']!.substring(0, 5);
+      final end = slotTime['end_time']!.substring(0, 5);
+
+      final mine = await LaundryService.getMyReservations();
+      final target = mine.where((r) {
+        final status = r['status'];
+        final startTime = r['start_time'] as String;
+        final endTime = r['end_time'] as String;
+        return r['laundry_id'] == laundryId &&
+            (status == 'PENDING' || status == 'IN_USE') &&
+            startTime.substring(0, 10) == date &&
+            startTime.substring(11, 16) == start &&
+            endTime.substring(11, 16) == end;
+      });
+      if (target.isEmpty) {
+        throw ApiException('취소할 예약을 찾을 수 없습니다.');
+      }
+      await LaundryService.cancelReservation(target.first['id'] as int);
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('세탁기 예약이 취소되었습니다.')));
+      await _loadData(silent: true);
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message)));
+    }
+  }
+
   Future<void> _goToReservation(Map<String, dynamic> machine) async {
     final result = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
-        builder: (_) => LaundryReservationScreen(machine: machine),
+        builder: (_) => LaundryReservationScreen(
+          machine: {
+            ...machine,
+            'machine_no':
+                _machines.indexWhere((m) => m['id'] == machine['id']) + 1,
+          },
+        ),
       ),
     );
     if (result == true) _loadData();
@@ -353,8 +439,21 @@ class _LaundryScreenState extends State<LaundryScreen> {
               const SizedBox(height: 20),
               Container(height: 1, color: _dividerColor),
               const SizedBox(height: 18),
-              ..._scheduleSlotTimes().map(
-                (slotTime) => _buildScheduleRow(slotTime),
+              AppSkeletonSwitcher(
+                loading: _isScheduleLoading,
+                skeleton: Column(
+                  children: [
+                    for (int i = 0; i < 4; i++) ...[
+                      const AppSkeleton(height: 40, radius: 8),
+                      if (i != 3) const SizedBox(height: 14),
+                    ],
+                  ],
+                ),
+                child: Column(
+                  children: _scheduleSlotTimes()
+                      .map(_buildScheduleRow)
+                      .toList(),
+                ),
               ),
             ],
           ),
@@ -406,19 +505,33 @@ class _LaundryScreenState extends State<LaundryScreen> {
                 ? '${matched['room_number']}호'
                 : '비어있음';
 
-            return Expanded(
-              child: Text(
-                label,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: isFixed
-                      ? _teal
-                      : (isFilled ? _textColor : _captionColor),
-                  fontSize: 14,
-                  fontWeight: isFilled ? FontWeight.w600 : FontWeight.w400,
-                  // fontStyle: FontStyle.normal,
-                ),
+            final bool isMine =
+                matched != null &&
+                matched['type'] == 'RESERVED' &&
+                matched['room_number'] == _roomNumber &&
+                !_hasStarted(slotTime);
+
+            final text = Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: isFixed
+                    ? _teal
+                    : (isFilled ? _textColor : _captionColor),
+                fontSize: 14,
+                fontWeight: isFilled ? FontWeight.w600 : FontWeight.w400,
+                // fontStyle: FontStyle.normal,
               ),
+            );
+
+            return Expanded(
+              child: isMine
+                  ? GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => _cancelMyReservation(machineNo, slotTime),
+                      child: text,
+                    )
+                  : text,
             );
           }),
         ],
