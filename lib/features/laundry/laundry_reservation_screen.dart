@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/laundry_service.dart';
 import '../../shared/app_back_button.dart';
+import '../../shared/app_dialog.dart';
 import '../../shared/app_colors.dart';
 import '../../shared/app_palette.dart';
+import '../../shared/app_skeleton.dart';
 import '../../core/utils/app_clock.dart';
 
 class LaundryReservationScreen extends StatefulWidget {
@@ -31,72 +33,68 @@ class _LaundryReservationScreenState extends State<LaundryReservationScreen> {
   bool _submitting = false;
   int? _selectedTimeIndex;
 
-  late final List<Map<String, dynamic>> _timeSlots;
-  List<Map<String, dynamic>> _schedule = [];
+  List<Map<String, dynamic>> _timeSlots = [];
+  bool _slotsLoading = true;
 
   @override
   void initState() {
     super.initState();
-    final today = AppClock.now();
-    _timeSlots = [
-      {
-        'label': '14:30~16:40',
-        'start': DateTime(today.year, today.month, today.day, 14, 30),
-        'end': DateTime(today.year, today.month, today.day, 16, 40),
-      },
-      {
-        'label': '19:00~20:10',
-        'start': DateTime(today.year, today.month, today.day, 19, 0),
-        'end': DateTime(today.year, today.month, today.day, 20, 10),
-      },
-      {
-        'label': '20:10~21:20',
-        'start': DateTime(today.year, today.month, today.day, 20, 10),
-        'end': DateTime(today.year, today.month, today.day, 21, 20),
-      },
-      {
-        'label': '21:20~22:30',
-        'start': DateTime(today.year, today.month, today.day, 21, 20),
-        'end': DateTime(today.year, today.month, today.day, 22, 30),
-      },
-    ];
     _loadMe();
-    _loadSchedule();
+    _loadSlots();
   }
 
-  Future<void> _loadSchedule() async {
+  DateTime _timeOn(DateTime day, String hhmmss) {
+    final parts = hhmmss.split(':');
+    return DateTime(
+      day.year,
+      day.month,
+      day.day,
+      int.parse(parts[0]),
+      int.parse(parts[1]),
+    );
+  }
+
+  Future<void> _loadSlots() async {
     final machineId = widget.machine['id'] as int;
+    final machineNo = widget.machine['machine_no'] as int;
     try {
+      final today = AppClock.now();
       final schedule = await LaundryService.getSchedule(
-        date: AppClock.now(),
+        date: today,
         floor: machineId ~/ 10,
       );
-      if (mounted) setState(() => _schedule = schedule);
+      final mine = schedule.where((s) => s['machine_no'] == machineNo).toList()
+        ..sort(
+          (a, b) =>
+              (a['start_time'] as String).compareTo(b['start_time'] as String),
+        );
+      if (!mounted) return;
+      setState(() {
+        _timeSlots = mine.map((s) {
+          final startStr = s['start_time'] as String;
+          final endStr = s['end_time'] as String;
+          return {
+            'label': '${startStr.substring(0, 5)}~${endStr.substring(0, 5)}',
+            'start': _timeOn(today, startStr),
+            'end': _timeOn(today, endStr),
+            'taken': s['type'] == 'FIXED' || s['room_number'] != null,
+          };
+        }).toList();
+        _slotsLoading = false;
+      });
     } on ApiException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.message)));
-      }
+      if (!mounted) return;
+      setState(() => _slotsLoading = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message)));
     }
   }
-
-  String _hhmm(DateTime t) =>
-      '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
 
   /// 이미 지난 시간 || 고정 시간 || 다른 사람이 신청한 시간이면 true
   bool _isUnavailable(Map<String, dynamic> slot) {
     if (!AppClock.now().isBefore(slot['end'] as DateTime)) return true;
-    final machineNo = (widget.machine['id'] as int) % 10;
-    final start = _hhmm(slot['start'] as DateTime);
-    final end = _hhmm(slot['end'] as DateTime);
-    return _schedule.any(
-      (s) =>
-          s['machine_no'] == machineNo &&
-          (s['start_time'] as String).startsWith(start) &&
-          (s['end_time'] as String).startsWith(end) &&
-          (s['type'] == 'FIXED' || s['room_number'] != null),
-    );
+    return slot['taken'] as bool;
   }
 
   Future<void> _loadMe() async {
@@ -116,9 +114,29 @@ class _LaundryReservationScreenState extends State<LaundryReservationScreen> {
 
     final slot = _timeSlots[_selectedTimeIndex!];
     try {
+      final roomNumber = _me!['room_number'] as int;
+      final today = AppClock.now();
+      final schedule = await LaundryService.getSchedule(
+        date: today,
+        floor: (widget.machine['id'] as int) ~/ 10,
+      );
+      final alreadyReserved = schedule.any(
+        (s) => s['type'] == 'RESERVED' && s['room_number'] == roomNumber,
+      );
+      if (alreadyReserved) {
+        if (mounted) {
+          await showConfirmDialog(
+            context,
+            title: '이미 예약한 시간이 있어요',
+            message: '같은 날짜에는 호실당 한 번만 예약할 수 있습니다',
+            cancelText: '닫기',
+          );
+        }
+        return;
+      }
       await LaundryService.createReservation(
         laundryId: widget.machine['id'] as int,
-        roomNumber: _me!['room_number'] as int,
+        roomNumber: roomNumber,
         start: slot['start'] as DateTime,
         end: slot['end'] as DateTime,
       );
@@ -215,35 +233,51 @@ class _LaundryReservationScreenState extends State<LaundryReservationScreen> {
               ),
               const SizedBox(height: 24),
 
-              ...List.generate(_timeSlots.length, (index) {
-                final slot = _timeSlots[index];
-                final isDisabled = _isUnavailable(slot);
-                final isSelected = !isDisabled && index == _selectedTimeIndex;
-                return GestureDetector(
-                  onTap: isDisabled
-                      ? null
-                      : () => setState(
-                          () => _selectedTimeIndex = isSelected ? null : index,
+              AppSkeletonSwitcher(
+                loading: _slotsLoading,
+                skeleton: Column(
+                  children: [
+                    for (int i = 0; i < 4; i++) ...[
+                      const AppSkeleton(height: 68, radius: 8),
+                      const SizedBox(height: 10),
+                    ],
+                  ],
+                ),
+                child: Column(
+                  children: List.generate(_timeSlots.length, (index) {
+                    final slot = _timeSlots[index];
+                    final isDisabled = _isUnavailable(slot);
+                    final isSelected =
+                        !isDisabled && index == _selectedTimeIndex;
+                    return GestureDetector(
+                      onTap: isDisabled
+                          ? null
+                          : () => setState(
+                              () => _selectedTimeIndex = isSelected
+                                  ? null
+                                  : index,
+                            ),
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 10),
+                        padding: const EdgeInsets.all(24),
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: isSelected ? _teal : _cardColor,
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                  child: Container(
-                    margin: const EdgeInsets.only(bottom: 10),
-                    padding: const EdgeInsets.all(24),
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: isSelected ? _teal : _cardColor,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      slot['label'],
-                      style: TextStyle(
-                        color: isDisabled ? _captionColor : _textColor,
-                        fontSize: 15,
-                        fontWeight: FontWeight(590),
+                        child: Text(
+                          slot['label'],
+                          style: TextStyle(
+                            color: isDisabled ? _captionColor : _textColor,
+                            fontSize: 15,
+                            fontWeight: FontWeight(590),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                );
-              }),
+                    );
+                  }),
+                ),
+              ),
 
               const Spacer(),
               GestureDetector(

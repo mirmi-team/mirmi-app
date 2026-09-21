@@ -284,7 +284,13 @@ class _LaundryScreenState extends State<LaundryScreen> {
     final result = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
-        builder: (_) => LaundryReservationScreen(machine: machine),
+        builder: (_) => LaundryReservationScreen(
+          machine: {
+            ...machine,
+            'machine_no':
+                _machines.indexWhere((m) => m['id'] == machine['id']) + 1,
+          },
+        ),
       ),
     );
     if (result == true) _loadData();
