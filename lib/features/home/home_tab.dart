@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/laundry_service.dart';
 import '../../core/services/notice_service.dart';
+import '../../core/services/return_service.dart';
 import '../../core/services/schedule_service.dart';
 import '../../core/utils/app_clock.dart';
 import '../../shared/app_banner.dart';
@@ -14,10 +15,15 @@ import '../../shared/app_palette.dart';
 import '../../shared/app_refresh.dart';
 import '../../shared/app_skeleton.dart';
 import '../laundry/laundry_status_section.dart';
+import '../return_stay/return_check_card.dart';
 
 /// 복귀 체크 종류. 지금 시각에 해당하는 하나만 홈에 보여준다.
+///
+/// 경계값은 서버의 `resolveReturnTypeByTime` 과 같게 맞춰야 한다. 서버가
+/// 스캔 시각으로 타입을 정하므로, 여기가 어긋나면 라벨과 실제 저장값이
+/// 달라진다.
 enum ReturnCheckType {
-  /// 8시 복귀가 끝난 뒤부터 다음 날 석식 복귀 전까지
+  /// 08:00 ~ 16:30
   immediate('바로 복귀'),
 
   /// 17:20 ~ 18:20
@@ -29,12 +35,15 @@ enum ReturnCheckType {
   const ReturnCheckType(this.label);
   final String label;
 
-  /// 분 단위 경계값. 겹치지 않고 하루 전체를 덮는다.
-  static ReturnCheckType at(DateTime now) {
+  /// 지금 시각의 복귀 종류. 어느 시간대에도 안 걸치면 null 이고,
+  /// 그때 찍으면 서버도 타입 없이 저장한다. (양 끝 포함)
+  static ReturnCheckType? at(DateTime now) {
     final minutes = now.hour * 60 + now.minute;
-    if (minutes >= 17 * 60 + 20 && minutes < 18 * 60 + 20) return dinner;
-    if (minutes >= 18 * 60 + 20 && minutes < 20 * 60 + 30) return evening;
-    return immediate;
+    if (minutes >= 8 * 60 && minutes <= 16 * 60 + 30) return immediate;
+    // 18:20 정각은 서버와 같이 석식 복귀로 친다.
+    if (minutes >= 17 * 60 + 20 && minutes <= 18 * 60 + 20) return dinner;
+    if (minutes >= 18 * 60 + 20 && minutes <= 20 * 60 + 30) return evening;
+    return null;
   }
 }
 
@@ -60,7 +69,11 @@ class _HomeTabState extends State<HomeTab> with AppBannerMixin {
   List<Map<String, dynamic>> _todaySchedule = const [];
   List<DormSchedule> _schedules = const [];
 
-  ReturnCheckType _returnType = ReturnCheckType.immediate;
+  /// 지금 시각의 복귀 종류. 시간대 밖이면 null.
+  ReturnCheckType? _returnType;
+
+  /// 오늘 입실 체크 기록. 복귀 탭과 같은 소스를 쓴다.
+  List<ReturnRecord> _returnRecords = const [];
   Timer? _clockTimer;
 
   @override
@@ -97,6 +110,9 @@ class _HomeTabState extends State<HomeTab> with AppBannerMixin {
       final schedulesFuture = ScheduleService.getAll().catchError(
         (_) => <DormSchedule>[],
       );
+      final returnsFuture = ReturnService.getMine().catchError(
+        (_) => <ReturnRecord>[],
+      );
 
       final user = await userFuture;
       final roomNumber = user['room_number'] as int?;
@@ -114,9 +130,11 @@ class _HomeTabState extends State<HomeTab> with AppBannerMixin {
       final notice = await noticeFuture;
       final machines = await machinesFuture;
       final schedules = await schedulesFuture;
+      final returns = await returnsFuture;
 
       if (!mounted) return;
       setState(() {
+        _returnRecords = returns;
         _username = user['username'] as String?;
         _roomNumber = roomNumber;
         _floor = floor;
@@ -196,9 +214,13 @@ class _HomeTabState extends State<HomeTab> with AppBannerMixin {
                   // ── 복귀 체크 ─────────────────────────────
                   const _SectionTitle('복귀 체크'),
                   const SizedBox(height: 12),
-                  _ReturnCheckCard(
-                    type: _returnType,
-                    onTap: () => showInfoBanner('복귀 체크 기능은 준비 중입니다.'),
+                  ReturnCheckCard(
+                    // 시간대 밖에는 종류를 붙이지 않는다.
+                    label: _returnType == null
+                        ? '입실 체크'
+                        : '${_returnType!.label} 입실 체크',
+                    checkedAt: lastCheckedAt(_returnRecords),
+                    onChecked: () => _load(silent: true),
                   ),
                   const SizedBox(height: 34),
 
@@ -346,56 +368,6 @@ class _NoticeStrip extends StatelessWidget {
                 ),
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ── 복귀 체크 카드 ───────────────────────────────────────────────
-class _ReturnCheckCard extends StatelessWidget {
-  const _ReturnCheckCard({required this.type, required this.onTap});
-
-  final ReturnCheckType type;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = AppPalette.of(context);
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(18, 16, 14, 16),
-        decoration: BoxDecoration(
-          color: palette.bgSurface,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${type.label} 입실 체크',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: palette.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    '입실 체크 시 사감 선생님께 알림이 발송됩니다.',
-                    style: TextStyle(fontSize: 12, color: palette.textTertiary),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 10),
-            Icon(Icons.chevron_right, color: palette.textPrimary, size: 24),
           ],
         ),
       ),

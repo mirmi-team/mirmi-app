@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/services/auth_service.dart';
+import '../../core/services/return_service.dart';
+import 'return_check_card.dart';
 import '../../shared/app_banner.dart';
 import '../../shared/app_colors.dart';
 import '../../shared/app_palette.dart';
@@ -16,7 +18,7 @@ const _phoneDigits = 11;
 
 /// 복귀 체크 + 이번 주 외박/잔류 신청.
 ///
-/// 복귀 체크는 백엔드(`return-requests`)가 아직 빈 스캐폴드라 화면만 있다.
+/// 복귀 체크는 카드를 누르면 QR이 뜨고, 사감이 그 QR을 스캔해 입실 처리한다.
 /// 외박/잔류 신청은 `POST /stay-status` 에 실제로 연결되어 있다.
 class ReturnStayScreen extends StatefulWidget {
   const ReturnStayScreen({super.key});
@@ -29,8 +31,14 @@ class _ReturnStayScreenState extends State<ReturnStayScreen>
     with AppBannerMixin {
   AppPalette get _palette => AppPalette.of(context);
   Color get _textColor => _palette.textPrimary;
+  Color get _errorColor => _palette.statusError;
 
-  static const _returnOptions = ['바로 복귀', '석식 복귀', '8시 복귀'];
+  /// 화면에 보여줄 순서대로. 값은 서버가 쓰는 복귀 타입.
+  static const _returnOptions = {
+    'IMMEDIATE': '바로 복귀',
+    'DINNER': '석식 복귀',
+    'EIGHT_PM': '8시 복귀',
+  };
 
   bool _loading = true;
   String? _username;
@@ -38,6 +46,9 @@ class _ReturnStayScreenState extends State<ReturnStayScreen>
   /// 잔류 신청 대상자인지. false 면 외박/잔류 신청 자체를 보여주지 않는다.
   /// (서버도 대상자가 아니면 403 으로 막는다.)
   bool _canStay = false;
+
+  /// 오늘 입실 체크 기록. 사감이 스캔할 때마다 한 건씩 쌓인다.
+  List<ReturnRecord> _returnRecords = const [];
 
   /// 이번 주에 이미 신청한 상태. 있으면 폼을 잠근다.
   /// (백엔드에 수정 API 가 없어 한 주에 한 번만 신청할 수 있다.)
@@ -79,6 +90,8 @@ class _ReturnStayScreenState extends State<ReturnStayScreen>
       final results = await Future.wait([
         AuthService.getMe(),
         AuthService.getMyStayStatus(),
+        // 복귀 기록은 없어도 화면이 동작하므로 실패해도 넘어간다.
+        ReturnService.getMine().catchError((_) => <ReturnRecord>[]),
       ]);
       if (!mounted) return;
 
@@ -91,6 +104,7 @@ class _ReturnStayScreenState extends State<ReturnStayScreen>
       final record = thisWeek.isEmpty ? null : thisWeek.first;
 
       setState(() {
+        _returnRecords = results[2] as List<ReturnRecord>;
         _username = user['username'] as String?;
         _canStay = user['can_staying'] == true;
         _submittedStatus = record?['status'] as String?;
@@ -111,6 +125,21 @@ class _ReturnStayScreenState extends State<ReturnStayScreen>
       setState(() => _loading = false);
       showErrorBanner('정보를 불러오지 못했습니다.');
     }
+  }
+
+  /// 정해진 복귀 시간대 밖에 찍어 서버가 타입을 못 정한 기록.
+  /// (8시 복귀가 끝난 20:30 이후나, 바로 복귀와 석식 복귀 사이의 틈)
+  /// 아래 3칸 중 어디에도 걸리지 않아 따로 알려 준다.
+  List<ReturnRecord> get _untypedRecords =>
+      _returnRecords.where((r) => r.returnType == null).toList();
+
+  /// 이 복귀 타입으로 찍은 시각. 여러 번 찍었으면 마지막 것.
+  DateTime? _checkedAtFor(String type) {
+    final matched = _returnRecords.where((r) => r.returnType == type);
+    if (matched.isEmpty) return null;
+    return matched
+        .map((r) => r.actualTime!)
+        .reduce((a, b) => a.isAfter(b) ? a : b);
   }
 
   /// 선택된 항목을 다시 누르면 선택을 해제한다.
@@ -207,13 +236,71 @@ class _ReturnStayScreenState extends State<ReturnStayScreen>
                           ),
                           const SizedBox(height: 12),
 
-                          // ── 복귀 체크 (백엔드 준비 전, 화면만) ────────
-                          for (final label in _returnOptions) ...[
-                            _ReturnCard(
-                              label: label,
-                              onTap: () => showInfoBanner('복귀 체크 기능은 준비 중입니다.'),
+                          // ── 입실 체크 (QR) ────────────────────────
+                          // 어떤 복귀인지는 사감이 스캔한 시각을 보고 서버가
+                          // 정하므로 앱은 타입을 고르지 않는다. 버튼은 하나.
+                          ReturnCheckCard(
+                            label: '입실 체크하기',
+                            checkedAt: lastCheckedAt(_returnRecords),
+                            onChecked: () => _load(silent: true),
+                          ),
+                          const SizedBox(height: 12),
+
+                          // ── 시간대별 결과 (확인용) ─────────────────
+                          Row(
+                            children: [
+                              for (final entry in _returnOptions.entries) ...[
+                                Expanded(
+                                  child: _ReturnSlotCard(
+                                    label: entry.value,
+                                    // 체크인마다 기록이 쌓이므로 하루에 여러 칸이
+                                    // 동시에 채워질 수 있다.
+                                    checkedAt: _checkedAtFor(entry.key),
+                                  ),
+                                ),
+                                if (entry.key != _returnOptions.keys.last)
+                                  const SizedBox(width: 10),
+                              ],
+                            ],
+                          ),
+
+                          // 세 칸 어디에도 안 들어가는 기록은 한 건에 카드 하나씩.
+                          for (final record in _untypedRecords) ...[
+                            const SizedBox(height: 10),
+                            Container(
+                              width: double.infinity,
+                              // 위 카드들보다 낮게. 보조 정보라 눈에 덜 걸리게 한다.
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 10,
+                              ),
+                              decoration: BoxDecoration(
+                                color: _palette.bgSurface,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: _errorColor),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.info_outline_rounded,
+                                    size: 14,
+                                    color: _errorColor,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Expanded(
+                                    child: Text(
+                                      '${returnTimeLabel(record.actualTime!)} '
+                                      '입실 체크 (복귀 시간대 밖)',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: _errorColor,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                            const SizedBox(height: 12),
                           ],
 
                           if (_canStay) ...[
@@ -293,51 +380,51 @@ class _ReturnStayScreenState extends State<ReturnStayScreen>
   }
 }
 
-// ── 복귀 체크 카드 ───────────────────────────────────────────────
-class _ReturnCard extends StatelessWidget {
-  const _ReturnCard({required this.label, required this.onTap});
+// ── 시간대별 복귀 결과 (확인용, 누를 수 없다) ────────────────────
+class _ReturnSlotCard extends StatelessWidget {
+  const _ReturnSlotCard({required this.label, this.checkedAt});
 
   final String label;
-  final VoidCallback onTap;
+
+  /// 이 시간대로 입실 체크된 시각. null 이면 해당 없음.
+  final DateTime? checkedAt;
 
   @override
   Widget build(BuildContext context) {
     final palette = AppPalette.of(context);
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(18, 16, 14, 16),
-        decoration: BoxDecoration(
-          color: palette.bgSurface,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: palette.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    '입실 체크 시 사감 선생님께 알림이 발송됩니다.',
-                    style: TextStyle(fontSize: 12, color: palette.textTertiary),
-                  ),
-                ],
-              ),
+    final done = checkedAt != null;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
+      decoration: BoxDecoration(
+        color: palette.bgSurface,
+        borderRadius: BorderRadius.circular(12),
+        // 완료된 칸만 테두리로 한 번 더 구분해 준다.
+        border: done ? Border.all(color: AppBrand.primary) : null,
+      ),
+      child: Column(
+        children: [
+          Icon(
+            done ? Icons.check_circle : Icons.circle_outlined,
+            size: 18,
+            color: done ? AppBrand.primary : palette.textTertiary,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: done ? AppBrand.primary : palette.textPrimary,
             ),
-            const SizedBox(width: 10),
-            Icon(Icons.chevron_right, color: palette.textPrimary, size: 24),
-          ],
-        ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            done ? returnTimeLabel(checkedAt!) : '-',
+            style: TextStyle(fontSize: 11, color: palette.textTertiary),
+          ),
+        ],
       ),
     );
   }

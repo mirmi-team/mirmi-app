@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../../shared/server_time.dart';
 import '../constants/api.dart';
 import 'auth_service.dart';
 
@@ -122,7 +123,7 @@ class Suggestion {
     id: json['id'] as int,
     title: (json['title'] ?? '') as String,
     category: (json['category'] ?? 'ETC') as String,
-    createdAt: DateTime.parse(json['created_at'] as String).toLocal(),
+    createdAt: parseServerTime(json['created_at'] as String) ?? DateTime.now(),
     description: json['description'] as String?,
     reply: json['reply'] as String?,
   );
