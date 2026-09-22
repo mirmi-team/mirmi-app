@@ -1,3 +1,4 @@
+import '../../shared/date_format.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/services/schedule_service.dart';
@@ -48,9 +49,7 @@ class _ScheduleCalendarState extends State<ScheduleCalendar> {
     return map;
   }
 
-  String _key(DateTime d) =>
-      '${d.year}-${d.month.toString().padLeft(2, '0')}-'
-      '${d.day.toString().padLeft(2, '0')}';
+  String _key(DateTime d) => dateKey(d);
 
   @override
   Widget build(BuildContext context) {

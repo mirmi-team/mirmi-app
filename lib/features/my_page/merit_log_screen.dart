@@ -1,7 +1,8 @@
+import '../../shared/date_format.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/services/auth_service.dart';
-import '../../shared/app_back_button.dart';
+import '../../shared/app_sub_page_bar.dart';
 import '../../shared/server_time.dart';
 import '../../shared/app_colors.dart';
 import '../../shared/app_palette.dart';
@@ -75,7 +76,7 @@ class _MeritLogScreenState extends State<MeritLogScreen> with AppBannerMixin {
     final map = <String, List<Map<String, dynamic>>>{};
     for (final log in _filteredLogs) {
       final dt = parseServerTime(log['created_at'] as String) ?? DateTime.now();
-      final key = '${dt.year}-${dt.month.toString().padLeft(2, '0')}';
+      final key = monthKey(dt);
       (map[key] ??= []).add(log);
     }
     return map;
@@ -98,21 +99,7 @@ class _MeritLogScreenState extends State<MeritLogScreen> with AppBannerMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       // 배경색은 ThemeData.scaffoldBackgroundColor 가 정한다.
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        centerTitle: true,
-        leading: const AppBackButton(),
-        title: Text(
-          '상벌점 내역',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: _textColor,
-          ),
-        ),
-      ),
+      appBar: const AppSubPageBar(title: '상벌점 내역'),
       body: Stack(
         children: [
           if (_loading)

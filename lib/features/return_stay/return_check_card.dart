@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/services/return_service.dart';
 import '../../shared/app_colors.dart';
+import '../../shared/date_format.dart';
 import '../../shared/app_palette.dart';
 import 'return_qr_dialog.dart';
 
@@ -58,7 +59,7 @@ class ReturnCheckCard extends StatelessWidget {
                   const SizedBox(height: 6),
                   Text(
                     done
-                        ? '${returnTimeLabel(checkedAt!)} 입실 체크 완료'
+                        ? '${clockLabel(checkedAt!)} 입실 체크 완료'
                         : 'QR코드를 생성합니다.',
                     style: TextStyle(
                       fontSize: 12,
@@ -81,13 +82,6 @@ class ReturnCheckCard extends StatelessWidget {
       ),
     );
   }
-}
-
-/// '오후 6:03'
-String returnTimeLabel(DateTime at) {
-  final isAm = at.hour < 12;
-  final hour12 = at.hour % 12 == 0 ? 12 : at.hour % 12;
-  return '${isAm ? '오전' : '오후'} $hour12:${at.minute.toString().padLeft(2, '0')}';
 }
 
 /// 기록 목록에서 마지막 입실 체크 시각. 없으면 null.

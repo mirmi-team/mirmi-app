@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 
 import 'package:go_router/go_router.dart';
 import 'package:mirmi_app/shared/submit_button.dart';
+import '../../core/constants/api.dart';
 import '../../core/services/auth_service.dart';
-import '../../shared/app_back_button.dart';
+import '../../shared/app_field_label.dart';
+import '../../shared/app_sub_page_bar.dart';
 import '../../shared/app_banner.dart';
 import '../../shared/app_palette.dart';
 import '../../shared/keyboard_inset.dart';
@@ -73,21 +75,7 @@ class _InquiryScreenState extends State<InquiryScreen> with AppBannerMixin {
       // 키보드가 올라와도 '문의 보내기' 버튼은 제자리에 둔다.
       // 입력창은 아래 KeyboardInset 안에서 스크롤로 올라온다.
       resizeToAvoidBottomInset: false,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        centerTitle: true,
-        leading: const AppBackButton(),
-        title: Text(
-          '문의 메일보내기',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: _textColor,
-          ),
-        ),
-      ),
+      appBar: const AppSubPageBar(title: '문의 메일보내기'),
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         behavior: HitTestBehavior.opaque,
@@ -125,7 +113,7 @@ class _InquiryScreenState extends State<InquiryScreen> with AppBannerMixin {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                GuideText(text: '1. 제목을 작성하여 주세요.'),
+                                AppFieldLabel('1. 제목을 작성하여 주세요.'),
                                 const SizedBox(height: 8),
                                 TextInput(
                                   hintText: '제목을 입력해 주세요.',
@@ -134,7 +122,7 @@ class _InquiryScreenState extends State<InquiryScreen> with AppBannerMixin {
                                   onChanged: (_) => setState(() {}),
                                 ),
                                 const SizedBox(height: 16),
-                                GuideText(text: '2. 문의 내용을 자세히 작성해 주세요.'),
+                                AppFieldLabel('2. 문의 내용을 자세히 작성해 주세요.'),
                                 const SizedBox(height: 8),
                                 TextInput(
                                   hintText: '이곳에 작성하여 주세요',
@@ -152,7 +140,7 @@ class _InquiryScreenState extends State<InquiryScreen> with AppBannerMixin {
                                     ),
                                     const SizedBox(width: 8),
                                     Text(
-                                      '이 메일은 mirmi.dev@gmail.com으로 발송됩니다.',
+                                      '이 메일은 $kContactEmail으로 발송됩니다.',
                                       style: TextStyle(
                                         color: _captionColor,
                                         fontSize: 13,
@@ -181,20 +169,6 @@ class _InquiryScreenState extends State<InquiryScreen> with AppBannerMixin {
           ],
         ),
       ),
-    );
-  }
-}
-
-class GuideText extends StatelessWidget {
-  final String text;
-  const GuideText({super.key, required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = AppPalette.of(context);
-    return Text(
-      text,
-      style: TextStyle(color: palette.textPrimary, fontSize: 13),
     );
   }
 }

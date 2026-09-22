@@ -1,3 +1,4 @@
+import '../../shared/date_format.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/services/schedule_service.dart';
@@ -35,8 +36,8 @@ class _ScheduleSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = AppPalette.of(context);
-    final mm = date.month.toString().padLeft(2, '0');
-    final dd = date.day.toString().padLeft(2, '0');
+    final mm = twoDigit(date.month);
+    final dd = twoDigit(date.day);
     final weekday = _weekdayNames[date.weekday - 1];
 
     return SafeArea(

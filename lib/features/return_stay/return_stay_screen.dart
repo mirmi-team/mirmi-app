@@ -1,3 +1,5 @@
+import '../../shared/app_field_label.dart';
+import '../../shared/date_format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -79,9 +81,7 @@ class _ReturnStayScreenState extends State<ReturnStayScreen>
   String get _weekStart {
     final now = DateTime.now();
     final monday = now.subtract(Duration(days: now.weekday - 1));
-    final mm = monday.month.toString().padLeft(2, '0');
-    final dd = monday.day.toString().padLeft(2, '0');
-    return '${monday.year}-$mm-$dd';
+    return dateKey(monday);
   }
 
   Future<void> _load({bool silent = false}) async {
@@ -289,7 +289,7 @@ class _ReturnStayScreenState extends State<ReturnStayScreen>
                                   const SizedBox(width: 6),
                                   Expanded(
                                     child: Text(
-                                      '${returnTimeLabel(record.actualTime!)} '
+                                      '${clockLabel(record.actualTime!)} '
                                       '입실 체크 (복귀 시간대 밖)',
                                       style: TextStyle(
                                         fontSize: 12,
@@ -316,7 +316,7 @@ class _ReturnStayScreenState extends State<ReturnStayScreen>
                               ),
                             ),
                             const SizedBox(height: 18),
-                            const _FieldLabel('1. 외박/잔류 여부를 선택해 주세요.'),
+                            const AppFieldLabel('1. 외박/잔류 여부를 선택해 주세요.'),
                             const SizedBox(height: 10),
                             Row(
                               children: [
@@ -340,7 +340,7 @@ class _ReturnStayScreenState extends State<ReturnStayScreen>
                               ],
                             ),
                             const SizedBox(height: 22),
-                            const _FieldLabel('2. 부모님 연락처'),
+                            const AppFieldLabel('2. 부모님 연락처'),
                             const SizedBox(height: 10),
                             _PhoneField(
                               controller: _phoneController,
@@ -421,7 +421,7 @@ class _ReturnSlotCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            done ? returnTimeLabel(checkedAt!) : '-',
+            done ? clockLabel(checkedAt!) : '-',
             style: TextStyle(fontSize: 11, color: palette.textTertiary),
           ),
         ],
@@ -431,20 +431,6 @@ class _ReturnSlotCard extends StatelessWidget {
 }
 
 // ── 항목 라벨 ────────────────────────────────────────────────────
-class _FieldLabel extends StatelessWidget {
-  const _FieldLabel(this.text);
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = AppPalette.of(context);
-    return Text(
-      text,
-      style: TextStyle(fontSize: 13, color: palette.textSecondary),
-    );
-  }
-}
-
 // ── 잔류 / 외박 선택 버튼 ────────────────────────────────────────
 class _ChoiceButton extends StatelessWidget {
   const _ChoiceButton({

@@ -30,7 +30,23 @@ class AuthService {
 
   // ── Token refresh ──────────────────────────────────────────────
 
-  static Future<bool> _tryRefresh() async {
+  /// 진행 중인 갱신 요청. 화면 하나가 API 를 여러 개 동시에 부르므로
+  /// 만료된 토큰으로 들어가면 401 이 한꺼번에 터진다. 그때 각자 갱신을
+  /// 시도하면 서버가 매번 refresh 토큰을 회전시켜서, 먼저 도착한 하나만
+  /// 성공하고 나머지는 무효가 된 토큰을 보내 로그아웃된다.
+  /// 그래서 갱신은 항상 한 번만 돌고 결과를 모두가 나눠 쓴다.
+  static Future<bool>? _refreshInFlight;
+
+  static Future<bool> _tryRefresh() {
+    final inFlight = _refreshInFlight;
+    if (inFlight != null) return inFlight;
+
+    final future = _refreshOnce();
+    _refreshInFlight = future;
+    return future.whenComplete(() => _refreshInFlight = null);
+  }
+
+  static Future<bool> _refreshOnce() async {
     try {
       final refreshToken = await getRefreshToken();
       if (refreshToken == null) return false;
@@ -47,6 +63,13 @@ class AuthService {
         key: _accessKey,
         value: body['accessToken'] as String,
       );
+
+      // 서버가 refresh 토큰도 새로 발급하고(rotation) 예전 것은 바로 지운다.
+      // 이걸 저장하지 않으면 다음 갱신 때 무효한 토큰을 보내 로그아웃된다.
+      final newRefreshToken = body['refreshToken'] as String?;
+      if (newRefreshToken != null && newRefreshToken.isNotEmpty) {
+        await _storage.write(key: _refreshKey, value: newRefreshToken);
+      }
       return true;
     } catch (_) {
       return false;
@@ -61,6 +84,13 @@ class AuthService {
     var res = await request(token);
 
     if (res.statusCode == 401) {
+      // 내가 보내는 사이에 다른 요청이 이미 갱신을 끝냈을 수 있다.
+      // 그러면 갱신을 또 돌리지 말고 새 토큰으로 다시 보내기만 하면 된다.
+      final current = await getAccessToken() ?? '';
+      if (current != token && current.isNotEmpty) {
+        return request(current);
+      }
+
       final ok = await _tryRefresh();
       if (!ok) {
         await clearTokens();

@@ -1,3 +1,4 @@
+import '../../shared/date_format.dart';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
@@ -136,9 +137,5 @@ class Suggestion {
   bool get hasReply => reply != null && reply!.isNotEmpty;
 
   /// '2026-09-14'
-  String get dateLabel {
-    final mm = createdAt.month.toString().padLeft(2, '0');
-    final dd = createdAt.day.toString().padLeft(2, '0');
-    return '${createdAt.year}-$mm-$dd';
-  }
+  String get dateLabel => dateKey(createdAt);
 }
