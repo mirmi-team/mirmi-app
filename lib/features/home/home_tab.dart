@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/laundry_service.dart';
 import '../../core/services/notice_service.dart';
+import '../../core/services/return_service.dart';
 import '../../core/services/schedule_service.dart';
 import '../../core/utils/app_clock.dart';
 import '../../shared/app_banner.dart';
@@ -14,6 +15,7 @@ import '../../shared/app_palette.dart';
 import '../../shared/app_refresh.dart';
 import '../../shared/app_skeleton.dart';
 import '../laundry/laundry_status_section.dart';
+import '../return_stay/return_check_card.dart';
 
 /// 복귀 체크 종류. 지금 시각에 해당하는 하나만 홈에 보여준다.
 enum ReturnCheckType {
@@ -61,6 +63,9 @@ class _HomeTabState extends State<HomeTab> with AppBannerMixin {
   List<DormSchedule> _schedules = const [];
 
   ReturnCheckType _returnType = ReturnCheckType.immediate;
+
+  /// 오늘 입실 체크 기록. 복귀 탭과 같은 소스를 쓴다.
+  List<ReturnRecord> _returnRecords = const [];
   Timer? _clockTimer;
 
   @override
@@ -97,6 +102,9 @@ class _HomeTabState extends State<HomeTab> with AppBannerMixin {
       final schedulesFuture = ScheduleService.getAll().catchError(
         (_) => <DormSchedule>[],
       );
+      final returnsFuture = ReturnService.getMine().catchError(
+        (_) => <ReturnRecord>[],
+      );
 
       final user = await userFuture;
       final roomNumber = user['room_number'] as int?;
@@ -114,9 +122,11 @@ class _HomeTabState extends State<HomeTab> with AppBannerMixin {
       final notice = await noticeFuture;
       final machines = await machinesFuture;
       final schedules = await schedulesFuture;
+      final returns = await returnsFuture;
 
       if (!mounted) return;
       setState(() {
+        _returnRecords = returns;
         _username = user['username'] as String?;
         _roomNumber = roomNumber;
         _floor = floor;
@@ -196,9 +206,10 @@ class _HomeTabState extends State<HomeTab> with AppBannerMixin {
                   // ── 복귀 체크 ─────────────────────────────
                   const _SectionTitle('복귀 체크'),
                   const SizedBox(height: 12),
-                  _ReturnCheckCard(
-                    type: _returnType,
-                    onTap: () => showInfoBanner('복귀 체크 기능은 준비 중입니다.'),
+                  ReturnCheckCard(
+                    label: '${_returnType.label} 입실 체크',
+                    checkedAt: lastCheckedAt(_returnRecords),
+                    onChecked: () => _load(silent: true),
                   ),
                   const SizedBox(height: 34),
 
@@ -346,56 +357,6 @@ class _NoticeStrip extends StatelessWidget {
                 ),
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ── 복귀 체크 카드 ───────────────────────────────────────────────
-class _ReturnCheckCard extends StatelessWidget {
-  const _ReturnCheckCard({required this.type, required this.onTap});
-
-  final ReturnCheckType type;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = AppPalette.of(context);
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(18, 16, 14, 16),
-        decoration: BoxDecoration(
-          color: palette.bgSurface,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${type.label} 입실 체크',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: palette.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    '입실 체크 시 사감 선생님께 알림이 발송됩니다.',
-                    style: TextStyle(fontSize: 12, color: palette.textTertiary),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 10),
-            Icon(Icons.chevron_right, color: palette.textPrimary, size: 24),
           ],
         ),
       ),
