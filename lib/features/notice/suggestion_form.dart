@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/services/auth_service.dart';
 import '../../core/services/suggestion_service.dart';
+import '../../shared/app_field_label.dart';
 import '../../shared/app_colors.dart';
 import '../../shared/app_palette.dart';
 import '../../shared/keyboard_inset.dart';
@@ -187,7 +188,7 @@ class _SuggestionFormState extends State<SuggestionForm> {
                   const SizedBox(height: 18),
 
                   // ── 1. 카테고리 ──────────────────────────────
-                  const _FieldLabel('1. 카테고리를 선택해 주세요.'),
+                  const AppFieldLabel('1. 카테고리를 선택해 주세요.'),
                   const SizedBox(height: 10),
                   GestureDetector(
                     behavior: HitTestBehavior.opaque,
@@ -226,7 +227,7 @@ class _SuggestionFormState extends State<SuggestionForm> {
                   const SizedBox(height: 15),
 
                   // ── 2. 제목 ──────────────────────────────────
-                  const _FieldLabel('2. 제목을 작성해 주세요.'),
+                  const AppFieldLabel('2. 제목을 작성해 주세요.'),
                   const SizedBox(height: 10),
                   Container(
                     decoration: BoxDecoration(
@@ -256,7 +257,7 @@ class _SuggestionFormState extends State<SuggestionForm> {
                   const SizedBox(height: 22),
 
                   // ── 3. 건의 내용 ─────────────────────────────
-                  const _FieldLabel('3. 건의할 내용을 작성해주세요.'),
+                  const AppFieldLabel('3. 건의할 내용을 작성해주세요.'),
                   const SizedBox(height: 10),
                   Container(
                     decoration: BoxDecoration(
@@ -313,20 +314,6 @@ class _SuggestionFormState extends State<SuggestionForm> {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _FieldLabel extends StatelessWidget {
-  const _FieldLabel(this.text);
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = AppPalette.of(context);
-    return Text(
-      text,
-      style: TextStyle(fontSize: 13, color: palette.textSecondary),
     );
   }
 }

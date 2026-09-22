@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/services/auth_service.dart';
-import '../../shared/app_back_button.dart';
+import '../../shared/app_sub_page_bar.dart';
 import '../../shared/app_colors.dart';
 import '../../shared/app_palette.dart';
 import '../../shared/app_banner.dart';
@@ -56,21 +56,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       // 배경색은 ThemeData.scaffoldBackgroundColor 가 정한다.
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        centerTitle: true,
-        leading: const AppBackButton(),
-        title: Text(
-          '회원 탈퇴',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: _textColor,
-          ),
-        ),
-      ),
+      appBar: const AppSubPageBar(title: '회원 탈퇴'),
       body: Stack(
         children: [
           SafeArea(

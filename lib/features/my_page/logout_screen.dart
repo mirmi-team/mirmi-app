@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mirmi_app/shared/submit_button.dart';
 import '../../core/services/auth_service.dart';
-import '../../shared/app_back_button.dart';
+import '../../shared/app_sub_page_bar.dart';
 import '../../shared/app_dialog.dart';
 import '../../shared/app_palette.dart';
 
@@ -42,21 +42,7 @@ class _LogoutScreenState extends State<LogoutScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       // 배경색은 ThemeData.scaffoldBackgroundColor 가 정한다.
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        centerTitle: true,
-        leading: const AppBackButton(),
-        title: Text(
-          '로그아웃',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: _textColor,
-          ),
-        ),
-      ),
+      appBar: const AppSubPageBar(title: '로그아웃'),
       body: SafeArea(
         child: Column(
           children: [

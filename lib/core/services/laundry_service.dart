@@ -1,3 +1,4 @@
+import '../../shared/date_format.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../constants/api.dart';
@@ -47,10 +48,7 @@ class LaundryService {
     required DateTime date,
     required int floor,
   }) async {
-    final dateStr =
-        '${date.year.toString().padLeft(4, '0')}-'
-        '${date.month.toString().padLeft(2, '0')}-'
-        '${date.day.toString().padLeft(2, '0')}';
+    final dateStr = dateKey(date);
     final res = await _send(
       (token) => http.get(
         Uri.parse('$kBaseUrl/laundry/schedule?date=$dateStr&floor=$floor'),

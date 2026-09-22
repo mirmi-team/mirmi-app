@@ -8,7 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/theme_service.dart';
-import '../../shared/app_back_button.dart';
+import '../../shared/app_sub_page_bar.dart';
 import '../../shared/app_banner.dart';
 import '../../shared/app_colors.dart';
 import '../../shared/app_palette.dart';
@@ -157,21 +157,7 @@ class _MyPageScreenState extends State<MyPageScreen> with AppBannerMixin {
 
     return Scaffold(
       // 배경색은 ThemeData.scaffoldBackgroundColor 가 정한다.
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        centerTitle: true,
-        leading: const AppBackButton(),
-        title: Text(
-          _loading ? '' : '$name님의 정보',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: _textColor,
-          ),
-        ),
-      ),
+      appBar: AppSubPageBar(title: _loading ? '' : '$name님의 정보'),
       body: Stack(
         children: [
           _loading

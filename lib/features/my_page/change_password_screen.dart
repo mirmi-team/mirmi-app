@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/services/auth_service.dart';
-import '../../shared/app_back_button.dart';
+import '../../shared/app_sub_page_bar.dart';
 import '../../shared/app_palette.dart';
 import '../../shared/keyboard_inset.dart';
 import '../../shared/app_banner.dart';
@@ -94,21 +94,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
       // 키보드가 올라와도 하단 버튼은 제자리에 둔다.
       // 입력창은 아래 KeyboardInset 안에서 스크롤로 올라온다.
       resizeToAvoidBottomInset: false,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        centerTitle: true,
-        leading: const AppBackButton(),
-        title: Text(
-          '비밀번호 변경',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: _textColor,
-          ),
-        ),
-      ),
+      appBar: const AppSubPageBar(title: '비밀번호 변경'),
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         behavior: HitTestBehavior.opaque,
