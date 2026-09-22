@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/services/auth_service.dart';
 import '../../shared/app_back_button.dart';
+import '../../shared/server_time.dart';
 import '../../shared/app_colors.dart';
 import '../../shared/app_palette.dart';
 import '../../shared/app_refresh.dart';
@@ -73,7 +74,7 @@ class _MeritLogScreenState extends State<MeritLogScreen> with AppBannerMixin {
   Map<String, List<Map<String, dynamic>>> get _grouped {
     final map = <String, List<Map<String, dynamic>>>{};
     for (final log in _filteredLogs) {
-      final dt = DateTime.parse(log['created_at'] as String);
+      final dt = parseServerTime(log['created_at'] as String) ?? DateTime.now();
       final key = '${dt.year}-${dt.month.toString().padLeft(2, '0')}';
       (map[key] ??= []).add(log);
     }
@@ -86,7 +87,7 @@ class _MeritLogScreenState extends State<MeritLogScreen> with AppBannerMixin {
   }
 
   String _dateLabel(String isoDate) {
-    final dt = DateTime.parse(isoDate);
+    final dt = parseServerTime(isoDate) ?? DateTime.now();
     final yy = dt.year.toString().substring(2);
     final mm = dt.month.toString().padLeft(2, '0');
     final dd = dt.day.toString().padLeft(2, '0');

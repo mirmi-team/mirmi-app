@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../../shared/server_time.dart';
 import '../constants/api.dart';
 import 'auth_service.dart';
 
@@ -71,7 +72,7 @@ class Notice {
     id: json['id'] as int,
     title: (json['title'] ?? '') as String,
     description: (json['description'] ?? '') as String,
-    createdAt: DateTime.parse(json['created_at'] as String).toLocal(),
+    createdAt: parseServerTime(json['created_at'] as String) ?? DateTime.now(),
     imageUrl: json['image_url'] as String?,
   );
 
