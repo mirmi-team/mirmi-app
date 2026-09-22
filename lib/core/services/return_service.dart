@@ -65,30 +65,63 @@ class ReturnService {
 
 /// 서버가 만들어 준 QR.
 class ReturnQr {
-  const ReturnQr({required this.image, required this.expiresAt});
+  ReturnQr({required this.image, required this.ttl})
+    : receivedAt = DateTime.now();
 
   /// `data:image/png;base64,...` 형태. 서버가 이미지까지 만들어 주므로
   /// 앱에 QR 생성 라이브러리를 넣지 않아도 된다.
   final String image;
-  final DateTime expiresAt;
 
-  factory ReturnQr.fromJson(Map<String, dynamic> json) => ReturnQr(
-    image: json['qrImage'] as String? ?? '',
-    expiresAt:
-        parseServerTime(json['expiresAt'] as String?) ??
-        DateTime.now().add(const Duration(seconds: 30)),
-  );
+  /// 이 QR 이 살아 있는 시간.
+  final Duration ttl;
+
+  /// 응답을 받은 기기 시각.
+  final DateTime receivedAt;
+
+  /// QR 기본 수명. 서버에서 계산하지 못했을 때 쓴다.
+  static const _defaultTtl = Duration(seconds: 30);
+
+  /// 남은 시간은 **받은 순간부터** 센다.
+  ///
+  /// 서버가 준 만료 시각을 기기 시계와 직접 비교하면, 기기 시계가 몇 초만
+  /// 틀어져도 이미 만료된 QR 을 계속 보여주거나 반대로 끊임없이 새로
+  /// 받아오게 된다. 수명(ttl)만 서버에서 얻고 카운트는 기기에서 한다.
+  DateTime get expiresAt => receivedAt.add(ttl);
+
+  Duration get remaining {
+    final left = expiresAt.difference(DateTime.now());
+    return left.isNegative ? Duration.zero : left;
+  }
+
+  factory ReturnQr.fromJson(Map<String, dynamic> json) =>
+      ReturnQr(image: json['qrImage'] as String? ?? '', ttl: _ttlOf(json));
+
+  /// 수명을 서버 값끼리만 빼서 구한다. 토큰이 `{userId}.{발급시각}.{서명}`
+  /// 이라 발급 시각을 알 수 있고, 만료 시각과의 차이가 곧 수명이다.
+  /// 기기 시계가 끼어들지 않는다.
+  static Duration _ttlOf(Map<String, dynamic> json) {
+    final expiresAt = DateTime.tryParse(json['expiresAt'] as String? ?? '');
+    final parts = (json['token'] as String? ?? '').split('.');
+    if (expiresAt == null || parts.length != 3) return _defaultTtl;
+
+    final issuedAtMs = int.tryParse(parts[1]);
+    if (issuedAtMs == null) return _defaultTtl;
+
+    final ttl = expiresAt.difference(
+      DateTime.fromMillisecondsSinceEpoch(issuedAtMs, isUtc: true),
+    );
+    // 서버 값이 이상하면(음수이거나 지나치게 길면) 기본값으로 돌아간다.
+    if (ttl <= Duration.zero || ttl > const Duration(minutes: 10)) {
+      return _defaultTtl;
+    }
+    return ttl;
+  }
 
   /// data URL 앞부분을 떼고 실제 PNG 바이트만 돌려준다.
   List<int> get bytes {
     final comma = image.indexOf(',');
     if (comma < 0) return const [];
     return base64Decode(image.substring(comma + 1));
-  }
-
-  Duration get remaining {
-    final left = expiresAt.difference(DateTime.now());
-    return left.isNegative ? Duration.zero : left;
   }
 }
 

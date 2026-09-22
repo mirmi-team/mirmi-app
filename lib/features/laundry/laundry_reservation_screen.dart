@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/laundry_service.dart';
-import '../../shared/app_back_button.dart';
+import '../../shared/app_sub_page_bar.dart';
 import '../../shared/app_dialog.dart';
 import '../../shared/app_colors.dart';
 import '../../shared/app_palette.dart';
@@ -82,12 +83,16 @@ class _LaundryReservationScreenState extends State<LaundryReservationScreen> {
         }).toList();
         _slotsLoading = false;
       });
+    } on SessionExpiredException {
+      if (mounted) context.go('/login');
     } on ApiException catch (e) {
       if (!mounted) return;
       setState(() => _slotsLoading = false);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(e.message)));
+      _showMessage(e.message);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _slotsLoading = false);
+      _showMessage('예약 시간을 불러오지 못했습니다.');
     }
   }
 
@@ -98,8 +103,21 @@ class _LaundryReservationScreenState extends State<LaundryReservationScreen> {
   }
 
   Future<void> _loadMe() async {
-    final me = await AuthService.getMe();
-    if (mounted) setState(() => _me = me);
+    try {
+      final me = await AuthService.getMe();
+      if (mounted) setState(() => _me = me);
+    } on SessionExpiredException {
+      if (mounted) context.go('/login');
+    } catch (_) {
+      // _me 가 없으면 예약 버튼이 잠긴다. 이유를 알려 준다.
+      if (mounted) _showMessage('내 정보를 불러오지 못했습니다. 다시 시도해주세요.');
+    }
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _submit() async {
@@ -141,12 +159,12 @@ class _LaundryReservationScreenState extends State<LaundryReservationScreen> {
         end: slot['end'] as DateTime,
       );
       if (mounted) Navigator.pop(context, true);
+    } on SessionExpiredException {
+      if (mounted) context.go('/login');
     } on ApiException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.message)));
-      }
+      if (mounted) _showMessage(e.message);
+    } catch (_) {
+      if (mounted) _showMessage('예약에 실패했습니다. 잠시 후 다시 시도해주세요.');
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -157,19 +175,9 @@ class _LaundryReservationScreenState extends State<LaundryReservationScreen> {
     _palette = AppPalette.of(context);
     return Scaffold(
       // 배경색은 ThemeData.scaffoldBackgroundColor 가 정한다.
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-        leading: AppBackButton(onTap: () => Navigator.pop(context)),
-        title: Text(
-          '세탁기 예약',
-          style: TextStyle(
-            color: _textColor,
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
+      appBar: AppSubPageBar(
+        title: '세탁기 예약',
+        onBack: () => Navigator.pop(context),
       ),
       body: SafeArea(
         child: Padding(
@@ -281,7 +289,9 @@ class _LaundryReservationScreenState extends State<LaundryReservationScreen> {
 
               const Spacer(),
               GestureDetector(
-                onTap: (_selectedTimeIndex != null && !_submitting)
+                // _me 가 없으면 _submit 이 조용히 빠져나간다. 버튼도 같이 잠근다.
+                onTap:
+                    (_selectedTimeIndex != null && !_submitting && _me != null)
                     ? _submit
                     : null,
                 child: Container(
@@ -289,7 +299,8 @@ class _LaundryReservationScreenState extends State<LaundryReservationScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   margin: const EdgeInsets.only(bottom: 20),
                   decoration: BoxDecoration(
-                    color: _selectedTimeIndex == null || _submitting
+                    color:
+                        _selectedTimeIndex == null || _submitting || _me == null
                         ? _disabledBtnColor
                         : _teal,
                     borderRadius: BorderRadius.circular(72),

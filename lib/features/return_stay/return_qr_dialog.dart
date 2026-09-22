@@ -42,8 +42,14 @@ class _ReturnQrDialogState extends State<_ReturnQrDialog> {
   /// 남은 시간을 1초마다 다시 그리는 타이머.
   Timer? _tick;
 
-  /// 만료 직전에 새 QR을 받아오는 타이머.
+  /// 만료 직전에 새 QR을 받아오는 타이머. 실패했을 때의 재시도에도 쓴다.
   Timer? _refresh;
+
+  /// 실패 후 다시 시도하기까지 기다리는 시간.
+  static const _retryDelay = Duration(seconds: 3);
+
+  /// 지금 화면에 쓸 수 있는 QR 이 있는지. 만료된 그림은 보여줘도 소용없다.
+  bool get _hasLiveQr => _image != null && _secondsLeft > 0;
 
   @override
   void initState() {
@@ -95,20 +101,32 @@ class _ReturnQrDialogState extends State<_ReturnQrDialog> {
       // 만료 직전에 새 QR로 바꿔둔다. 남은 시간이 이상하게 짧게 와도
       // 최소 5초는 두고, 화면을 닫으면 dispose 에서 멈춘다.
       final refreshIn = qr.remaining - const Duration(seconds: 1);
-      _refresh?.cancel();
-      _refresh = Timer(
+      _schedule(
         refreshIn < const Duration(seconds: 5)
             ? const Duration(seconds: 5)
             : refreshIn,
-        _loadQr,
       );
     } on SessionExpiredException {
-      if (mounted) context.go('/login');
-    } on ApiException catch (e) {
-      if (mounted) setState(() => _error = e.message);
-    } catch (_) {
-      if (mounted) setState(() => _error = 'QR을 불러오지 못했습니다.');
+      if (!mounted) return;
+      // 팝업을 먼저 닫지 않으면 로그인 화면 위에 그대로 덮인 채 남는다.
+      // 닫고 나면 이 State 가 사라지므로 라우터를 미리 들고 있어야 한다.
+      final router = GoRouter.of(context);
+      Navigator.of(context).pop();
+      router.go('/login');
+    } catch (e) {
+      if (!mounted) return;
+      // 실패해도 멈추지 않는다. 사감 앞에서 한 번 끊겼다고 팝업을 다시
+      // 열게 만들면 안 되므로, 짧게 기다렸다가 계속 다시 시도한다.
+      setState(
+        () => _error = e is ApiException ? e.message : 'QR을 불러오지 못했습니다.',
+      );
+      _schedule(_retryDelay);
     }
+  }
+
+  void _schedule(Duration delay) {
+    _refresh?.cancel();
+    _refresh = Timer(delay, _loadQr);
   }
 
   @override
@@ -133,8 +151,7 @@ class _ReturnQrDialogState extends State<_ReturnQrDialog> {
             ),
             const SizedBox(height: 10),
             Text(
-              // QR을 받기 전에는 남은 시간을 모르니 발급 시간(30초)을 그대로 보여준다.
-              _image == null ? '30초 후에 만료됩니다.' : '$_secondsLeft초 후에 만료됩니다.',
+              _subtitle,
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 13, color: palette.textTertiary),
             ),
@@ -150,7 +167,7 @@ class _ReturnQrDialogState extends State<_ReturnQrDialog> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 clipBehavior: Clip.antiAlias,
-                child: _buildQr(palette),
+                child: _buildQr(),
               ),
             ),
 
@@ -169,7 +186,26 @@ class _ReturnQrDialogState extends State<_ReturnQrDialog> {
     );
   }
 
-  Widget _buildQr(AppPalette palette) {
+  /// 제목 아래 설명. 쓸 수 있는 QR 이 있을 때만 남은 시간을 센다.
+  String get _subtitle {
+    if (_hasLiveQr) return '$_secondsLeft초 후에 만료됩니다.';
+    if (_error != null) return '다시 시도하는 중입니다…';
+    return 'QR을 불러오는 중입니다…';
+  }
+
+  Widget _buildQr() {
+    // 아직 살아 있는 QR 이 있으면 갱신이 한 번 실패해도 그대로 보여준다.
+    // (뒤에서 재시도가 돌고 있다)
+    if (_hasLiveQr) {
+      return Padding(
+        padding: const EdgeInsets.all(8),
+        child: Image.memory(
+          _image!,
+          fit: BoxFit.contain,
+          gaplessPlayback: true,
+        ),
+      );
+    }
     if (_error != null) {
       return Center(
         child: Padding(
@@ -186,10 +222,6 @@ class _ReturnQrDialogState extends State<_ReturnQrDialog> {
         ),
       );
     }
-    if (_image == null) return const Center(child: AppLoadingIndicator());
-    return Padding(
-      padding: const EdgeInsets.all(8),
-      child: Image.memory(_image!, fit: BoxFit.contain, gaplessPlayback: true),
-    );
+    return const Center(child: AppLoadingIndicator());
   }
 }

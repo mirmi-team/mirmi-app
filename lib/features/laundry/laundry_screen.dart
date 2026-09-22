@@ -1,4 +1,6 @@
+import '../../shared/date_format.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/laundry_service.dart';
 import '../../shared/app_colors.dart';
@@ -70,15 +72,10 @@ class _LaundryScreenState extends State<LaundryScreen> {
     _loadSchedule(newDate);
   }
 
-  bool _isSameDay(DateTime a, DateTime b) =>
-      a.year == b.year && a.month == b.month && a.day == b.day;
-
-  String _twoDigit(int n) => n.toString().padLeft(2, '0');
-
   Future<void> _loadSchedule(DateTime date) async {
     if (_floor == null) return;
     final requestId = ++_scheduleRequestId;
-    if (_isSameDay(date, AppClock.now())) {
+    if (isSameDay(date, AppClock.now())) {
       setState(() {
         _schedule = _todaySchedule;
         _isScheduleLoading = false;
@@ -96,10 +93,20 @@ class _LaundryScreenState extends State<LaundryScreen> {
         _schedule = schedule;
         _isScheduleLoading = false;
       });
+    } on SessionExpiredException {
+      if (mounted) context.go('/login');
     } on ApiException catch (e) {
       if (!mounted || requestId != _scheduleRequestId) return;
       setState(() {
         _errorMessage = e.message;
+        _isScheduleLoading = false;
+      });
+    } catch (_) {
+      // 통신이 끊기면 ApiException 이 아니라 ClientException 이 올라온다.
+      // 여기서 막지 않으면 로딩 플래그가 영영 true 로 남는다.
+      if (!mounted || requestId != _scheduleRequestId) return;
+      setState(() {
+        _errorMessage = '시간표를 불러오지 못했습니다.';
         _isScheduleLoading = false;
       });
     }
@@ -151,7 +158,7 @@ class _LaundryScreenState extends State<LaundryScreen> {
 
       await _loadTodaySchedule(floor);
     } on SessionExpiredException {
-      // TODO: context.go('/login')
+      if (mounted) context.go('/login');
     } on ApiException catch (e) {
       if (!mounted) return;
       setState(() {
@@ -176,16 +183,21 @@ class _LaundryScreenState extends State<LaundryScreen> {
       if (!mounted) return;
       setState(() {
         _todaySchedule = schedule;
-        if (_isSameDay(_selectedDate, AppClock.now())) {
+        if (isSameDay(_selectedDate, AppClock.now())) {
           _schedule = schedule;
         }
       });
-      if (!_isSameDay(_selectedDate, AppClock.now())) {
+      if (!isSameDay(_selectedDate, AppClock.now())) {
         await _loadSchedule(_selectedDate);
       }
+    } on SessionExpiredException {
+      if (mounted) context.go('/login');
     } on ApiException catch (e) {
       if (!mounted) return;
       setState(() => _errorMessage = e.message);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _errorMessage = '시간표를 불러오지 못했습니다.');
     }
   }
 
@@ -229,9 +241,6 @@ class _LaundryScreenState extends State<LaundryScreen> {
     return !AppClock.now().isBefore(start);
   }
 
-  String _dateKey(DateTime d) =>
-      '${d.year.toString().padLeft(4, '0')}-${_twoDigit(d.month)}-${_twoDigit(d.day)}';
-
   /// 내 예약을 눌렀을 때 취소할지 말지
   Future<void> _cancelMyReservation(
     int machineNo,
@@ -248,7 +257,7 @@ class _LaundryScreenState extends State<LaundryScreen> {
 
     try {
       final laundryId = _machines[machineNo - 1]['id'] as int;
-      final date = _dateKey(_selectedDate);
+      final date = dateKey(_selectedDate);
       final start = slotTime['start_time']!.substring(0, 5);
       final end = slotTime['end_time']!.substring(0, 5);
 
