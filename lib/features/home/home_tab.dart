@@ -18,8 +18,12 @@ import '../laundry/laundry_status_section.dart';
 import '../return_stay/return_check_card.dart';
 
 /// 복귀 체크 종류. 지금 시각에 해당하는 하나만 홈에 보여준다.
+///
+/// 경계값은 서버의 `resolveReturnTypeByTime` 과 같게 맞춰야 한다. 서버가
+/// 스캔 시각으로 타입을 정하므로, 여기가 어긋나면 라벨과 실제 저장값이
+/// 달라진다.
 enum ReturnCheckType {
-  /// 8시 복귀가 끝난 뒤부터 다음 날 석식 복귀 전까지
+  /// 08:00 ~ 16:30
   immediate('바로 복귀'),
 
   /// 17:20 ~ 18:20
@@ -31,12 +35,15 @@ enum ReturnCheckType {
   const ReturnCheckType(this.label);
   final String label;
 
-  /// 분 단위 경계값. 겹치지 않고 하루 전체를 덮는다.
-  static ReturnCheckType at(DateTime now) {
+  /// 지금 시각의 복귀 종류. 어느 시간대에도 안 걸치면 null 이고,
+  /// 그때 찍으면 서버도 타입 없이 저장한다. (양 끝 포함)
+  static ReturnCheckType? at(DateTime now) {
     final minutes = now.hour * 60 + now.minute;
-    if (minutes >= 17 * 60 + 20 && minutes < 18 * 60 + 20) return dinner;
-    if (minutes >= 18 * 60 + 20 && minutes < 20 * 60 + 30) return evening;
-    return immediate;
+    if (minutes >= 8 * 60 && minutes <= 16 * 60 + 30) return immediate;
+    // 18:20 정각은 서버와 같이 석식 복귀로 친다.
+    if (minutes >= 17 * 60 + 20 && minutes <= 18 * 60 + 20) return dinner;
+    if (minutes >= 18 * 60 + 20 && minutes <= 20 * 60 + 30) return evening;
+    return null;
   }
 }
 
@@ -62,7 +69,8 @@ class _HomeTabState extends State<HomeTab> with AppBannerMixin {
   List<Map<String, dynamic>> _todaySchedule = const [];
   List<DormSchedule> _schedules = const [];
 
-  ReturnCheckType _returnType = ReturnCheckType.immediate;
+  /// 지금 시각의 복귀 종류. 시간대 밖이면 null.
+  ReturnCheckType? _returnType;
 
   /// 오늘 입실 체크 기록. 복귀 탭과 같은 소스를 쓴다.
   List<ReturnRecord> _returnRecords = const [];
@@ -207,7 +215,10 @@ class _HomeTabState extends State<HomeTab> with AppBannerMixin {
                   const _SectionTitle('복귀 체크'),
                   const SizedBox(height: 12),
                   ReturnCheckCard(
-                    label: '${_returnType.label} 입실 체크',
+                    // 시간대 밖에는 종류를 붙이지 않는다.
+                    label: _returnType == null
+                        ? '입실 체크'
+                        : '${_returnType!.label} 입실 체크',
                     checkedAt: lastCheckedAt(_returnRecords),
                     onChecked: () => _load(silent: true),
                   ),
