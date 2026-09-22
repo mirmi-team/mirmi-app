@@ -31,6 +31,7 @@ class _ReturnStayScreenState extends State<ReturnStayScreen>
     with AppBannerMixin {
   AppPalette get _palette => AppPalette.of(context);
   Color get _textColor => _palette.textPrimary;
+  Color get _errorColor => _palette.statusError;
 
   /// 화면에 보여줄 순서대로. 값은 서버가 쓰는 복귀 타입.
   static const _returnOptions = {
@@ -126,8 +127,13 @@ class _ReturnStayScreenState extends State<ReturnStayScreen>
     }
   }
 
+  /// 정해진 복귀 시간대 밖에 찍어 서버가 타입을 못 정한 기록.
+  /// (8시 복귀가 끝난 20:30 이후나, 바로 복귀와 석식 복귀 사이의 틈)
+  /// 아래 3칸 중 어디에도 걸리지 않아 따로 알려 준다.
+  List<ReturnRecord> get _untypedRecords =>
+      _returnRecords.where((r) => r.returnType == null).toList();
+
   /// 이 복귀 타입으로 찍은 시각. 여러 번 찍었으면 마지막 것.
-  /// 시간대 밖에 찍어 타입이 없는 기록은 어느 칸에도 걸리지 않는다.
   DateTime? _checkedAtFor(String type) {
     final matched = _returnRecords.where((r) => r.returnType == type);
     if (matched.isEmpty) return null;
@@ -257,6 +263,45 @@ class _ReturnStayScreenState extends State<ReturnStayScreen>
                               ],
                             ],
                           ),
+
+                          // 세 칸 어디에도 안 들어가는 기록은 한 건에 카드 하나씩.
+                          for (final record in _untypedRecords) ...[
+                            const SizedBox(height: 10),
+                            Container(
+                              width: double.infinity,
+                              // 위 카드들보다 낮게. 보조 정보라 눈에 덜 걸리게 한다.
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 10,
+                              ),
+                              decoration: BoxDecoration(
+                                color: _palette.bgSurface,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: _errorColor),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.info_outline_rounded,
+                                    size: 14,
+                                    color: _errorColor,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Expanded(
+                                    child: Text(
+                                      '${returnTimeLabel(record.actualTime!)} '
+                                      '입실 체크 (복귀 시간대 밖)',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: _errorColor,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
 
                           if (_canStay) ...[
                             const SizedBox(height: 28),
