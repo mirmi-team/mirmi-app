@@ -3,11 +3,11 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import '../../shared/submit_button.dart';
 import '../../core/services/auth_service.dart';
 import '../../shared/app_back_button.dart';
 import '../../shared/app_colors.dart';
 import '../../shared/app_palette.dart';
-import '../../shared/app_refresh.dart';
 
 enum _Step { email, password, studentInfo, dormInfo }
 
@@ -750,35 +750,12 @@ class _SignupScreenState extends State<SignupScreen> {
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
       child: Column(
         children: [
-          SizedBox(
-            width: double.infinity,
-            height: 54,
-            child: ElevatedButton(
-              onPressed: (_footerLoading || !_isCurrentStepValid)
-                  ? null
-                  : _onNext,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _isCurrentStepValid
-                    ? _teal
-                    : _palette.borderDefault,
-                disabledBackgroundColor: _palette.borderDefault,
-                disabledForegroundColor: _palette.textTertiary,
-                foregroundColor: _textColor,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-              ),
-              child: _footerLoading
-                  ? const AppLoadingIndicator.onButton()
-                  : Text(
-                      _footerButtonLabel,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-            ),
+          // 바깥 Padding 이 여백을 이미 갖고 있다.
+          SubmitButton(
+            text: _footerButtonLabel,
+            loadingButton: _footerLoading,
+            onPressed: _isCurrentStepValid ? _onNext : null,
+            padding: EdgeInsets.zero,
           ),
         ],
       ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../shared/submit_button.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/laundry_service.dart';
 import '../../shared/app_sub_page_bar.dart';
@@ -26,9 +27,6 @@ class _LaundryReservationScreenState extends State<LaundryReservationScreen> {
   Color get _captionColor => _palette.textTertiary;
   Color get _textColor => _palette.textPrimary;
   Color get _cardColor => _palette.bgSurface;
-
-  /// 시간을 고르기 전의 예약 버튼
-  Color get _disabledBtnColor => _palette.borderDefault;
 
   Map<String, dynamic>? _me;
   bool _submitting = false;
@@ -288,33 +286,15 @@ class _LaundryReservationScreenState extends State<LaundryReservationScreen> {
               ),
 
               const Spacer(),
-              GestureDetector(
+              // 좌우 여백은 바깥 Padding 이 갖고 있다.
+              SubmitButton(
+                text: '예약하기',
+                loadingButton: _submitting,
                 // _me 가 없으면 _submit 이 조용히 빠져나간다. 버튼도 같이 잠근다.
-                onTap:
-                    (_selectedTimeIndex != null && !_submitting && _me != null)
+                onPressed: (_selectedTimeIndex != null && _me != null)
                     ? _submit
                     : null,
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  margin: const EdgeInsets.only(bottom: 20),
-                  decoration: BoxDecoration(
-                    color:
-                        _selectedTimeIndex == null || _submitting || _me == null
-                        ? _disabledBtnColor
-                        : _teal,
-                    borderRadius: BorderRadius.circular(72),
-                  ),
-                  child: Text(
-                    _submitting ? '예약중' : '예약하기',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: _textColor,
-                      fontSize: 15,
-                      fontWeight: FontWeight(590),
-                    ),
-                  ),
-                ),
+                padding: const EdgeInsets.only(bottom: 20),
               ),
             ],
           ),
