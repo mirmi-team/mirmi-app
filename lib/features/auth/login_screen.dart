@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../shared/submit_button.dart';
 import '../../core/services/auth_service.dart';
 import '../../shared/app_colors.dart';
 import '../../shared/app_palette.dart';
-import '../../shared/app_refresh.dart';
 
 class LoginScreen extends StatefulWidget {
   final String? successMessage;
@@ -143,35 +143,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
                     child: Column(
                       children: [
-                        SizedBox(
-                          width: double.infinity,
-                          height: 54,
-                          child: ElevatedButton(
-                            onPressed: (_loading || !_isValid)
-                                ? null
-                                : _onLogin,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: _isValid
-                                  ? _teal
-                                  : _palette.borderDefault,
-                              disabledBackgroundColor: _palette.borderDefault,
-                              disabledForegroundColor: _palette.textTertiary,
-                              foregroundColor: _textColor,
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                            ),
-                            child: _loading
-                                ? const AppLoadingIndicator.onButton()
-                                : const Text(
-                                    '로그인',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                          ),
+                        // 이미 좌우 여백이 있는 자리라 버튼 자체 여백은 뺀다.
+                        SubmitButton(
+                          text: '로그인',
+                          loadingButton: _loading,
+                          onPressed: _isValid ? _onLogin : null,
+                          padding: EdgeInsets.zero,
                         ),
                         const SizedBox(height: 18),
                         Row(
