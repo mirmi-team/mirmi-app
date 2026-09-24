@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/services/auth_service.dart';
 import '../../core/services/suggestion_service.dart';
-import '../../shared/app_back_button.dart';
+import '../../shared/app_sub_page_bar.dart';
 import '../../shared/app_banner.dart';
 import '../../shared/app_colors.dart';
 import '../../shared/app_palette.dart';
@@ -21,7 +21,6 @@ class MySuggestionsScreen extends StatefulWidget {
 class _MySuggestionsScreenState extends State<MySuggestionsScreen>
     with AppBannerMixin {
   AppPalette get _palette => AppPalette.of(context);
-  Color get _textColor => _palette.textPrimary;
 
   bool _loading = true;
   List<Suggestion> _suggestions = const [];
@@ -54,21 +53,7 @@ class _MySuggestionsScreenState extends State<MySuggestionsScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       // 배경색은 ThemeData.scaffoldBackgroundColor 가 정한다.
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        centerTitle: true,
-        leading: const AppBackButton(),
-        title: Text(
-          '내 건의사항',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: _textColor,
-          ),
-        ),
-      ),
+      appBar: const AppSubPageBar(title: '내 건의사항'),
       body: Stack(
         children: [
           if (_loading)

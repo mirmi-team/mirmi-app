@@ -26,6 +26,7 @@ class AppPalette {
     required this.borderDefault,
     required this.textDisabled,
     required this.statusError,
+    required this.disabledButton,
   });
 
   final Color bgCanvas;
@@ -47,6 +48,10 @@ class AppPalette {
   final Color textDisabled;
   final Color statusError;
 
+  /// 눌리지 않는 버튼의 배경. 라이트는 흰 배경 위에서 borderDefault 가 너무
+  /// 연해 살아 있는 버튼처럼 보여서 한 단계 진한 회색을 쓴다.
+  final Color disabledButton;
+
   static const dark = AppPalette._(
     bgCanvas: AppDark.bgCanvas,
     bgSurface: AppDark.bgSurface,
@@ -61,6 +66,7 @@ class AppPalette {
     borderDefault: AppDark.borderSubtle,
     textDisabled: AppDark.textTertiary,
     statusError: AppDark.statusError,
+    disabledButton: AppDark.borderSubtle,
   );
 
   static const light = AppPalette._(
@@ -77,6 +83,7 @@ class AppPalette {
     borderDefault: AppLight.borderDefault,
     textDisabled: AppLight.textDisabled,
     statusError: AppLight.statusError,
+    disabledButton: AppBrand.disabled,
   );
 
   static AppPalette of(BuildContext context) =>

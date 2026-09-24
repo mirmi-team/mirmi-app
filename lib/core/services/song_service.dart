@@ -1,3 +1,4 @@
+import '../../shared/date_format.dart';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
@@ -105,12 +106,8 @@ class SongService {
   static String get tomorrowKst => _kstDate(const Duration(hours: 9, days: 1));
 
   /// 기기 시간대가 KST 가 아니어도 어긋나지 않도록 UTC 에 9시간을 더해 계산한다.
-  static String _kstDate(Duration offset) {
-    final kst = DateTime.now().toUtc().add(offset);
-    final mm = kst.month.toString().padLeft(2, '0');
-    final dd = kst.day.toString().padLeft(2, '0');
-    return '${kst.year}-$mm-$dd';
-  }
+  static String _kstDate(Duration offset) =>
+      dateKey(DateTime.now().toUtc().add(offset));
 
   static List<MorningSong> _parseList(String body) {
     final decoded = jsonDecode(body);

@@ -1,7 +1,9 @@
+import '../../shared/date_format.dart';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../../shared/server_time.dart';
 import '../constants/api.dart';
 import 'auth_service.dart';
 
@@ -122,7 +124,7 @@ class Suggestion {
     id: json['id'] as int,
     title: (json['title'] ?? '') as String,
     category: (json['category'] ?? 'ETC') as String,
-    createdAt: DateTime.parse(json['created_at'] as String).toLocal(),
+    createdAt: parseServerTime(json['created_at'] as String) ?? DateTime.now(),
     description: json['description'] as String?,
     reply: json['reply'] as String?,
   );
@@ -135,9 +137,5 @@ class Suggestion {
   bool get hasReply => reply != null && reply!.isNotEmpty;
 
   /// '2026-09-14'
-  String get dateLabel {
-    final mm = createdAt.month.toString().padLeft(2, '0');
-    final dd = createdAt.day.toString().padLeft(2, '0');
-    return '${createdAt.year}-$mm-$dd';
-  }
+  String get dateLabel => dateKey(createdAt);
 }
