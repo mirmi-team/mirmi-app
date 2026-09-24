@@ -77,6 +77,10 @@ class _LaundryReservationScreenState extends State<LaundryReservationScreen> {
             'start': _timeOn(today, startStr),
             'end': _timeOn(today, endStr),
             'taken': s['type'] == 'FIXED' || s['room_number'] != null,
+            'rooms': [
+              s['room_number'],
+              s['room_number_2'],
+            ].where((r) => r != null).map((r) => '$r호').join(', '),
           };
         }).toList();
         _slotsLoading = false;
@@ -92,6 +96,13 @@ class _LaundryReservationScreenState extends State<LaundryReservationScreen> {
       setState(() => _slotsLoading = false);
       _showMessage('예약 시간을 불러오지 못했습니다.');
     }
+  }
+
+  // 사용 불가 카드에 붙일 거
+  String _unavailableLabel(Map<String, dynamic> slot) {
+    if (!AppClock.now().isBefore(slot['end'] as DateTime)) return '만료';
+    final rooms = slot['rooms'] as String;
+    return rooms.isEmpty ? '고정' : rooms;
   }
 
   /// 이미 지난 시간 || 고정 시간 || 다른 사람이 신청한 시간이면 true
@@ -137,7 +148,8 @@ class _LaundryReservationScreenState extends State<LaundryReservationScreen> {
         floor: (widget.machine['id'] as int) ~/ 10,
       );
       final alreadyReserved = schedule.any(
-        (s) => s['type'] == 'RESERVED' && s['room_number'] == roomNumber,
+        (s) =>
+            s['room_number'] == roomNumber || s['room_number_2'] == roomNumber,
       );
       if (alreadyReserved) {
         if (mounted) {
@@ -181,111 +193,139 @@ class _LaundryReservationScreenState extends State<LaundryReservationScreen> {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 33),
-              Text(
-                '예약자 정보',
-                style: TextStyle(
-                  color: _textColor,
-                  fontSize: 13,
-                  fontWeight: FontWeight(400),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                _me == null
-                    ? '불러오는 중...'
-                    : '${_me!['room_number']}호 ${_me!['username']}님',
-                style: TextStyle(
-                  color: _textColor,
-                  fontSize: 20,
-                  fontWeight: FontWeight(700),
-                ),
-              ),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  Icon(Icons.info_outline, size: 14, color: _captionColor),
-                  SizedBox(width: 4),
-                  Text(
-                    '예약자 정보는 변경할 수가 없어요.',
-                    style: TextStyle(
-                      color: _captionColor,
-                      fontSize: 13,
-                      fontWeight: FontWeight(510),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 32),
-
-              Text(
-                '세탁기 사용 신청',
-                style: TextStyle(
-                  color: _textColor,
-                  fontSize: 16,
-                  fontWeight: FontWeight(590),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                '예약 시간을 선택해 주세요.',
-                style: TextStyle(
-                  color: _textColor,
-                  fontSize: 13,
-                  fontWeight: FontWeight(400),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              AppSkeletonSwitcher(
-                loading: _slotsLoading,
-                skeleton: Column(
-                  children: [
-                    for (int i = 0; i < 4; i++) ...[
-                      const AppSkeleton(height: 68, radius: 8),
-                      const SizedBox(height: 10),
-                    ],
-                  ],
-                ),
-                child: Column(
-                  children: List.generate(_timeSlots.length, (index) {
-                    final slot = _timeSlots[index];
-                    final isDisabled = _isUnavailable(slot);
-                    final isSelected =
-                        !isDisabled && index == _selectedTimeIndex;
-                    return GestureDetector(
-                      onTap: isDisabled
-                          ? null
-                          : () => setState(
-                              () => _selectedTimeIndex = isSelected
-                                  ? null
-                                  : index,
-                            ),
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 10),
-                        padding: const EdgeInsets.all(24),
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: isSelected ? _teal : _cardColor,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          slot['label'],
-                          style: TextStyle(
-                            color: isDisabled ? _captionColor : _textColor,
-                            fontSize: 15,
-                            fontWeight: FontWeight(590),
-                          ),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 33),
+                      Text(
+                        '예약자 정보',
+                        style: TextStyle(
+                          color: _textColor,
+                          fontSize: 13,
+                          fontWeight: FontWeight(400),
                         ),
                       ),
-                    );
-                  }),
+                      const SizedBox(height: 8),
+                      Text(
+                        _me == null
+                            ? '불러오는 중...'
+                            : '${_me!['room_number']}호 ${_me!['username']}님',
+                        style: TextStyle(
+                          color: _textColor,
+                          fontSize: 20,
+                          fontWeight: FontWeight(700),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.info_outline,
+                            size: 14,
+                            color: _captionColor,
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            '예약자 정보는 변경할 수가 없어요.',
+                            style: TextStyle(
+                              color: _captionColor,
+                              fontSize: 13,
+                              fontWeight: FontWeight(510),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 32),
+
+                      Text(
+                        '세탁기 사용 신청',
+                        style: TextStyle(
+                          color: _textColor,
+                          fontSize: 16,
+                          fontWeight: FontWeight(590),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        '예약 시간을 선택해 주세요.',
+                        style: TextStyle(
+                          color: _textColor,
+                          fontSize: 13,
+                          fontWeight: FontWeight(400),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      AppSkeletonSwitcher(
+                        loading: _slotsLoading,
+                        skeleton: Column(
+                          children: [
+                            for (int i = 0; i < 4; i++) ...[
+                              const AppSkeleton(height: 68, radius: 8),
+                              const SizedBox(height: 10),
+                            ],
+                          ],
+                        ),
+                        child: Column(
+                          children: List.generate(_timeSlots.length, (index) {
+                            final slot = _timeSlots[index];
+                            final isDisabled = _isUnavailable(slot);
+                            final isSelected =
+                                !isDisabled && index == _selectedTimeIndex;
+                            return GestureDetector(
+                              onTap: isDisabled
+                                  ? null
+                                  : () => setState(
+                                      () => _selectedTimeIndex = isSelected
+                                          ? null
+                                          : index,
+                                    ),
+                              child: Container(
+                                margin: const EdgeInsets.only(bottom: 10),
+                                padding: const EdgeInsets.all(24),
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: isSelected ? _teal : _cardColor,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      slot['label'],
+                                      style: TextStyle(
+                                        color: isDisabled
+                                            ? _captionColor
+                                            : _textColor,
+                                        fontSize: 15,
+                                        fontWeight: FontWeight(590),
+                                      ),
+                                    ),
+                                    if (isDisabled) ...[
+                                      const Spacer(),
+                                      Text(
+                                        _unavailableLabel(slot),
+                                        style: TextStyle(
+                                          color: _captionColor,
+                                          fontSize: 15,
+                                          fontWeight: FontWeight(590),
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            );
+                          }),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-
-              const Spacer(),
+              const SizedBox(height: 12),
               // 좌우 여백은 바깥 Padding 이 갖고 있다.
               SubmitButton(
                 text: '예약하기',
