@@ -26,9 +26,6 @@ class _LaundryScreenState extends State<LaundryScreen> {
   Color get _cardColor => _palette.bgSurface;
   Color get _errorColor => _palette.statusError;
 
-  /// 월 이동 화살표 버튼 배경
-  Color get _arrowBgColor => _palette.borderSubtle;
-
   /// 더 이동할 수 없을 때의 화살표
   Color get _arrowOffColor => _palette.textDisabled;
 
@@ -356,39 +353,60 @@ class _LaundryScreenState extends State<LaundryScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             GestureDetector(
+              behavior: HitTestBehavior.opaque,
               onTap: _canGoPrev ? () => _changeDay(-1) : null,
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: _arrowBgColor,
-                  shape: BoxShape.circle,
-                ),
+              child: Padding(
+                padding: const EdgeInsets.all(8),
                 child: Icon(
                   Icons.chevron_left,
+                  size: 24,
                   color: _canGoPrev ? _textColor : _arrowOffColor,
                 ),
               ),
             ),
-            Text(
-              _selectedDateLabel,
-              style: TextStyle(
-                color: _textColor,
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-              ),
+
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (_isSameDay(_selectedDate, AppClock.now())) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _teal,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: const Text(
+                      '오늘',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+                Text(
+                  _selectedDateLabel,
+                  style: TextStyle(
+                    color: _textColor,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
             ),
             GestureDetector(
+              behavior: HitTestBehavior.opaque,
               onTap: _canGoNext ? () => _changeDay(1) : null,
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: _arrowBgColor,
-                  shape: BoxShape.circle,
-                ),
+              child: Padding(
+                padding: const EdgeInsets.all(8),
                 child: Icon(
                   Icons.chevron_right,
+                  size: 24,
                   color: _canGoNext ? _textColor : _arrowOffColor,
                 ),
               ),
