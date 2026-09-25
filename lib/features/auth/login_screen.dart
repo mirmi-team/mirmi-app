@@ -74,8 +74,10 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _loading = true);
     try {
       await AuthService.login(email: email, password: password);
+      // 사감이면 관리자 화면으로 들어간다.
+      final route = await AuthService.homeRouteForCurrentUser();
       if (!mounted) return;
-      context.go('/home');
+      context.go(route);
     } on ApiException catch (e) {
       if (!mounted) return;
       _showError(e.message);

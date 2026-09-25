@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/splash/splash_screen.dart';
 import '../../features/auth/login_screen.dart';
 import '../../features/auth/signup_screen.dart';
+import '../../features/admin/admin_screen.dart';
 import '../../features/home/home_screen.dart';
 import '../../features/my_page/my_page_screen.dart';
 import '../../features/my_page/delete_account_screen.dart';
@@ -18,7 +19,7 @@ import '../../features/notice/notice_detail_screen.dart';
 import '../services/notice_service.dart';
 import '../services/auth_service.dart';
 
-const _protectedRoutes = {'/home', '/my'};
+const _protectedRoutes = {'/home', '/admin', '/my'};
 
 /// 시트나 다이얼로그가 닫히면 Flutter 가 이전 화면의 포커스를 되살린다.
 /// 텍스트 필드에 포커스가 남아 있었다면 키보드가 저절로 올라오므로 여기서 해제한다.
@@ -61,6 +62,12 @@ final router = GoRouter(
       path: '/home',
       pageBuilder: (context, state) =>
           const NoTransitionPage(child: HomeScreen()),
+    ),
+
+    GoRoute(
+      path: '/admin',
+      pageBuilder: (context, state) =>
+          const NoTransitionPage(child: AdminScreen()),
     ),
 
     GoRoute(

@@ -177,6 +177,23 @@ class AuthService {
 
   /// 마지막으로 받아온 내 정보. 이름·방 번호·can_staying 처럼 거의 바뀌지 않는
   /// 값이라 화면마다 다시 부르지 않고 재사용한다.
+  /// 로그인한 사용자가 들어갈 화면. 사감은 학생 화면을 보지 않는다.
+  ///
+  /// [throwOnError] 를 주면 내 정보를 못 읽었을 때 예외를 그대로 던진다.
+  /// (스플래시는 그걸로 로그인 여부를 판단한다)
+  static Future<String> homeRouteForCurrentUser({
+    bool throwOnError = false,
+  }) async {
+    try {
+      final me = await getMe(refresh: true);
+      return me['role'] == 'ADMIN' ? '/admin' : '/home';
+    } catch (_) {
+      if (throwOnError) rethrow;
+      // 역할을 못 읽으면 학생 화면으로. (권한이 필요한 API 는 서버가 막는다)
+      return '/home';
+    }
+  }
+
   static Map<String, dynamic>? _cachedMe;
 
   /// 진행 중인 요청. 앱 시작 시 여러 화면이 동시에 부르므로 하나로 합친다.
