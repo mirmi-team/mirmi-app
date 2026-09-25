@@ -202,9 +202,6 @@ class _AdminPlayerOverlayState extends State<AdminPlayerOverlay>
 
   final _scroll = ScrollController();
 
-  /// 목록을 올린 만큼 영상도 같이 올라간다.
-  double _offset = 0;
-
   /// 맨 위에서 아래로 당긴 거리. 창 전체가 이만큼 내려간다.
   double _dragDown = 0;
 
@@ -221,13 +218,12 @@ class _AdminPlayerOverlayState extends State<AdminPlayerOverlay>
   /// 당겨서 접는 처리를 한 번만 하도록.
   bool _collapsing = false;
 
+  /// 재생바를 끄는 중. 이때는 창이 손을 따라 움직이면 안 된다.
+  bool _seeking = false;
+
   @override
   void initState() {
     super.initState();
-    _scroll.addListener(() {
-      final next = _scroll.hasClients ? _scroll.offset : 0.0;
-      if ((next - _offset).abs() > 0.5) setState(() => _offset = next);
-    });
     _settle.addListener(() {
       final t = _curve.transform(_settle.value);
       setState(() => _dragDown = _settleFrom * (1 - t));
@@ -276,7 +272,7 @@ class _AdminPlayerOverlayState extends State<AdminPlayerOverlay>
   /// ScrollNotification 으로는 내리는 것만 잡힌다. 누른 채 다시 올리면
   /// 목록이 먼저 스크롤돼서 창이 안 따라오므로 포인터를 직접 본다.
   void _onPointerMove(PointerMoveEvent event) {
-    if (!widget.controller.expanded) return;
+    if (!widget.controller.expanded || _seeking) return;
     final atTop = !_scroll.hasClients || _scroll.position.pixels <= 0;
     final dy = event.delta.dy;
 
@@ -368,13 +364,6 @@ class _AdminPlayerOverlayState extends State<AdminPlayerOverlay>
                 scroll: _scroll,
                 onCollapse: _collapse,
                 videoRect: Rect.fromLTWH(videoLeft, videoTop, videoW, videoH),
-                // 스크롤은 애니메이션 없이 그대로 따라가야 목록과 같이
-                // 움직인다. 다만 창 위로 넘어가면 안 되므로 손잡이 높이까지만
-                // 올라가고 그 뒤로는 맨 위에 붙는다.
-                //
-                // WebView 는 플랫폼 뷰라 ClipRRect 로 잘라낼 수 없다. 창 밖으로
-                // 나간 부분이 그대로 보이기 때문에 애초에 안 나가게 막는다.
-                scrollOffset: expanded ? _offset.clamp(0.0, _handleHeight) : 0,
                 miniRadius: _miniBarHeight / 2,
                 // 영상 오른쪽부터 제목이 시작한다. 펼쳐도 값이 흔들리지
                 // 않도록 접힌 상태 기준으로 고정한다.
@@ -390,6 +379,7 @@ class _AdminPlayerOverlayState extends State<AdminPlayerOverlay>
                 duration: _duration,
                 curve: _curve,
                 onExpand: () => controller.setExpanded(true),
+                onSeekChanged: (seeking) => _seeking = seeking,
               ),
             ),
           ),
@@ -407,7 +397,6 @@ class _Stage extends StatelessWidget {
     required this.scroll,
     required this.onCollapse,
     required this.videoRect,
-    required this.scrollOffset,
     required this.miniRadius,
     required this.miniContentLeft,
     required this.thumbnailRect,
@@ -415,6 +404,7 @@ class _Stage extends StatelessWidget {
     required this.duration,
     required this.curve,
     required this.onExpand,
+    required this.onSeekChanged,
   });
 
   final AdminPlayerController controller;
@@ -422,9 +412,6 @@ class _Stage extends StatelessWidget {
   final ScrollController scroll;
   final VoidCallback onCollapse;
   final Rect videoRect;
-
-  /// 목록을 올린 높이. 영상도 같은 만큼 올라간다.
-  final double scrollOffset;
 
   /// 접혔을 때 모서리 반경. 높이의 절반이라 완전한 알약이 된다.
   final double miniRadius;
@@ -439,6 +426,9 @@ class _Stage extends StatelessWidget {
   final Duration duration;
   final Curve curve;
   final VoidCallback onExpand;
+
+  /// 재생바를 잡았는지 알려준다. 잡고 있는 동안에는 창을 움직이지 않는다.
+  final ValueChanged<bool> onSeekChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -485,7 +475,9 @@ class _Stage extends StatelessWidget {
                     controller: controller,
                     scroll: scroll,
                     onCollapse: onCollapse,
-                    topSpace: handleHeight + videoRect.height,
+                    videoHeight: videoRect.height,
+                    handleHeight: handleHeight,
+                    onSeekChanged: onSeekChanged,
                   ),
                 ),
               ),
@@ -501,23 +493,18 @@ class _Stage extends StatelessWidget {
               top: videoRect.top,
               width: videoRect.width,
               height: videoRect.height,
-              child: Transform.translate(
-                // top 을 직접 바꾸면 AnimatedPositioned 가 그것마저 애니메이션해
-                // 목록보다 한 박자 늦게 따라온다. 변환은 즉시 반영된다.
-                offset: Offset(0, -scrollOffset),
-                child: GestureDetector(
-                  // 접힌 상태에서 영상을 누르거나 위로 쓸어올리면 펼친다.
-                  onTap: expanded ? null : onExpand,
-                  onVerticalDragEnd: expanded
-                      ? null
-                      : (d) {
-                          if ((d.primaryVelocity ?? 0) < -100) onExpand();
-                        },
-                  child: AbsorbPointer(
-                    child: YoutubePlayer(
-                      controller: youtube,
-                      aspectRatio: 16 / 9,
-                    ),
+              child: GestureDetector(
+                // 접힌 상태에서 영상을 누르거나 위로 쓸어올리면 펼친다.
+                onTap: expanded ? null : onExpand,
+                onVerticalDragEnd: expanded
+                    ? null
+                    : (d) {
+                        if ((d.primaryVelocity ?? 0) < -100) onExpand();
+                      },
+                child: AbsorbPointer(
+                  child: YoutubePlayer(
+                    controller: youtube,
+                    aspectRatio: 16 / 9,
                   ),
                 ),
               ),
@@ -576,155 +563,149 @@ class _Stage extends StatelessWidget {
   }
 }
 
-/// 펼쳤을 때 한 덩어리로 스크롤되는 본문.
+/// 펼쳤을 때의 본문.
 ///
-/// 맨 위 [topSpace] 는 손잡이와 영상이 겹쳐 그려지는 자리라 비워 둔다.
-/// 스크롤하면 영상도 같이 올라간다.
+/// 영상·진행 바·버튼은 위에 고정되고 재생 목록만 스크롤된다.
+/// 맨 위 [videoHeight] 는 영상이 겹쳐 그려지는 자리라 비워 둔다.
 class _ExpandedBody extends StatelessWidget {
   const _ExpandedBody({
     required this.controller,
     required this.scroll,
     required this.onCollapse,
-    required this.topSpace,
+    required this.videoHeight,
+    required this.handleHeight,
+    required this.onSeekChanged,
   });
 
   final AdminPlayerController controller;
   final ScrollController scroll;
   final VoidCallback onCollapse;
-  final double topSpace;
+  final double videoHeight;
+  final double handleHeight;
+  final ValueChanged<bool> onSeekChanged;
 
   @override
   Widget build(BuildContext context) {
     final palette = AppPalette.of(context);
     final youtube = controller.youtube!;
 
-    return CustomScrollView(
-      controller: scroll,
-      // 내용이 짧아도 당겨서 접을 수 있도록 항상 스크롤을 허용한다.
-      // 튕기면 목록만 늘어난다. 당긴 만큼 창 전체가 내려가도록
-      // overscroll 알림을 주는 Clamping 을 쓴다.
-      physics: const AlwaysScrollableScrollPhysics(
-        parent: ClampingScrollPhysics(),
-      ),
-      slivers: [
-        // 손잡이 + 영상이 놓이는 자리
-        SliverToBoxAdapter(
+    return Column(
+      children: [
+        // 잡아 내리거나 누르면 작은 바로 접힌다.
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: onCollapse,
           child: SizedBox(
-            height: topSpace,
-            child: Align(
-              alignment: Alignment.topCenter,
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: onCollapse,
-                child: SizedBox(
-                  height: 40,
-                  width: 80,
-                  child: Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: palette.borderSubtle,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
+            height: handleHeight,
+            width: double.infinity,
+            child: Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: palette.borderSubtle,
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
             ),
           ),
         ),
 
+        // 영상이 겹쳐 그려지는 자리
+        SizedBox(height: videoHeight),
+
         // ── 재생 위치 ────────────────────────────────────────
-        SliverToBoxAdapter(
-          child: _ProgressBar(
-            // 곡이 바뀌면 길이를 다시 읽어야 한다.
-            key: ValueKey(controller.current),
-            youtube: youtube,
-          ),
+        _ProgressBar(
+          // 곡이 바뀌면 길이를 다시 읽어야 한다.
+          key: ValueKey(controller.current),
+          youtube: youtube,
+          onSeekChanged: onSeekChanged,
         ),
 
         // ── 이동 버튼 ────────────────────────────────────────
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _RoundIconButton(
-                  icon: Icons.skip_previous_rounded,
-                  onTap: youtube.previousVideo,
-                ),
-                const SizedBox(width: 12),
-                _RoundIconButton(
-                  icon: controller.isPlaying
-                      ? Icons.pause_rounded
-                      : Icons.play_arrow_rounded,
-                  size: 34,
-                  onTap: controller.togglePlay,
-                ),
-                const SizedBox(width: 12),
-                _RoundIconButton(
-                  icon: Icons.skip_next_rounded,
-                  onTap: youtube.nextVideo,
-                ),
-                const SizedBox(width: 16),
-                Text(
-                  '${controller.current + 1} / ${controller.songs.length}',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: palette.textPrimary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        SliverToBoxAdapter(
-          child: Divider(color: palette.borderSubtle, height: 1),
-        ),
-
-        // ── 재생 목록 ────────────────────────────────────────
-        SliverList.builder(
-          itemCount: controller.songs.length,
-          itemBuilder: (context, i) {
-            final playing = i == controller.current;
-            return ListTile(
-              dense: true,
-              leading: SizedBox(
-                width: 24,
-                child: playing
-                    ? const Icon(
-                        Icons.volume_up_rounded,
-                        size: 18,
-                        color: AppBrand.primary,
-                      )
-                    : Text(
-                        '${i + 1}',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: palette.textTertiary,
-                        ),
-                      ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _RoundIconButton(
+                icon: Icons.skip_previous_rounded,
+                onTap: youtube.previousVideo,
               ),
-              title: Text(
-                controller.songs[i].songName,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              const SizedBox(width: 12),
+              _RoundIconButton(
+                icon: controller.isPlaying
+                    ? Icons.pause_rounded
+                    : Icons.play_arrow_rounded,
+                size: 34,
+                onTap: controller.togglePlay,
+              ),
+              const SizedBox(width: 12),
+              _RoundIconButton(
+                icon: Icons.skip_next_rounded,
+                onTap: youtube.nextVideo,
+              ),
+              const SizedBox(width: 16),
+              Text(
+                '${controller.current + 1} / ${controller.songs.length}',
                 style: TextStyle(
                   fontSize: 14,
-                  fontWeight: playing ? FontWeight.w700 : FontWeight.w400,
-                  color: playing ? AppBrand.primary : palette.textPrimary,
+                  fontWeight: FontWeight.w700,
+                  color: palette.textPrimary,
                 ),
               ),
-              // 재생 중인 곡을 다시 누르면 처음으로 돌아가버린다.
-              onTap: playing ? null : () => youtube.playVideoAt(i),
-            );
-          },
+            ],
+          ),
         ),
-        const SliverToBoxAdapter(child: SizedBox(height: 40)),
+        Divider(color: palette.borderSubtle, height: 1),
+
+        // ── 재생 목록 (여기만 스크롤된다) ────────────────────
+        Expanded(
+          child: ListView.builder(
+            controller: scroll,
+            // 내용이 짧아도 당겨서 접을 수 있도록 항상 스크롤을 허용한다.
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: ClampingScrollPhysics(),
+            ),
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            itemCount: controller.songs.length,
+            itemBuilder: (context, i) {
+              final playing = i == controller.current;
+              return ListTile(
+                dense: true,
+                leading: SizedBox(
+                  width: 24,
+                  child: playing
+                      ? const Icon(
+                          Icons.volume_up_rounded,
+                          size: 18,
+                          color: AppBrand.primary,
+                        )
+                      : Text(
+                          '${i + 1}',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: palette.textTertiary,
+                          ),
+                        ),
+                ),
+                title: Text(
+                  controller.songs[i].songName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: playing ? FontWeight.w700 : FontWeight.w400,
+                    color: playing ? AppBrand.primary : palette.textPrimary,
+                  ),
+                ),
+                // 재생 중인 곡을 다시 누르면 처음으로 돌아가버린다.
+                onTap: playing ? null : () => youtube.playVideoAt(i),
+              );
+            },
+          ),
+        ),
       ],
     );
   }
@@ -735,9 +716,14 @@ class _ExpandedBody extends StatelessWidget {
 /// 유튜브 기본 컨트롤을 껐기 때문에(작은 바에서 재생 버튼이 겹쳐 보여서)
 /// 길이 표시가 같이 사라졌다. 그 자리를 대신한다.
 class _ProgressBar extends StatefulWidget {
-  const _ProgressBar({super.key, required this.youtube});
+  const _ProgressBar({
+    super.key,
+    required this.youtube,
+    required this.onSeekChanged,
+  });
 
   final YoutubePlayerController youtube;
+  final ValueChanged<bool> onSeekChanged;
 
   @override
   State<_ProgressBar> createState() => _ProgressBarState();
@@ -754,12 +740,30 @@ class _ProgressBarState extends State<_ProgressBar> {
   /// 손으로 끄는 중인 값. 놓을 때까지 재생 위치 대신 이걸 보여준다.
   double? _dragging;
 
+  /// 놓은 뒤 실제 재생 위치가 따라오기를 기다리는 값.
+  ///
+  /// seekTo 직후에도 플레이어는 한동안 예전 위치를 보고한다. 그걸 그대로
+  /// 그리면 손을 놓은 자리에서 원래 위치로 튀었다가 다시 돌아온다.
+  double? _seekTarget;
+
+  /// 응답이 없을 때 표시가 굳지 않도록 풀어주는 타이머.
+  Timer? _seekTimeout;
+
   @override
   void initState() {
     super.initState();
     _sub = widget.youtube.videoStateStream.listen((state) {
       if (!mounted) return;
-      setState(() => _position = state.position);
+      setState(() {
+        _position = state.position;
+        // 실제 위치가 보낸 지점 가까이 오면 그때부터 진짜 위치를 보여준다.
+        final target = _seekTarget;
+        if (target != null &&
+            (state.position.inMilliseconds / 1000 - target).abs() < 1.5) {
+          _seekTarget = null;
+          _seekTimeout?.cancel();
+        }
+      });
       // 곡이 막 바뀌면 길이가 0 으로 오므로 값이 잡힐 때까지 다시 묻는다.
       if (_duration <= 0) _readDuration();
     });
@@ -774,6 +778,7 @@ class _ProgressBarState extends State<_ProgressBar> {
 
   @override
   void dispose() {
+    _seekTimeout?.cancel();
     _sub?.cancel();
     super.dispose();
   }
@@ -793,7 +798,7 @@ class _ProgressBarState extends State<_ProgressBar> {
   Widget build(BuildContext context) {
     final palette = AppPalette.of(context);
     final total = _duration;
-    final current = _dragging ?? _position.inSeconds.toDouble();
+    final current = _dragging ?? _seekTarget ?? _position.inSeconds.toDouble();
     final value = total > 0 ? current.clamp(0.0, total) : 0.0;
 
     return Padding(
@@ -817,9 +822,20 @@ class _ProgressBarState extends State<_ProgressBar> {
               onChanged: total > 0
                   ? (v) => setState(() => _dragging = v)
                   : null,
+              // 잡고 있는 동안에는 창이 손을 따라 내려가지 않게 한다.
+              onChangeStart: (_) => widget.onSeekChanged(true),
               onChangeEnd: (v) {
                 widget.youtube.seekTo(seconds: v, allowSeekAhead: true);
-                setState(() => _dragging = null);
+                widget.onSeekChanged(false);
+                setState(() {
+                  _dragging = null;
+                  // 실제 위치가 따라올 때까지 놓은 자리를 그대로 보여준다.
+                  _seekTarget = v;
+                });
+                _seekTimeout?.cancel();
+                _seekTimeout = Timer(const Duration(seconds: 3), () {
+                  if (mounted) setState(() => _seekTarget = null);
+                });
               },
             ),
           ),
