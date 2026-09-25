@@ -27,6 +27,56 @@ class _AppKeepAlivePageState extends State<AppKeepAlivePage>
   }
 }
 
+/// 네비게이션 바 자체의 높이. (여백 제외)
+const double kNavBarHeight = 66.0;
+
+/// 화면 맨 아래부터 네비게이션 바 위쪽까지의 높이.
+///
+/// 네비게이션 바에 가리면 안 되는 것(미니 플레이어 등)을 올릴 때 쓴다.
+/// padding 이 아니라 viewPadding 을 보는 이유는 아래 build 주석과 같다.
+double appNavBarTotalHeight(BuildContext context) {
+  final sysBottom = MediaQuery.viewPaddingOf(context).bottom;
+  final bottomPad = Platform.isAndroid
+      ? (sysBottom > 0 ? sysBottom + 8.0 : 24.0)
+      : (sysBottom > 0 ? math.max(sysBottom - 8.0, 0.0) : 16.0);
+  return kNavBarHeight + bottomPad;
+}
+
+/// 네비게이션 바 색. 다크는 반투명 유리, 라이트는 흰 바에 옅은 그림자.
+///
+/// 네비게이션 바 위에 나란히 뜨는 것(미니 플레이어 등)이 같은 색을
+/// 쓰도록 밖으로 열어 둔다.
+({Color bar, Color barBorder, Color shadow, Color pill, Color icon})
+appNavColors(BuildContext context) {
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+
+  // 채움과 테두리는 두 모드가 같은 투명도를 쓴다. (반투명 유리 느낌)
+  // 알약·아이콘·그림자만 배경 밝기에 맞춰 달라진다.
+  const bar = Color(0x14FFFFFF); // 흰색 8%
+  const whiteBar = Color(0xA6F7F7F7); // 흰색 97%
+  final barBorder = AppColors.hint.withValues(alpha: 0.40);
+
+  if (isDark) {
+    return (
+      bar: bar,
+      barBorder: barBorder,
+      shadow: Colors.black,
+      pill: AppDark.bgSurfaceHover,
+      icon: AppColors.navIcon,
+    );
+  }
+  return (
+    bar: whiteBar,
+    barBorder: barBorder,
+    // 검은 그림자를 그대로 쓰면 밝은 배경에서 너무 진하다.
+    shadow: AppLight.textPrimary.withValues(alpha: 0.21),
+    // 다크의 알약(27272A)과 같이 불투명. 다크는 배경보다 한 단계 밝고,
+    // 라이트는 같은 논리로 한 단계 어두운 회색을 쓴다.
+    pill: Color(0xFFD1D1D1),
+    icon: AppLight.textTertiary,
+  );
+}
+
 /// 하단 네비게이션 바의 칸 하나.
 class AppNavItem {
   const AppNavItem({required this.icon, required this.activeIcon});
@@ -137,49 +187,14 @@ class _AppNavBarState extends State<AppNavBar>
     _select(target);
   }
 
-  /// 네비게이션 바 색. 다크는 반투명 유리, 라이트는 흰 바에 옅은 그림자.
-  ({Color bar, Color barBorder, Color shadow, Color pill, Color icon})
-  _navColorsOf(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    // 채움과 테두리는 두 모드가 같은 투명도를 쓴다. (반투명 유리 느낌)
-    // 알약·아이콘·그림자만 배경 밝기에 맞춰 달라진다.
-    const bar = Color(0x14FFFFFF); // 흰색 8%
-    const whiteBar = Color(0xA6F7F7F7); // 흰색 97%
-    final barBorder = AppColors.hint.withValues(alpha: 0.40);
-
-    if (isDark) {
-      return (
-        bar: bar,
-        barBorder: barBorder,
-        shadow: Colors.black,
-        pill: AppDark.bgSurfaceHover,
-        icon: AppColors.navIcon,
-      );
-    }
-    return (
-      bar: whiteBar,
-      barBorder: barBorder,
-      // 검은 그림자를 그대로 쓰면 밝은 배경에서 너무 진하다.
-      shadow: AppLight.textPrimary.withValues(alpha: 0.21),
-      // 다크의 알약(27272A)과 같이 불투명. 다크는 배경보다 한 단계 밝고,
-      // 라이트는 같은 논리로 한 단계 어두운 회색을 쓴다.
-      pill: Color(0xFFD1D1D1),
-      icon: AppLight.textTertiary,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     // padding 이 아니라 viewPadding 을 쓴다. padding.bottom 은 키보드가 올라오는
     // 동안 0 으로 줄어드는데, iOS 분기의 (sysBottom - 8) 이 음수가 되어
     // Padding 이 assertion 으로 터진다. viewPadding 은 키보드와 무관하게 고정이라
     // 네비바 높이도 흔들리지 않는다.
-    final nav = _navColorsOf(context);
-    final sysBottom = MediaQuery.viewPaddingOf(context).bottom;
-    final bottomPad = Platform.isAndroid
-        ? (sysBottom > 0 ? sysBottom + 8.0 : 24.0)
-        : (sysBottom > 0 ? math.max(sysBottom - 8.0, 0.0) : 16.0);
+    final nav = appNavColors(context);
+    final bottomPad = appNavBarTotalHeight(context) - kNavBarHeight;
 
     return AnimatedBuilder(
       // 알약이 움직일 때마다 다시 그린다. (스와이프 중에는 페이지를 따라가고,
