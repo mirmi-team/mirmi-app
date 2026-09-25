@@ -136,6 +136,9 @@ class _MyPageScreenState extends State<MyPageScreen> with AppBannerMixin {
     return NetworkImage(path);
   }
 
+  /// 사감 계정. 학생용 메뉴(상벌점·건의·문의·비밀번호)는 보여주지 않는다.
+  bool get _isAdmin => _user?['role'] == 'ADMIN';
+
   void _logout() => context.push('/logout');
 
   void _deleteAccount() => context.push('/delete-account');
@@ -279,23 +282,25 @@ class _MyPageScreenState extends State<MyPageScreen> with AppBannerMixin {
                       const SizedBox(height: 48),
 
                       // ── 메뉴 리스트 ───────────────────────────────
-                      _MenuItem(
-                        label: '상벌점 내역',
-                        onTap: () => context.push('/merit-logs'),
-                      ),
-                      const SizedBox(height: 20),
-                      _MenuItem(
-                        label: '내 건의사항 보기',
-                        onTap: () => context.push('/my-suggestions'),
-                      ),
-                      const SizedBox(height: 20),
-                      _MenuItem(label: '문의하기', onTap: _inquiry),
-                      const SizedBox(height: 20),
-                      _MenuItem(
-                        label: '비밀번호 변경',
-                        onTap: () => context.push('/change-password'),
-                      ),
-                      const SizedBox(height: 20),
+                      if (!_isAdmin) ...[
+                        _MenuItem(
+                          label: '상벌점 내역',
+                          onTap: () => context.push('/merit-logs'),
+                        ),
+                        const SizedBox(height: 20),
+                        _MenuItem(
+                          label: '내 건의사항 보기',
+                          onTap: () => context.push('/my-suggestions'),
+                        ),
+                        const SizedBox(height: 20),
+                        _MenuItem(label: '문의하기', onTap: _inquiry),
+                        const SizedBox(height: 20),
+                        _MenuItem(
+                          label: '비밀번호 변경',
+                          onTap: () => context.push('/change-password'),
+                        ),
+                        const SizedBox(height: 20),
+                      ],
                       _MenuItem(label: '로그아웃', onTap: _logout),
                       const SizedBox(height: 20),
                       _ToggleItem(

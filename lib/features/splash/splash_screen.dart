@@ -26,15 +26,16 @@ class _SplashScreenState extends State<SplashScreen> {
     final results = await Future.wait([_checkToken(), _playAnimation()]);
 
     if (!mounted) return;
-    context.go(results[0] as bool ? '/home' : '/login');
+    // 토큰이 살아 있으면 역할에 맞는 화면으로. (사감은 관리자 화면)
+    context.go(results[0] as String? ?? '/login');
   }
 
-  Future<bool> _checkToken() async {
+  /// 로그인 상태면 들어갈 경로, 아니면 null.
+  Future<String?> _checkToken() async {
     try {
-      await AuthService.getMe(refresh: true);
-      return true;
+      return await AuthService.homeRouteForCurrentUser(throwOnError: true);
     } catch (_) {
-      return false;
+      return null;
     }
   }
 
