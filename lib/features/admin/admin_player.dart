@@ -368,8 +368,13 @@ class _AdminPlayerOverlayState extends State<AdminPlayerOverlay>
                 scroll: _scroll,
                 onCollapse: _collapse,
                 videoRect: Rect.fromLTWH(videoLeft, videoTop, videoW, videoH),
-                // 스크롤은 애니메이션 없이 그대로 따라가야 목록과 같이 움직인다.
-                scrollOffset: expanded ? _offset : 0,
+                // 스크롤은 애니메이션 없이 그대로 따라가야 목록과 같이
+                // 움직인다. 다만 창 위로 넘어가면 안 되므로 손잡이 높이까지만
+                // 올라가고 그 뒤로는 맨 위에 붙는다.
+                //
+                // WebView 는 플랫폼 뷰라 ClipRRect 로 잘라낼 수 없다. 창 밖으로
+                // 나간 부분이 그대로 보이기 때문에 애초에 안 나가게 막는다.
+                scrollOffset: expanded ? _offset.clamp(0.0, _handleHeight) : 0,
                 miniRadius: _miniBarHeight / 2,
                 // 영상 오른쪽부터 제목이 시작한다. 펼쳐도 값이 흔들리지
                 // 않도록 접힌 상태 기준으로 고정한다.
