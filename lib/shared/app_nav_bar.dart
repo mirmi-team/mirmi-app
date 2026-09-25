@@ -53,14 +53,14 @@ appNavColors(BuildContext context) {
   // 채움과 테두리는 두 모드가 같은 투명도를 쓴다. (반투명 유리 느낌)
   // 알약·아이콘·그림자만 배경 밝기에 맞춰 달라진다.
   const bar = Color(0x14FFFFFF); // 흰색 8%
-  const whiteBar = Color(0xA6F7F7F7); // 흰색 97%
+  const whiteBar = Color(0xD8FFFFFF);
   final barBorder = AppColors.hint.withValues(alpha: 0.40);
 
   if (isDark) {
     return (
       bar: bar,
       barBorder: barBorder,
-      shadow: Colors.black,
+      shadow: Color(0xF2000000),
       pill: AppDark.bgSurfaceHover,
       icon: AppColors.navIcon,
     );
@@ -69,7 +69,7 @@ appNavColors(BuildContext context) {
     bar: whiteBar,
     barBorder: barBorder,
     // 검은 그림자를 그대로 쓰면 밝은 배경에서 너무 진하다.
-    shadow: AppLight.textPrimary.withValues(alpha: 0.21),
+    shadow: Color(0xD8FFFFFF),
     // 다크의 알약(27272A)과 같이 불투명. 다크는 배경보다 한 단계 밝고,
     // 라이트는 같은 논리로 한 단계 어두운 회색을 쓴다.
     pill: Color(0xFFD1D1D1),
@@ -246,8 +246,8 @@ class _AppNavBarState extends State<AppNavBar>
                       boxShadow: [
                         BoxShadow(
                           color: nav.shadow,
-                          blurRadius: 20,
-                          offset: const Offset(0, 4),
+                          blurRadius: 5,
+                          offset: const Offset(0, 0),
                         ),
                       ],
                     ),

@@ -459,8 +459,8 @@ class _Stage extends StatelessWidget {
             : [
                 BoxShadow(
                   color: nav.shadow,
-                  blurRadius: 20,
-                  offset: const Offset(0, 4),
+                  blurRadius: 0,
+                  offset: const Offset(0, 0),
                 ),
               ],
       ),
