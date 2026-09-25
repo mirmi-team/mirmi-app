@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../shared/app_nav_bar.dart';
 import '../../shared/app_top_bar.dart';
+import 'admin_player.dart';
 import 'tabs/laundry_tab.dart';
 import 'tabs/notice_tab.dart';
 import 'tabs/return_tab.dart';
@@ -39,6 +40,9 @@ const _navItems = [
 class _AdminScreenState extends State<AdminScreen> {
   final PageController _pageController = PageController();
 
+  /// 기상송 이어 재생. 탭을 옮겨도 소리가 끊기지 않도록 여기서 들고 있는다.
+  final AdminPlayerController _player = AdminPlayerController();
+
   final List<Widget> _pages = const [
     AdminStudentTab(),
     AdminLaundryTab(),
@@ -49,6 +53,7 @@ class _AdminScreenState extends State<AdminScreen> {
 
   @override
   void dispose() {
+    _player.dispose();
     _pageController.dispose();
     super.dispose();
   }
@@ -61,6 +66,27 @@ class _AdminScreenState extends State<AdminScreen> {
     // 상단바 뒤까지 body 를 확장하고, 페이지는 그만큼 내려 제자리에 오게 한다.
     final topInset = MediaQuery.of(context).padding.top + kToolbarHeight;
 
+    return AdminPlayerScope(
+      controller: _player,
+      // 플레이어를 Scaffold 밖에 둔다. 안에 넣으면 상단바를 못 덮어서
+      // 창이 올라온 상태에서도 프로필(마이페이지) 버튼이 눌린다.
+      child: Stack(
+        children: [
+          _buildScaffold(context, topInset),
+          Material(
+            // Scaffold 밖이라 ListTile 등이 쓸 Material 조상이 없다.
+            type: MaterialType.transparency,
+            child: AnimatedBuilder(
+              animation: _player,
+              builder: (context, _) => AdminPlayerOverlay(controller: _player),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildScaffold(BuildContext context, double topInset) {
     return Scaffold(
       // 배경색은 ThemeData.scaffoldBackgroundColor 가 정한다.
       extendBodyBehindAppBar: true,

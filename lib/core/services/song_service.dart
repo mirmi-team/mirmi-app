@@ -98,6 +98,17 @@ class SongService {
     _checkStatus(res);
   }
 
+  /// 관리자가 남의 곡을 지운다. (사감 전용)
+  static Future<void> deleteByAdmin(int id) async {
+    final res = await AuthService.authorized(
+      (token) => http.delete(
+        Uri.parse('$kBaseUrl/morning-songs/admin/$id'),
+        headers: _headers(token),
+      ),
+    );
+    _checkStatus(res);
+  }
+
   /// KST 기준 오늘. 'YYYY-MM-DD' 라 문자열 비교로 날짜 대소를 가릴 수 있다.
   static String get todayKst => _kstDate(const Duration(hours: 9));
 
