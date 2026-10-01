@@ -304,7 +304,9 @@ class _AdminPlayerOverlayState extends State<AdminPlayerOverlay>
     final navTotal = appNavBarTotalHeight(context);
 
     // 무대(패널) 자리. 펼치면 화면 아래 85%, 접으면 네비게이션 바 위 작은 바.
-    final stageH = expanded ? screenH * 0.85 : _miniBarHeight;
+    // 펼쳤을 때의 창 높이. 접혀 있어도 본문은 늘 이 높이로 배치한다.
+    final expandedH = screenH * 0.85;
+    final stageH = expanded ? expandedH : _miniBarHeight;
     final stageTop = expanded
         ? screenH - stageH
         : screenH - navTotal - _miniBarHeight - _miniBarGap;
@@ -367,6 +369,7 @@ class _AdminPlayerOverlayState extends State<AdminPlayerOverlay>
                 miniRadius: _miniBarHeight / 2,
                 // 영상 오른쪽부터 제목이 시작한다. 펼쳐도 값이 흔들리지
                 // 않도록 접힌 상태 기준으로 고정한다.
+                expandedHeight: expandedH,
                 miniContentLeft: _miniVideoLeft + _miniVideoSize + 10,
                 // 썸네일은 영상과 따로 논다. (영상은 접히면 1px 로 줄어든다)
                 thumbnailRect: Rect.fromLTWH(
@@ -398,6 +401,7 @@ class _Stage extends StatelessWidget {
     required this.onCollapse,
     required this.videoRect,
     required this.miniRadius,
+    required this.expandedHeight,
     required this.miniContentLeft,
     required this.thumbnailRect,
     required this.handleHeight,
@@ -415,6 +419,9 @@ class _Stage extends StatelessWidget {
 
   /// 접혔을 때 모서리 반경. 높이의 절반이라 완전한 알약이 된다.
   final double miniRadius;
+
+  /// 펼쳤을 때의 창 높이.
+  final double expandedHeight;
 
   /// 접혔을 때 제목이 시작하는 x 좌표.
   final double miniContentLeft;
@@ -471,13 +478,29 @@ class _Stage extends StatelessWidget {
                 child: AnimatedOpacity(
                   opacity: expanded ? 1 : 0,
                   duration: duration,
-                  child: _ExpandedBody(
-                    controller: controller,
-                    scroll: scroll,
-                    onCollapse: onCollapse,
-                    videoHeight: videoRect.height,
-                    handleHeight: handleHeight,
-                    onSeekChanged: onSeekChanged,
+                  // ListTile 은 잉크 효과를 '가장 가까운 Material' 에 그린다.
+                  // 그 사이에 색이 있는 상자(여기서는 무대 배경)가 끼면
+                  // 효과가 그 아래로 깔려 안 보인다. 배경 앞에 투명 Material
+                  // 을 하나 둬서 목록 탭 효과가 보이게 한다.
+                  child: Material(
+                    type: MaterialType.transparency,
+                    // 창 높이는 펼침/접힘 사이를 오가며 애니메이션되는데,
+                    // 본문은 늘 펼친 크기로 짜여 있어 중간 높이에서는 넘친다.
+                    // 배치는 항상 펼친 높이로 하고, 넘치는 부분은 위 ClipRRect
+                    // 가 잘라낸다.
+                    child: OverflowBox(
+                      alignment: Alignment.topCenter,
+                      minHeight: expandedHeight,
+                      maxHeight: expandedHeight,
+                      child: _ExpandedBody(
+                        controller: controller,
+                        scroll: scroll,
+                        onCollapse: onCollapse,
+                        videoHeight: videoRect.height,
+                        handleHeight: handleHeight,
+                        onSeekChanged: onSeekChanged,
+                      ),
+                    ),
                   ),
                 ),
               ),
