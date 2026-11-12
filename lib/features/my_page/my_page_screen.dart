@@ -1,17 +1,13 @@
 import 'dart:io';
-import 'package:file_picker/file_picker.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:path_provider/path_provider.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/theme_service.dart';
 import '../../shared/app_sub_page_bar.dart';
 import '../../shared/app_banner.dart';
 import '../../shared/app_colors.dart';
 import '../../shared/app_palette.dart';
+import '../../shared/image_pick.dart';
 import '../../shared/app_refresh.dart';
 
 class MyPageScreen extends StatefulWidget {
@@ -60,33 +56,12 @@ class _MyPageScreenState extends State<MyPageScreen> with AppBannerMixin {
   }
 
   Future<void> _pickAndUploadImage() async {
-    String? filePath;
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.image,
-        allowMultiple: false,
-      );
-      final file = result?.files.firstOrNull;
-      filePath = file?.path ?? file?.xFile.path;
-    } else {
-      final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
-      filePath = picked?.path;
-    }
+    final filePath = await pickImageFile();
     if (!mounted || filePath == null) return;
 
     setState(() => _uploading = true);
     try {
-      final tmpDir = await getTemporaryDirectory();
-      final tempPath =
-          '${tmpDir.path}/${DateTime.now().millisecondsSinceEpoch}.jpg';
-      String uploadPath = filePath;
-      final rotated = await FlutterImageCompress.compressAndGetFile(
-        filePath,
-        tempPath,
-        autoCorrectionAngle: true,
-        quality: 85,
-      );
-      if (rotated != null) uploadPath = rotated.path;
+      final uploadPath = await compressImage(filePath);
 
       if (mounted) setState(() => _localImage = File(uploadPath));
 

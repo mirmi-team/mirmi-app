@@ -26,7 +26,13 @@ class SuggestionService {
   };
 
   /// 내 건의사항 목록 (최신순). 목록에는 description 이 내려오지 않는다.
-  static Future<List<Suggestion>> getMine() async {
+  static Future<List<Suggestion>> getMine() => _list();
+
+  /// 전체 건의사항 (관리자). 엔드포인트는 [getMine] 과 같고, 서버가 역할을
+  /// 보고 학생에게는 본인 것만, 관리자에게는 모두를 내려준다.
+  static Future<List<Suggestion>> getAll() => _list();
+
+  static Future<List<Suggestion>> _list() async {
     final res = await AuthService.authorized(
       (token) => http.get(
         Uri.parse('$kBaseUrl/suggestions'),
@@ -73,6 +79,20 @@ class SuggestionService {
     _checkStatus(res);
   }
 
+  /// 답변 등록·수정 (관리자). 등록과 수정이 같은 요청이다.
+  ///
+  /// 서버가 빈 문자열을 거부하므로 한 번 쓴 답변은 지울 수 없다.
+  static Future<void> reply(int id, String text) async {
+    final res = await AuthService.authorized(
+      (token) => http.patch(
+        Uri.parse('$kBaseUrl/suggestions/admin/$id/reply'),
+        headers: _headers(token),
+        body: jsonEncode({'reply': text}),
+      ),
+    );
+    _checkStatus(res);
+  }
+
   static Future<void> delete(int id) async {
     final res = await AuthService.authorized(
       (token) => http.delete(
@@ -105,6 +125,8 @@ class Suggestion {
     required this.createdAt,
     this.description,
     this.reply,
+    this.writerName,
+    this.roomNumber,
   });
 
   final int id;
@@ -120,6 +142,13 @@ class Suggestion {
   /// 관리자 답변. 아직 없으면 null.
   final String? reply;
 
+  /// 작성자. 관리자가 "누가 올렸는지" 알아야 처리할 수 있어서 쓰는 값이다.
+  ///
+  /// 아직 서버가 안 내려준다. (엔티티에 created_by 는 있지만 응답에서 빠져
+  /// 있고 users 조인도 없다) 내려오기 시작하면 그대로 화면에 붙는다.
+  final String? writerName;
+  final int? roomNumber;
+
   factory Suggestion.fromJson(Map<String, dynamic> json) => Suggestion(
     id: json['id'] as int,
     title: (json['title'] ?? '') as String,
@@ -127,6 +156,8 @@ class Suggestion {
     createdAt: parseServerTime(json['created_at'] as String) ?? DateTime.now(),
     description: json['description'] as String?,
     reply: json['reply'] as String?,
+    writerName: json['username'] as String?,
+    roomNumber: json['room_number'] as int?,
   );
 
   String get categoryLabel => suggestionCategoryLabels[category] ?? '기타';
@@ -135,6 +166,16 @@ class Suggestion {
   String get labeledTitle => '[$categoryLabel] $title';
 
   bool get hasReply => reply != null && reply!.isNotEmpty;
+
+  /// '305호 이제호'. 작성자 정보가 없으면 null 이라 그 줄을 그리지 않는다.
+  String? get writerLabel {
+    final name = writerName;
+    final parts = [
+      if (roomNumber != null) '$roomNumber호',
+      if (name != null && name.isNotEmpty) name,
+    ];
+    return parts.isEmpty ? null : parts.join(' ');
+  }
 
   /// '2026-09-14'
   String get dateLabel => dateKey(createdAt);

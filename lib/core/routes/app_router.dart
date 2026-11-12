@@ -5,6 +5,8 @@ import '../../features/splash/splash_screen.dart';
 import '../../features/auth/login_screen.dart';
 import '../../features/auth/signup_screen.dart';
 import '../../features/admin/admin_screen.dart';
+import '../../features/admin/notice_form_screen.dart';
+import '../../features/admin/suggestion_reply_screen.dart';
 import '../../features/home/home_screen.dart';
 import '../../features/my_page/my_page_screen.dart';
 import '../../features/my_page/delete_account_screen.dart';
@@ -130,6 +132,22 @@ final router = GoRouter(
       path: '/inquiry',
       pageBuilder: (context, state) =>
           const MaterialPage(child: InquiryScreen()),
+    ),
+
+    // ── 관리자 ───────────────────────────────────────────────
+    GoRoute(
+      path: '/notice-form',
+      pageBuilder: (context, state) => MaterialPage(
+        // extra 가 없으면 등록, 있으면 그 공지를 수정한다.
+        child: NoticeFormScreen(notice: state.extra as Notice?),
+      ),
+    ),
+
+    GoRoute(
+      path: '/suggestion-reply',
+      pageBuilder: (context, state) => MaterialPage(
+        child: SuggestionReplyScreen(suggestion: state.extra as Suggestion),
+      ),
     ),
   ],
 );

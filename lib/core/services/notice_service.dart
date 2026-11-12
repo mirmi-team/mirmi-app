@@ -6,6 +6,7 @@ import 'auth_service.dart';
 
 /// 공지사항 API
 /// 백엔드의 /notices/findAll, /notices/findOne 은 가드가 없어 토큰 없이 호출 가능하다.
+/// 등록·수정·삭제는 ADMIN 만 되고, 서버가 역할을 보고 막는다.
 class NoticeService {
   /// 오늘 등록된 공지사항 전체 조회 (최신순)
   /// 오늘 공지가 없으면 빈 리스트를 반환한다.
@@ -35,6 +36,82 @@ class NoticeService {
     final body = jsonDecode(res.body);
     if (body is! Map<String, dynamic> || body['id'] == null) return null;
     return Notice.fromJson(body);
+  }
+
+  // ── 관리자 ───────────────────────────────────────────────────
+
+  /// 공지 등록. [imagePath] 를 주면 사진을 함께 올린다.
+  static Future<void> create({
+    required String title,
+    required String description,
+    String? imagePath,
+  }) async {
+    final res = await AuthService.authorized(
+      (token) => _multipart(
+        'POST',
+        '$kBaseUrl/notices',
+        token,
+        title: title,
+        description: description,
+        imagePath: imagePath,
+      ),
+    );
+    _checkStatus(res);
+  }
+
+  /// 공지 수정. [imagePath] 를 주면 기존 사진을 교체한다.
+  ///
+  /// 사진을 떼는 건 불가능하다. 서버에 image_url 을 비우는 경로가 없다.
+  static Future<void> update(
+    int id, {
+    required String title,
+    required String description,
+    String? imagePath,
+  }) async {
+    final res = await AuthService.authorized(
+      (token) => _multipart(
+        'PATCH',
+        '$kBaseUrl/notices/$id',
+        token,
+        title: title,
+        description: description,
+        imagePath: imagePath,
+      ),
+    );
+    _checkStatus(res);
+  }
+
+  static Future<void> delete(int id) async {
+    final res = await AuthService.authorized(
+      (token) => http.delete(
+        Uri.parse('$kBaseUrl/notices/$id'),
+        headers: {'Authorization': 'Bearer $token'},
+      ),
+    );
+    _checkStatus(res);
+  }
+
+  /// 등록과 수정이 같은 multipart 형식을 쓴다.
+  ///
+  /// 서버는 image_url 필드도 받아주지만 보내면 안 된다. 수정 처리 순서상
+  /// 방금 업로드한 사진 주소를 그 값으로 덮어써 버린다.
+  static Future<http.Response> _multipart(
+    String method,
+    String url,
+    String token, {
+    required String title,
+    required String description,
+    String? imagePath,
+  }) async {
+    final request = http.MultipartRequest(method, Uri.parse(url))
+      ..headers['Authorization'] = 'Bearer $token'
+      ..fields['title'] = title
+      ..fields['description'] = description;
+    if (imagePath != null) {
+      request.files.add(await http.MultipartFile.fromPath('image', imagePath));
+    }
+    final streamed = await request.send();
+    return http.Response.fromStream(streamed);
   }
 
   static void _checkStatus(http.Response res) {
