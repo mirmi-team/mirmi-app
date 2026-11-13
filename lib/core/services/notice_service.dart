@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../../shared/date_format.dart';
 import '../../shared/server_time.dart';
 import '../constants/api.dart';
 import 'auth_service.dart';
@@ -39,6 +40,38 @@ class NoticeService {
   }
 
   // ── 관리자 ───────────────────────────────────────────────────
+
+  /// 관리자용 공지 목록. 전체 기간, 최신순.
+  ///
+  /// 학생이 보는 /notices/findAll 은 오늘 올린 것만 내려줘서, 지난 공지를
+  /// 고치거나 지우려면 이쪽이 필요하다.
+  ///
+  /// 서버가 한 번에 최대 100개까지만 준다. 페이지를 넘기는 화면이 없어서
+  /// 첫 장만 받고, 전체 개수는 [total] 로 따로 돌려준다.
+  static Future<({List<Notice> items, int total})> getAllForAdmin({
+    int page = 1,
+    int limit = 100,
+  }) async {
+    final res = await AuthService.authorized(
+      (token) => http.get(
+        Uri.parse('$kBaseUrl/notices/admin?page=$page&limit=$limit'),
+        headers: {'Authorization': 'Bearer $token'},
+      ),
+    );
+    _checkStatus(res);
+
+    final body = jsonDecode(res.body);
+    if (body is! Map<String, dynamic>) {
+      return (items: const <Notice>[], total: 0);
+    }
+    final rawItems = body['items'];
+    final items = rawItems is List
+        ? rawItems
+              .map((e) => Notice.fromJson(e as Map<String, dynamic>))
+              .toList()
+        : const <Notice>[];
+    return (items: items, total: (body['total'] as int?) ?? items.length);
+  }
 
   /// 공지 등록. [imagePath] 를 주면 사진을 함께 올린다.
   static Future<void> create({
@@ -153,12 +186,16 @@ class Notice {
     imageUrl: json['image_url'] as String?,
   );
 
-  /// "방금 전" / "3분 전" / "2시간 전" — 당일 공지만 내려오므로 시간 단위면 충분
+  /// "방금 전" / "3분 전" / "2시간 전" / "3일 전".
+  ///
+  /// 관리자 목록에는 지난 공지도 올라와서, 한 주가 넘으면 "214일 전" 대신
+  /// 날짜를 보여준다.
   String get timeAgo {
     final diff = DateTime.now().difference(createdAt);
     if (diff.isNegative || diff.inMinutes < 1) return '방금 전';
     if (diff.inHours < 1) return '${diff.inMinutes}분 전';
     if (diff.inDays < 1) return '${diff.inHours}시간 전';
-    return '${diff.inDays}일 전';
+    if (diff.inDays <= 7) return '${diff.inDays}일 전';
+    return dateKey(createdAt);
   }
 }

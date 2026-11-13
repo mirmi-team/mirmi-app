@@ -33,6 +33,9 @@ class _AdminNoticeTabState extends State<AdminNoticeTab> with AppBannerMixin {
   List<Notice> _notices = const [];
   List<Suggestion> _suggestions = const [];
 
+  /// 서버에 쌓인 공지 전체 개수. 받아온 것보다 많을 수 있다.
+  int _noticeTotal = 0;
+
   bool get _isNotice => _tabIndex == 0;
 
   int get _pending => _suggestions.where((s) => !s.hasReply).length;
@@ -55,12 +58,14 @@ class _AdminNoticeTabState extends State<AdminNoticeTab> with AppBannerMixin {
     try {
       // 탭을 옮길 때마다 다시 부르지 않도록 둘 다 받아 둔다.
       final results = await Future.wait<Object>([
-        NoticeService.getTodayNotices(),
+        NoticeService.getAllForAdmin(),
         SuggestionService.getAll(),
       ]);
       if (!mounted) return;
+      final notices = results[0] as ({List<Notice> items, int total});
       setState(() {
-        _notices = results[0] as List<Notice>;
+        _notices = notices.items;
+        _noticeTotal = notices.total;
         _suggestions = _pendingFirst(results[1] as List<Suggestion>);
         _loading = false;
       });
@@ -92,14 +97,19 @@ class _AdminNoticeTabState extends State<AdminNoticeTab> with AppBannerMixin {
 
   /// 머리말 오른쪽 숫자. 건의는 처리할 게 남았는지가 먼저 보여야 한다.
   String get _countLabel {
-    if (_isNotice) return '총 ${_notices.length}건';
+    if (_isNotice) return '총 $_noticeTotal건';
     if (_pending > 0) return '미답변 $_pending건';
     return '총 ${_suggestions.length}건';
   }
 
   String get _subtitle {
-    // 과거 공지를 받아오는 API 가 아직 없어 오늘 것만 보인다.
-    if (_isNotice) return '오늘 올린 공지만 보입니다.';
+    if (_isNotice) {
+      // 서버가 한 번에 100건까지만 주고, 더 불러오는 화면은 아직 없다.
+      if (_notices.length < _noticeTotal) {
+        return '최근 ${_notices.length}건만 보입니다.';
+      }
+      return '공지를 눌러 수정하거나 삭제할 수 있습니다.';
+    }
     if (_loading) return '학생들이 올린 건의사항';
     if (_suggestions.isEmpty) return '학생들이 올린 건의사항';
     if (_pending > 0) return '답변이 필요한 건의가 위에 있습니다.';
@@ -191,7 +201,7 @@ class _AdminNoticeTabState extends State<AdminNoticeTab> with AppBannerMixin {
         SliverPadding(
           padding: _listPadding,
           sliver: _notices.isEmpty
-              ? _empty('오늘 등록한 공지가 없습니다.', palette)
+              ? _empty('등록된 공지가 없습니다.', palette)
               : SliverList.separated(
                   itemCount: _notices.length,
                   separatorBuilder: (_, _) => const SizedBox(height: 12),
@@ -319,67 +329,73 @@ class _NoticeCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(10),
           border: Border.all(color: palette.borderSubtle, width: 1),
         ),
-        child: Row(
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (hasImage) ...[
-              ClipRRect(
-                borderRadius: BorderRadius.circular(6),
-                child: Image.network(
-                  url,
-                  width: _thumbSize,
-                  height: _thumbSize,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, _, _) => Container(
-                    width: _thumbSize,
-                    height: _thumbSize,
-                    alignment: Alignment.center,
-                    color: palette.bgSurfaceHover,
-                    child: Icon(
-                      Icons.image_not_supported_outlined,
-                      size: 18,
-                      color: palette.textTertiary,
+            Row(
+              children: [
+                if (hasImage) ...[
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: Image.network(
+                      url,
+                      width: _thumbSize,
+                      height: _thumbSize,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => Container(
+                        width: _thumbSize,
+                        height: _thumbSize,
+                        alignment: Alignment.center,
+                        color: palette.bgSurfaceHover,
+                        child: Icon(
+                          Icons.image_not_supported_outlined,
+                          size: 18,
+                          color: palette.textTertiary,
+                        ),
+                      ),
                     ),
+                  ),
+                  const SizedBox(width: 12),
+                ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        notice.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: palette.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        notice.description,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 12,
+                          height: 1.45,
+                          color: palette.textSecondary,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-              const SizedBox(width: 12),
-            ],
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    notice.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: palette.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    notice.description,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 12,
-                      height: 1.45,
-                      color: palette.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    notice.timeAgo,
-                    style: TextStyle(fontSize: 11, color: palette.textTertiary),
-                  ),
-                ],
-              ),
+                const SizedBox(width: 8),
+                Icon(Icons.chevron_right, color: palette.textPrimary, size: 22),
+              ],
             ),
-            const SizedBox(width: 8),
-            Icon(Icons.chevron_right, color: palette.textPrimary, size: 22),
+            const SizedBox(height: 12),
+            // 날짜는 썸네일이 있든 없든 카드 왼쪽 아래에 둔다.
+            // (본문 옆에 두면 썸네일 너비만큼 들어가 카드마다 줄이 어긋난다)
+            Text(
+              notice.timeAgo,
+              style: TextStyle(fontSize: 11, color: palette.textTertiary),
+            ),
           ],
         ),
       ),

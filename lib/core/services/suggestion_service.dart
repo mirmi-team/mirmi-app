@@ -144,21 +144,26 @@ class Suggestion {
 
   /// 작성자. 관리자가 "누가 올렸는지" 알아야 처리할 수 있어서 쓰는 값이다.
   ///
-  /// 아직 서버가 안 내려준다. (엔티티에 created_by 는 있지만 응답에서 빠져
-  /// 있고 users 조인도 없다) 내려오기 시작하면 그대로 화면에 붙는다.
+  /// 서버는 관리자 응답에만 `author` 를 담아준다. 학생 응답에는 키 자체가
+  /// 없어서 둘 다 null 이 되고, 그러면 화면에서 그 줄을 그리지 않는다.
   final String? writerName;
   final int? roomNumber;
 
-  factory Suggestion.fromJson(Map<String, dynamic> json) => Suggestion(
-    id: json['id'] as int,
-    title: (json['title'] ?? '') as String,
-    category: (json['category'] ?? 'ETC') as String,
-    createdAt: parseServerTime(json['created_at'] as String) ?? DateTime.now(),
-    description: json['description'] as String?,
-    reply: json['reply'] as String?,
-    writerName: json['username'] as String?,
-    roomNumber: json['room_number'] as int?,
-  );
+  factory Suggestion.fromJson(Map<String, dynamic> json) {
+    // author: { username, room_number, grade, class_no }
+    final author = json['author'] as Map<String, dynamic>?;
+    return Suggestion(
+      id: json['id'] as int,
+      title: (json['title'] ?? '') as String,
+      category: (json['category'] ?? 'ETC') as String,
+      createdAt:
+          parseServerTime(json['created_at'] as String) ?? DateTime.now(),
+      description: json['description'] as String?,
+      reply: json['reply'] as String?,
+      writerName: author?['username'] as String?,
+      roomNumber: author?['room_number'] as int?,
+    );
+  }
 
   String get categoryLabel => suggestionCategoryLabels[category] ?? '기타';
 
