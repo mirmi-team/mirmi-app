@@ -11,7 +11,7 @@ import 'auth_service.dart';
 /// 호실별 학생 목록(`GET /rooms/admin`)과 특정 학생의 상벌점 내역
 /// (`GET /merit-logs/admin/:userId`)은 요청만 해 둔 상태다. 나오면
 /// 이 상수만 false 로 내리면 된다. 나머지 호출은 지금도 진짜 서버를 탄다.
-const bool kUseMockStudents = true;
+const bool kUseMockStudents = false;
 
 /// 학생 정보 관리 API. 전부 관리자 전용.
 class StudentService {
@@ -159,7 +159,9 @@ class DormRoom {
 
   final int roomId;
   final int roomNumber;
-  final int floor;
+
+  /// 서버 rooms.floor 는 비어 있을 수 있다. 그런 호실은 층을 모르는 채로 둔다.
+  final int? floor;
   final List<Student> students;
 
   bool get isEmpty => students.isEmpty;
@@ -169,7 +171,7 @@ class DormRoom {
     return DormRoom(
       roomId: json['room_id'] as int,
       roomNumber: json['room_number'] as int,
-      floor: (json['floor'] as int?) ?? 0,
+      floor: json['floor'] as int?,
       students: raw is List
           ? raw.map((e) => Student.fromJson(e as Map<String, dynamic>)).toList()
           : const <Student>[],

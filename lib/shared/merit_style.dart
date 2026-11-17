@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../shared/app_colors.dart';
-import '../../shared/app_palette.dart';
+import 'app_colors.dart';
+import 'app_palette.dart';
 
-/// 상벌점 표기 규칙. 목록과 상세 시트가 같은 규칙을 써야 해서 여기 모아 둔다.
+/// 상벌점 표기 규칙. 관리자 목록·상세 시트와 학생 내역 화면이 같은 규칙을
+/// 써야 해서 여기 모아 둔다.
 ///
 /// 미르미는 상점과 벌점을 하나의 총점으로 묶어 부호로 구분한다.
 /// (마이페이지·상벌점 내역 화면도 같은 방식이다)

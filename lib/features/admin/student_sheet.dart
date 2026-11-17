@@ -10,7 +10,8 @@ import '../../shared/app_palette.dart';
 import '../../shared/app_skeleton.dart';
 import '../../shared/date_format.dart';
 import '../../shared/submit_button.dart';
-import 'merit_style.dart';
+import '../my_page/merit_log_screen.dart';
+import '../../shared/merit_style.dart';
 
 /// 학생 한 명을 눌렀을 때 아래에서 올라오는 시트.
 ///
@@ -74,9 +75,6 @@ class _StudentSheetState extends State<_StudentSheet> with AppBannerMixin {
   List<MeritLogEntry> _logs = const [];
   List<MeritReason> _reasons = const [];
   bool _loading = true;
-
-  /// 내역은 최근 3건만 보여주고, 눌러서 펼친다.
-  bool _showAllLogs = false;
 
   MeritReason? _reason;
 
@@ -191,6 +189,21 @@ class _StudentSheetState extends State<_StudentSheet> with AppBannerMixin {
       setState(() => _moving = false);
       showErrorBanner('호실을 옮기지 못했습니다.');
     }
+  }
+
+  /// 학생이 보는 상벌점 내역 화면을 그대로 띄운다. 월별 묶음과
+  /// 전체/상점/벌점 탭이 이미 있어서 따로 만들 이유가 없다.
+  ///
+  /// 시트는 아래에 깔린 채로 둔다. 돌아오면 보던 자리 그대로다.
+  void _openAllLogs() {
+    context.push(
+      '/merit-logs',
+      extra: MeritLogTarget(
+        userId: widget.student.id,
+        name: widget.student.username,
+        totalScore: _score,
+      ),
+    );
   }
 
   Future<void> _pickReason() async {
@@ -397,7 +410,7 @@ class _StudentSheetState extends State<_StudentSheet> with AppBannerMixin {
   }
 
   Widget _scoreCard(AppPalette palette) {
-    final visible = _showAllLogs ? _logs : _logs.take(3).toList();
+    final visible = _logs.take(3).toList();
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
@@ -449,10 +462,10 @@ class _StudentSheetState extends State<_StudentSheet> with AppBannerMixin {
             )
           else
             for (final log in visible) _logRow(log, palette),
-          if (_logs.length > 3 && !_showAllLogs)
+          if (_logs.length > 3)
             GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: () => setState(() => _showAllLogs = true),
+              onTap: _openAllLogs,
               child: Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Row(

@@ -8,7 +8,7 @@ import '../../../shared/app_palette.dart';
 import '../../../shared/app_refresh.dart';
 import '../../../shared/app_skeleton.dart';
 import '../admin_player.dart';
-import '../merit_style.dart';
+import '../../../shared/merit_style.dart';
 import '../student_sheet.dart';
 
 /// 학생 정보 관리.
@@ -40,8 +40,16 @@ class _AdminStudentTabState extends State<AdminStudentTab> with AppBannerMixin {
   int get _totalStudents =>
       _rooms.fold(0, (sum, room) => sum + room.students.length);
 
-  /// 층 번호 오름차순. 호실 번호 앞자리에서 나온다.
-  List<int> get _floors => _rooms.map((r) => r.floor).toSet().toList()..sort();
+  /// 층 오름차순. 층이 비어 있는 호실은 한 묶음으로 맨 뒤에 둔다.
+  List<int?> get _floors {
+    final floors = _rooms.map((r) => r.floor).toSet().toList();
+    floors.sort((a, b) {
+      if (a == null) return 1;
+      if (b == null) return -1;
+      return a.compareTo(b);
+    });
+    return floors;
+  }
 
   /// 호실을 옮길 때 고를 수 있는 방 번호. 빈 방도 들어간다.
   List<int> get _allRoomNumbers =>
@@ -202,7 +210,7 @@ class _AdminStudentTabState extends State<AdminStudentTab> with AppBannerMixin {
     );
   }
 
-  List<DormRoom> _roomsOn(int floor) =>
+  List<DormRoom> _roomsOn(int? floor) =>
       _rooms.where((r) => r.floor == floor).toList()
         ..sort((a, b) => a.roomNumber.compareTo(b.roomNumber));
 }
@@ -211,7 +219,7 @@ class _AdminStudentTabState extends State<AdminStudentTab> with AppBannerMixin {
 class _FloorHeader extends StatelessWidget {
   const _FloorHeader({required this.floor, required this.rooms});
 
-  final int floor;
+  final int? floor;
   final List<DormRoom> rooms;
 
   @override
@@ -221,7 +229,7 @@ class _FloorHeader extends StatelessWidget {
     return Row(
       children: [
         Text(
-          '$floor층',
+          floor == null ? '층 미지정' : '$floor층',
           style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w700,
