@@ -104,8 +104,10 @@ final router = GoRouter(
 
     GoRoute(
       path: '/merit-logs',
-      pageBuilder: (context, state) =>
-          const MaterialPage(child: MeritLogScreen()),
+      // extra 가 없으면 내 내역, 있으면 관리자가 그 학생의 내역을 본다.
+      pageBuilder: (context, state) => MaterialPage(
+        child: MeritLogScreen(target: state.extra as MeritLogTarget?),
+      ),
     ),
 
     GoRoute(
