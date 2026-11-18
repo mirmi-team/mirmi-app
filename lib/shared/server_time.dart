@@ -30,3 +30,18 @@ final _zonePattern = RegExp(r'([Zz]|[+-]\d{2}:?\d{2})$');
 
 bool _hasTimeZone(String raw) =>
     !raw.contains('T') || _zonePattern.hasMatch(raw.trim());
+
+/// 서버가 타임존 없이 내려주는 **한국시간** 문자열을 읽는다.
+///
+/// 대부분의 시각은 UTC 벽시계로 와서 [parseServerTime] 이 맞지만, 일부
+/// 컬럼은 한국시간 벽시계를 그대로 담아 보낸다. 그걸 UTC 로 읽으면 9시간이
+/// 밀린다. (저녁 7시 40분에 찍은 복귀가 새벽 4시 40분으로 보였다)
+///
+/// 어느 쪽인지는 문자열만 봐서는 알 수 없다. 그래서 필드마다 골라 써야 한다.
+/// 서버가 나중에 `+09:00` 을 붙여 주면 그때는 이 함수도 그 값을 그대로 믿는다.
+DateTime? parseKstTime(String? raw) {
+  if (raw == null || raw.isEmpty) return null;
+  // 타임존이 붙어 있으면 추측할 이유가 없다.
+  if (_hasTimeZone(raw)) return parseServerTime(raw);
+  return DateTime.tryParse('${raw.trim()}+09:00')?.toLocal();
+}

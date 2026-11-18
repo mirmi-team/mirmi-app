@@ -9,7 +9,7 @@ import 'auth_service.dart';
 /// 복귀 입실 체크 API. 로그인이 필요하다.
 ///
 /// 사감이 QR을 띄우는 게 아니라 **학생이 QR을 띄우고 사감이 스캔**한다.
-/// 그래서 앱에는 스캐너가 없고 QR을 보여주기만 하면 된다.
+/// 학생 쪽은 QR을 보여주기만 하고, 관리자 쪽에 스캐너가 있다.
 class ReturnService {
   /// 내 복귀 인증용 QR. 30초 뒤 만료되므로 화면에 띄워둔 동안 다시 받아야 한다.
   static Future<ReturnQr> getMyQr() async {
@@ -47,6 +47,46 @@ class ReturnService {
         // 같은 테이블에 사전 등록 행(체크인 전)도 섞여 있다. 그건 뺀다.
         .where((record) => record.isChecked)
         .toList();
+  }
+
+  // ── 관리자 ───────────────────────────────────────────────────
+
+  /// 오늘 전체 복귀 현황. [floor] 를 주면 그 층만.
+  ///
+  /// 서버가 층 → 학생 순으로 묶어 준다. 호실로 다시 묶는 건 화면에서 한다.
+  static Future<List<FloorReturnStatus>> getTodayStatus({int? floor}) async {
+    final query = floor == null ? '' : '?floor=$floor';
+    final res = await AuthService.authorized(
+      (token) => http.get(
+        Uri.parse('$kBaseUrl/admin/returns/today$query'),
+        headers: {'Authorization': 'Bearer $token'},
+      ),
+    );
+    _checkStatus(res);
+    final body = jsonDecode(res.body);
+    if (body is! List) return const [];
+    return body
+        .map((e) => FloorReturnStatus.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  /// 스캔한 QR 토큰으로 복귀를 확정한다.
+  ///
+  /// 복귀 타입은 서버가 **스캔한 시각**을 보고 정한다. 앱이 고르지 않는다.
+  /// 시간대 밖이면 타입 없이 기록되고 [ReturnScan.returnType] 이 null 이다.
+  static Future<ReturnScan> verify(String qrToken) async {
+    final res = await AuthService.authorized(
+      (token) => http.post(
+        Uri.parse('$kBaseUrl/admin/returns/verify'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'token': qrToken}),
+      ),
+    );
+    _checkStatus(res);
+    return ReturnScan.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
   }
 
   static void _checkStatus(http.Response res) {
@@ -139,7 +179,9 @@ class ReturnRecord {
 
   factory ReturnRecord.fromJson(Map<String, dynamic> json) => ReturnRecord(
     returnType: json['return_type'] as String?,
-    actualTime: parseServerTime(json['actual_return_time'] as String?),
+    // 이 컬럼만 한국시간 벽시계로 내려온다. parseServerTime 으로 읽으면
+    // 9시간이 밀린다.
+    actualTime: parseKstTime(json['actual_return_time'] as String?),
   );
 }
 
@@ -149,3 +191,159 @@ const returnTypeLabels = {
   'DINNER': '석식 복귀',
   'EIGHT_PM': '8시 복귀',
 };
+
+/// 복귀 시간대. 서버 `resolveReturnTypeByTime` 과 같은 경계다.
+///
+/// 정답은 서버가 정한다. 여기 값은 사감에게 "지금 찍으면 어디로 들어간다"를
+/// 미리 알려주는 안내용일 뿐이다. 서버에서 시간대가 바뀌면 여기도 고쳐야 한다.
+const returnSlots = <({String type, int from, int to})>[
+  (type: 'IMMEDIATE', from: 8 * 60, to: 16 * 60 + 30),
+  (type: 'DINNER', from: 17 * 60 + 20, to: 18 * 60 + 20),
+  (type: 'EIGHT_PM', from: 18 * 60 + 20, to: 20 * 60 + 30),
+];
+
+/// 지금 스캔하면 어느 칸에 들어가는지. 시간대 밖이면 null.
+({String type, int from, int to})? currentReturnSlot([DateTime? at]) {
+  final now = at ?? DateTime.now();
+  final minutes = now.hour * 60 + now.minute;
+  for (final slot in returnSlots) {
+    if (minutes >= slot.from && minutes <= slot.to) return slot;
+  }
+  return null;
+}
+
+/// '8시 복귀 중 · 20:30까지' / '복귀 시간대 아님 · 기타로 기록됩니다'
+///
+/// 사감이 스캔하면서 "이게 석식으로 들어가나 8시로 들어가나" 헷갈리지
+/// 않도록 머리말에 띄운다.
+String returnSlotNotice([DateTime? at]) {
+  final slot = currentReturnSlot(at);
+  if (slot == null) return '복귀 시간대 아님 · 기타로 기록됩니다';
+  final hh = (slot.to ~/ 60).toString().padLeft(2, '0');
+  final mm = (slot.to % 60).toString().padLeft(2, '0');
+  return '${returnTypeLabels[slot.type]} 중 · $hh:$mm까지';
+}
+
+// ── 관리자용 모델 ───────────────────────────────────────────────
+
+/// 한 층의 복귀 현황.
+class FloorReturnStatus {
+  const FloorReturnStatus({required this.floor, required this.students});
+
+  final int floor;
+  final List<StudentReturnStatus> students;
+
+  factory FloorReturnStatus.fromJson(Map<String, dynamic> json) {
+    final raw = json['students'];
+    return FloorReturnStatus(
+      floor: (json['floor'] as int?) ?? 0,
+      students: raw is List
+          ? raw
+                .map(
+                  (e) =>
+                      StudentReturnStatus.fromJson(e as Map<String, dynamic>),
+                )
+                .toList()
+          : const <StudentReturnStatus>[],
+    );
+  }
+}
+
+/// 학생 한 명의 오늘 복귀 상태.
+class StudentReturnStatus {
+  const StudentReturnStatus({
+    required this.userId,
+    required this.username,
+    required this.roomNumber,
+    required this.returned,
+    required this.checkins,
+  });
+
+  final int userId;
+  final String username;
+  final int roomNumber;
+
+  /// 오늘 한 번이라도 찍었는지. 시간대 밖에 찍은 것도 복귀로 친다.
+  final bool returned;
+
+  final ReturnCheckins checkins;
+
+  factory StudentReturnStatus.fromJson(Map<String, dynamic> json) =>
+      StudentReturnStatus(
+        userId: json['user_id'] as int,
+        username: (json['username'] ?? '') as String,
+        roomNumber: (json['room_number'] as int?) ?? 0,
+        returned: json['status'] == '복귀완료',
+        checkins: ReturnCheckins.fromJson(
+          json['checkins'] as Map<String, dynamic>?,
+        ),
+      );
+}
+
+/// 시간대별 체크인 시각. 안 찍은 칸은 null.
+class ReturnCheckins {
+  const ReturnCheckins({this.immediate, this.dinner, this.eightPm, this.other});
+
+  final DateTime? immediate;
+  final DateTime? dinner;
+  final DateTime? eightPm;
+
+  /// 정해진 시간대 밖에 찍은 기록. 세 칸 어디에도 안 들어간다.
+  ///
+  /// 예외가 아니라 매일 생긴다. 시간대 사이에 빈 구간이 있어서
+  /// (16:30~17:20, 20:30 이후) 그때 찍으면 전부 여기로 온다.
+  final DateTime? other;
+
+  factory ReturnCheckins.fromJson(Map<String, dynamic>? json) {
+    if (json == null) return const ReturnCheckins();
+    // 전부 actual_return_time 에서 나온 값이라 한국시간 벽시계다.
+    return ReturnCheckins(
+      immediate: parseKstTime(json['IMMEDIATE'] as String?),
+      dinner: parseKstTime(json['DINNER'] as String?),
+      eightPm: parseKstTime(json['EIGHT_PM'] as String?),
+      other: parseKstTime(json['OTHER'] as String?),
+    );
+  }
+}
+
+/// QR 한 번 스캔한 결과. 사감이 얼굴과 대조할 수 있도록 누구인지 실려 온다.
+class ReturnScan {
+  const ReturnScan({
+    required this.userId,
+    required this.username,
+    this.returnType,
+    this.roomNumber,
+    this.grade,
+    this.classNo,
+  });
+
+  final int userId;
+  final String username;
+
+  /// 시간대 밖에 찍었으면 null. 기록은 되지만 어느 칸에도 안 들어간다.
+  final String? returnType;
+
+  final int? roomNumber;
+  final int? grade;
+  final int? classNo;
+
+  String get typeLabel => returnTypeLabels[returnType] ?? '기타 복귀';
+
+  /// '501호 · 2학년 3반'. 없는 값은 빼고 잇는다.
+  String get detailLabel => [
+    if (roomNumber != null) '$roomNumber호',
+    if (grade != null && classNo != null) '$grade학년 $classNo반',
+  ].join(' · ');
+
+  factory ReturnScan.fromJson(Map<String, dynamic> json) {
+    final student = (json['student'] as Map<String, dynamic>?) ?? const {};
+    return ReturnScan(
+      userId: (student['user_id'] as int?) ?? 0,
+      username: (student['username'] ?? '') as String,
+      returnType: json['returnType'] as String?,
+      roomNumber: student['room_number'] as int?,
+      grade: student['grade'] as int?,
+      classNo: student['class_no'] as int?,
+    );
+  }
+}
