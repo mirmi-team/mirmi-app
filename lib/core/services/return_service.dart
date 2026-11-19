@@ -196,18 +196,42 @@ const returnTypeLabels = {
 ///
 /// 정답은 서버가 정한다. 여기 값은 사감에게 "지금 찍으면 어디로 들어간다"를
 /// 미리 알려주는 안내용일 뿐이다. 서버에서 시간대가 바뀌면 여기도 고쳐야 한다.
-const returnSlots = <({String type, int from, int to})>[
-  (type: 'IMMEDIATE', from: 8 * 60, to: 16 * 60 + 30),
-  (type: 'DINNER', from: 17 * 60 + 20, to: 18 * 60 + 20),
-  (type: 'EIGHT_PM', from: 18 * 60 + 20, to: 20 * 60 + 30),
-];
+///
+/// [toExclusive] 는 **포함하지 않는** 끝이다. 서버가 `nowMinutes < end` 로
+/// 보기 때문에 17:20 은 바로 복귀가 아니라 석식이다.
+///
+/// 8시 복귀만 끝이 20:31 인 것은 20:30 분을 통째로 포함시키려는 것이다.
+/// 그래서 화면에 띄울 끝 시각은 [endLabel] 로 따로 들고 있다.
+const returnSlots =
+    <({String type, int from, int toExclusive, String endLabel})>[
+      (
+        type: 'IMMEDIATE',
+        from: 8 * 60,
+        toExclusive: 17 * 60 + 20,
+        endLabel: '17:20',
+      ),
+      (
+        type: 'DINNER',
+        from: 17 * 60 + 20,
+        toExclusive: 18 * 60 + 20,
+        endLabel: '18:20',
+      ),
+      (
+        type: 'EIGHT_PM',
+        from: 18 * 60 + 20,
+        toExclusive: 20 * 60 + 31,
+        endLabel: '20:30',
+      ),
+    ];
 
 /// 지금 스캔하면 어느 칸에 들어가는지. 시간대 밖이면 null.
-({String type, int from, int to})? currentReturnSlot([DateTime? at]) {
+({String type, int from, int toExclusive, String endLabel})? currentReturnSlot([
+  DateTime? at,
+]) {
   final now = at ?? DateTime.now();
   final minutes = now.hour * 60 + now.minute;
   for (final slot in returnSlots) {
-    if (minutes >= slot.from && minutes <= slot.to) return slot;
+    if (minutes >= slot.from && minutes < slot.toExclusive) return slot;
   }
   return null;
 }
@@ -219,9 +243,7 @@ const returnSlots = <({String type, int from, int to})>[
 String returnSlotNotice([DateTime? at]) {
   final slot = currentReturnSlot(at);
   if (slot == null) return '복귀 시간대 아님 · 기타로 기록됩니다';
-  final hh = (slot.to ~/ 60).toString().padLeft(2, '0');
-  final mm = (slot.to % 60).toString().padLeft(2, '0');
-  return '${returnTypeLabels[slot.type]} 중 · $hh:$mm까지';
+  return '${returnTypeLabels[slot.type]} 중 · ${slot.endLabel}까지';
 }
 
 // ── 관리자용 모델 ───────────────────────────────────────────────
