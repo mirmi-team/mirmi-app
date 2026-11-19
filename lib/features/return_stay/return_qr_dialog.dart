@@ -1,11 +1,12 @@
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/services/auth_service.dart';
 import '../../core/services/return_service.dart';
+import '../../shared/app_colors.dart';
 import '../../shared/app_palette.dart';
 import '../../shared/app_refresh.dart';
 
@@ -45,8 +46,23 @@ class _ReturnQrDialogState extends State<_ReturnQrDialog> {
   /// 만료 직전에 새 QR을 받아오는 타이머. 실패했을 때의 재시도에도 쓴다.
   Timer? _refresh;
 
+  /// 사감이 찍었는지 지켜보는 타이머.
+  ///
+  /// 서버가 먼저 알려줄 길이 없어서 내 복귀 기록을 주기적으로 다시 받아본다.
+  /// 팝업이 떠 있는 동안에만 돈다.
+  Timer? _watch;
+
+  /// 팝업을 열었을 때의 복귀 기록. 이것과 달라지면 방금 찍힌 것이다.
+  ({int count, int lastMs})? _baseline;
+
+  /// 찍혔다. QR 대신 완료 표시를 잠깐 보여주고 닫는다.
+  bool _scanned = false;
+
   /// 실패 후 다시 시도하기까지 기다리는 시간.
   static const _retryDelay = Duration(seconds: 3);
+
+  /// 찍혔는지 확인하는 간격. 사감이 스캔한 뒤 바로 내려가야 뒷사람이 선다.
+  static const _watchInterval = Duration(seconds: 2);
 
   /// 지금 화면에 쓸 수 있는 QR 이 있는지. 만료된 그림은 보여줘도 소용없다.
   bool get _hasLiveQr => _image != null && _secondsLeft > 0;
@@ -56,6 +72,7 @@ class _ReturnQrDialogState extends State<_ReturnQrDialog> {
     super.initState();
     _loadUser();
     _loadQr();
+    _watchScan();
     _tick = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) setState(() {});
     });
@@ -65,6 +82,7 @@ class _ReturnQrDialogState extends State<_ReturnQrDialog> {
   void dispose() {
     _tick?.cancel();
     _refresh?.cancel();
+    _watch?.cancel();
     super.dispose();
   }
 
@@ -74,6 +92,57 @@ class _ReturnQrDialogState extends State<_ReturnQrDialog> {
     if (expires == null) return 0;
     final left = expires.difference(DateTime.now());
     return left.isNegative ? 0 : (left.inMilliseconds / 1000).ceil();
+  }
+
+  /// 열린 시점의 기록을 재어 두고, 그 뒤로 달라지는지 지켜본다.
+  Future<void> _watchScan() async {
+    final baseline = await _signature();
+    if (!mounted || baseline == null) return;
+    _baseline = baseline;
+    _watch = Timer.periodic(_watchInterval, (_) => _pollScan());
+  }
+
+  /// 복귀 기록을 한 줄로 요약한다.
+  ///
+  /// 같은 시간대에 다시 찍으면 서버가 행을 새로 만들지 않고 시각만 바꾼다.
+  /// 그래서 줄 수만 보면 놓친다. 마지막 시각까지 같이 본다.
+  Future<({int count, int lastMs})?> _signature() async {
+    try {
+      final records = await ReturnService.getMine();
+      var lastMs = 0;
+      for (final record in records) {
+        final ms = record.actualTime?.millisecondsSinceEpoch ?? 0;
+        if (ms > lastMs) lastMs = ms;
+      }
+      return (count: records.length, lastMs: lastMs);
+    } catch (_) {
+      // 한 번 못 받아와도 다음 차례에 다시 본다.
+      return null;
+    }
+  }
+
+  Future<void> _pollScan() async {
+    if (_scanned) return;
+    final now = await _signature();
+    final base = _baseline;
+    if (!mounted || base == null || now == null || _scanned) return;
+    if (now.count == base.count && now.lastMs == base.lastMs) return;
+    _onScanned();
+  }
+
+  /// 찍힌 것을 확인했다.
+  ///
+  /// 곧바로 닫으면 학생은 찍힌 건지 그냥 꺼진 건지 모른다. 완료 표시를
+  /// 잠깐 보여주고 닫는다.
+  void _onScanned() {
+    _tick?.cancel();
+    _refresh?.cancel();
+    _watch?.cancel();
+    HapticFeedback.mediumImpact();
+    setState(() => _scanned = true);
+    Timer(const Duration(milliseconds: 1200), () {
+      if (mounted) Navigator.of(context).pop();
+    });
   }
 
   Future<void> _loadUser() async {
@@ -188,12 +257,18 @@ class _ReturnQrDialogState extends State<_ReturnQrDialog> {
 
   /// 제목 아래 설명. 쓸 수 있는 QR 이 있을 때만 남은 시간을 센다.
   String get _subtitle {
+    if (_scanned) return '입실 체크가 완료되었습니다.';
     if (_hasLiveQr) return '$_secondsLeft초 후에 만료됩니다.';
     if (_error != null) return '다시 시도하는 중입니다…';
     return 'QR을 불러오는 중입니다…';
   }
 
   Widget _buildQr() {
+    if (_scanned) {
+      return Center(
+        child: Icon(Icons.check_circle, size: 96, color: AppBrand.primary),
+      );
+    }
     // 아직 살아 있는 QR 이 있으면 갱신이 한 번 실패해도 그대로 보여준다.
     // (뒤에서 재시도가 돌고 있다)
     if (_hasLiveQr) {
