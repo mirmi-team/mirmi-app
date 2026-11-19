@@ -12,6 +12,7 @@ import '../../features/my_page/my_page_screen.dart';
 import '../../features/my_page/delete_account_screen.dart';
 import '../../features/my_page/logout_screen.dart';
 import '../../features/my_page/change_password_screen.dart';
+import '../../features/admin/qr_scan_screen.dart';
 import '../../features/my_page/merit_log_screen.dart';
 import '../../features/my_page/my_suggestions_screen.dart';
 import '../../features/my_page/suggestion_detail_screen.dart';
@@ -137,6 +138,12 @@ final router = GoRouter(
     ),
 
     // ── 관리자 ───────────────────────────────────────────────
+    GoRoute(
+      path: '/qr-scan',
+      pageBuilder: (context, state) =>
+          const MaterialPage(child: AdminQrScanScreen()),
+    ),
+
     GoRoute(
       path: '/notice-form',
       pageBuilder: (context, state) => MaterialPage(
