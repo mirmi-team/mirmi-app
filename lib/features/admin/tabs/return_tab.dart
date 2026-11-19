@@ -64,13 +64,18 @@ class _AdminReturnTabState extends State<AdminReturnTab> with AppBannerMixin {
   String get _countLabel {
     if (!_isReturn) {
       final week = _week;
-      return week == null
-          ? ''
-          : '잔류 ${week.stayCount} · 외박 ${week.outingCount}';
+      if (week == null) return '';
+      // 사감이 이 화면을 여는 이유는 안 낸 사람을 찾기 위해서다.
+      if (week.notSubmittedCount > 0) return '미신청 ${week.notSubmittedCount}명';
+      return '잔류 ${week.stayCount} · 외박 ${week.outingCount}';
     }
     if (_missingCount == 0 && _studentCount > 0) return '전원 복귀';
     return '미복귀 $_missingCount명';
   }
+
+  /// 머리말 숫자를 빨갛게 띄울지. 손봐야 할 것이 남았다는 뜻이다.
+  bool get _countIsAlert =>
+      _isReturn ? _missingCount > 0 : (_week?.notSubmittedCount ?? 0) > 0;
 
   @override
   void initState() {
@@ -165,7 +170,7 @@ class _AdminReturnTabState extends State<AdminReturnTab> with AppBannerMixin {
                           _countLabel,
                           style: TextStyle(
                             fontSize: 13,
-                            color: _isReturn && _missingCount > 0
+                            color: _countIsAlert
                                 ? palette.statusError
                                 : palette.textTertiary,
                           ),
@@ -348,14 +353,15 @@ class _AdminReturnTabState extends State<AdminReturnTab> with AppBannerMixin {
                   ),
                 )
               else ...[
+                // 사감이 움직여야 할 것부터 위에 둔다.
+                _StayGroup(
+                  title: '미신청',
+                  entries: week.notSubmitted,
+                  alert: true,
+                ),
                 _StayGroup(title: '잔류', entries: week.staying, onCall: _call),
-                _StayGroup(title: '외박', entries: week.outing),
+                _StayGroup(title: '외박', entries: week.outing, onCall: _call),
               ],
-              // 서버가 신청한 학생만 내려준다. 미신청자는 알 길이 없다.
-              Text(
-                '아직 신청하지 않은 학생은 여기 나오지 않습니다.',
-                style: TextStyle(fontSize: 12, color: palette.textTertiary),
-              ),
             ],
           ),
         ),
@@ -379,7 +385,8 @@ class _AdminReturnTabState extends State<AdminReturnTab> with AppBannerMixin {
             ),
             const SizedBox(height: 4),
             Text(
-              '잔류 ${week.stayCount}명 · 외박 ${week.outingCount}명',
+              '잔류 ${week.stayCount} · 외박 ${week.outingCount}'
+              '${week.notSubmittedCount > 0 ? ' · 미신청 ${week.notSubmittedCount}' : ''}',
               style: TextStyle(fontSize: 12, color: palette.textTertiary),
             ),
           ],
@@ -679,10 +686,18 @@ class _StudentRow extends StatelessWidget {
 }
 
 class _StayGroup extends StatelessWidget {
-  const _StayGroup({required this.title, required this.entries, this.onCall});
+  const _StayGroup({
+    required this.title,
+    required this.entries,
+    this.onCall,
+    this.alert = false,
+  });
 
   final String title;
   final List<StayEntry> entries;
+
+  /// 손봐야 할 묶음. 머리글과 이름을 빨갛게 띄운다.
+  final bool alert;
 
   /// 잔류 학생만 보호자에게 연락할 일이 생긴다. 외박은 집에 있다.
   final void Function(String phone)? onCall;
@@ -702,7 +717,7 @@ class _StayGroup extends StatelessWidget {
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w700,
-                color: palette.textPrimary,
+                color: alert ? palette.statusError : palette.textPrimary,
               ),
             ),
             const SizedBox(width: 12),
@@ -710,7 +725,10 @@ class _StayGroup extends StatelessWidget {
             const SizedBox(width: 12),
             Text(
               '${entries.length}명',
-              style: TextStyle(fontSize: 12, color: palette.textTertiary),
+              style: TextStyle(
+                fontSize: 12,
+                color: alert ? palette.statusError : palette.textTertiary,
+              ),
             ),
           ],
         ),
@@ -725,7 +743,7 @@ class _StayGroup extends StatelessWidget {
             children: [
               for (var i = 0; i < entries.length; i++) ...[
                 if (i > 0) Divider(color: palette.borderSubtle, height: 1),
-                _StayRow(entry: entries[i], onCall: onCall),
+                _StayRow(entry: entries[i], onCall: onCall, alert: alert),
               ],
             ],
           ),
@@ -737,10 +755,13 @@ class _StayGroup extends StatelessWidget {
 }
 
 class _StayRow extends StatelessWidget {
-  const _StayRow({required this.entry, this.onCall});
+  const _StayRow({required this.entry, this.onCall, this.alert = false});
 
   final StayEntry entry;
   final void Function(String phone)? onCall;
+
+  /// 아직 안 낸 학생. 스크롤 중에도 눈에 걸려야 한다.
+  final bool alert;
 
   @override
   Widget build(BuildContext context) {
@@ -763,16 +784,25 @@ class _StayRow extends StatelessWidget {
           Expanded(
             child: Text(
               entry.username ?? '-',
-              style: TextStyle(fontSize: 14, color: palette.textPrimary),
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: alert ? FontWeight.w600 : FontWeight.w400,
+                color: alert ? palette.statusError : palette.textPrimary,
+              ),
             ),
           ),
-          if (onCall != null && entry.hasPhone)
+          // 아이콘만 두면 누구 번호인지 알 수 없다. 줄마다 적어 둔다.
+          if (onCall != null && entry.hasPhone) ...[
+            Text(
+              '보호자 연락처',
+              style: TextStyle(fontSize: 12, color: palette.textTertiary),
+            ),
             IconButton(
               onPressed: () => onCall!(entry.parentPhone!),
               icon: Icon(Icons.call, size: 19, color: AppBrand.primary),
               tooltip: '보호자에게 전화',
-            )
-          else
+            ),
+          ] else
             const SizedBox(width: 48),
         ],
       ),

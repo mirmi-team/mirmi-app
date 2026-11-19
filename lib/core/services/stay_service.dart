@@ -49,18 +49,26 @@ class StayService {
   }
 }
 
+/// 학생 한 명의 이번 주 상태.
+///
+/// 서버는 신청한 학생과 **아직 안 낸 학생**을 한 목록에 담아 준다.
+/// 미신청은 `status` 가 null 로 온다. 이걸 외박으로 떨어뜨리면 안 된다.
+enum StayKind { stay, outing, notSubmitted }
+
 /// 한 주의 잔류/외박 현황.
 class StayWeek {
   const StayWeek({
     required this.weekStart,
     required this.stayCount,
     required this.outingCount,
+    required this.notSubmittedCount,
     required this.entries,
   });
 
   StayWeek.empty(this.weekStart)
     : stayCount = 0,
       outingCount = 0,
+      notSubmittedCount = 0,
       entries = const [];
 
   /// 그 주 월요일.
@@ -68,6 +76,9 @@ class StayWeek {
 
   final int stayCount;
   final int outingCount;
+
+  /// 잔류 신청 대상인데 아직 안 낸 학생 수. 사감이 재촉해야 할 대상이다.
+  final int notSubmittedCount;
   final List<StayEntry> entries;
 
   /// '11.16 ~ 11.22'
@@ -76,9 +87,15 @@ class StayWeek {
     return '${shortDateLabel(weekStart)} ~ ${shortDateLabel(end)}';
   }
 
-  List<StayEntry> get staying => entries.where((e) => e.isStaying).toList();
+  List<StayEntry> get staying => _of(StayKind.stay);
 
-  List<StayEntry> get outing => entries.where((e) => !e.isStaying).toList();
+  List<StayEntry> get outing => _of(StayKind.outing);
+
+  /// 아직 안 낸 학생. 화면에서 맨 위에 둔다.
+  List<StayEntry> get notSubmitted => _of(StayKind.notSubmitted);
+
+  List<StayEntry> _of(StayKind kind) =>
+      entries.where((e) => e.kind == kind).toList();
 
   factory StayWeek.fromJson(Map<String, dynamic> json, DateTime monday) {
     final summary = (json['summary'] as Map<String, dynamic>?) ?? const {};
@@ -92,6 +109,7 @@ class StayWeek {
       weekStart: monday,
       stayCount: (summary['STAY'] as int?) ?? 0,
       outingCount: (summary['OUTING'] as int?) ?? 0,
+      notSubmittedCount: (summary['NOT_SUBMITTED'] as int?) ?? 0,
       entries: entries,
     );
   }
@@ -101,7 +119,7 @@ class StayWeek {
 class StayEntry {
   const StayEntry({
     required this.userId,
-    required this.isStaying,
+    required this.kind,
     this.username,
     this.roomNumber,
     this.parentPhone,
@@ -109,8 +127,12 @@ class StayEntry {
 
   final int userId;
 
-  /// true 면 기숙사 잔류, false 면 금토외박.
-  final bool isStaying;
+  final StayKind kind;
+
+  bool get isStaying => kind == StayKind.stay;
+
+  /// 미신청 학생은 연락처도 신청 시각도 없다.
+  bool get isNotSubmitted => kind == StayKind.notSubmitted;
 
   final String? username;
   final int? roomNumber;
@@ -122,7 +144,12 @@ class StayEntry {
 
   factory StayEntry.fromJson(Map<String, dynamic> json) => StayEntry(
     userId: (json['user_id'] as int?) ?? 0,
-    isStaying: json['status'] == 'STAY',
+    // status 가 null 이면 아직 안 낸 학생이다. 외박으로 치면 안 된다.
+    kind: switch (json['status']) {
+      'STAY' => StayKind.stay,
+      'OUTING' => StayKind.outing,
+      _ => StayKind.notSubmitted,
+    },
     username: json['username'] as String?,
     roomNumber: json['room_number'] as int?,
     parentPhone: json['parent_phone'] as String?,
