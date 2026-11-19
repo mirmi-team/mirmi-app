@@ -179,9 +179,7 @@ class ReturnRecord {
 
   factory ReturnRecord.fromJson(Map<String, dynamic> json) => ReturnRecord(
     returnType: json['return_type'] as String?,
-    // 이 컬럼만 한국시간 벽시계로 내려온다. parseServerTime 으로 읽으면
-    // 9시간이 밀린다.
-    actualTime: parseKstTime(json['actual_return_time'] as String?),
+    actualTime: parseServerTime(json['actual_return_time'] as String?),
   );
 }
 
@@ -318,12 +316,11 @@ class ReturnCheckins {
 
   factory ReturnCheckins.fromJson(Map<String, dynamic>? json) {
     if (json == null) return const ReturnCheckins();
-    // 전부 actual_return_time 에서 나온 값이라 한국시간 벽시계다.
     return ReturnCheckins(
-      immediate: parseKstTime(json['IMMEDIATE'] as String?),
-      dinner: parseKstTime(json['DINNER'] as String?),
-      eightPm: parseKstTime(json['EIGHT_PM'] as String?),
-      other: parseKstTime(json['OTHER'] as String?),
+      immediate: parseServerTime(json['IMMEDIATE'] as String?),
+      dinner: parseServerTime(json['DINNER'] as String?),
+      eightPm: parseServerTime(json['EIGHT_PM'] as String?),
+      other: parseServerTime(json['OTHER'] as String?),
     );
   }
 }
